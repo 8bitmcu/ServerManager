@@ -1,0 +1,149 @@
+{% extends 'base.htm' %}
+{% block title %}Server Configuration{% endblock %}
+{% block content %}
+<h1 class="text-3xl text-black pb-6">Server Configuration</h1>
+
+<form class="flex flex-wrap" method="POST">
+  <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2">
+    <p class="text-xl pb-6 flex items-center">
+      <i class="fas fa-list mr-3"></i> Hosting Information
+    </p>
+    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+      <div class="">
+        <label class="block text-sm text-gray-600" for="name">Server Name</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="name" name="name" type="text" required=""
+          placeholder="Server Name" aria-label="Name" value="{{data['name']}}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="password">Password</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="password" name="password" type="password"
+          required="" placeholder="Server Password" aria-label="Password" value="{{ data['password'] }}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="admin_password">Admin Password</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="admin_password" name="admin_password"
+          type="password" required="" placeholder="Admin Password" aria-label="Admin Password"
+          value="{{ data['admin_password'] }}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="register_to_lobby">Show on Lobby</label>
+        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+          <input type="checkbox" name="register_to_lobby" id="register_to_lobby" value="1" {% if
+            data['register_to_lobby']=='1' %} checked {% endif %}
+            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+          <label for="register_to_lobby"
+            class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+          <input type="hidden" value="0" name="register_to_lobby" />
+        </div>
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="pickup_mode_enabled">Pickup Mode</label>
+        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+          <input type="checkbox" name="pickup_mode_enabled" id="pickup_mode_enabled" value="1" {% if
+            data['pickup_mode_enabled']=='1' %} checked {% endif %}
+            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+          <label for="pickup_mode_enabled"
+            class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+          <input type="hidden" value="0" name="pickup_mode_enabled" />
+        </div>
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="locked_entry_list">Pickup Locked Entry List</label>
+        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+          <input type="checkbox" name="locked_entry_list" id="locked_entry_list" value="1" {% if
+            data['locked_entry_list']=='1' %} checked {% endif %}
+            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+          <label for="locked_entry_list"
+            class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+          <input type="hidden" value="0" name="locked_entry_list" />
+        </div>
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="result_screen_time">Result Screen Time</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="result_screen_time"
+          name="result_screen_time" type="text" required="" placeholder="Result Screen Time"
+          aria-label="Result Screen Time" value="{{ data['result_screen_time'] }}" />
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+    <p class="text-xl pb-6 flex items-center">
+      <i class="fas fa-list mr-3"></i> Server Details
+    </p>
+    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+      <div class="">
+        <label class="block text-sm text-gray-600" for="name">UDP Port</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="udp_port" name="udp_port" type="text"
+          required="" placeholder="UDP Port" aria-label="UDP Port" value="{{ data['udp_port'] }}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="tcp_port">TCP Port</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tcp_port" name="tcp_port" type="text"
+          required="" placeholder="TCP Port" aria-label="TCP Port" value="{{ data['tcp_port'] }}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="http_port">HTTP Port</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="http_port" name="http_port" type="text"
+          required="" placeholder="HTTP Port" aria-label="HTTP Port" value="{{ data['http_port'] }}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="client_send_interval">Packet HZ</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="client_send_interval"
+          name="client_send_interval" type="text" required="" placeholder="Packet HZ" aria-label="Packet HZ"
+          value="{{ data['client_send_interval'] }}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="num_threads">Threads</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="num_threads" name="num_threads"
+          type="text" required="" placeholder="Threads" aria-label="Threads" value="{{ data['num_threads'] }}" />
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+    <p class="text-xl pb-6 flex items-center">
+      <i class="fas fa-list mr-3"></i> Preferences
+    </p>
+    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+      <div class="">
+        <label class="block text-sm text-gray-600" for="measurement_unit">Measurement Unit</label>
+        <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit" name="measurement_unit">
+          <option value="0" {% if data['measurement_unit']=='0' %} selected {% endif %}>KM, KM/h</option>
+          <option value="1" {% if data['measurement_unit']=='1' %} selected {% endif %}>Miles, MPH</option>
+        </select>
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="temp_unit">Temperature Unit</label>
+        <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="temp_unit" name="temp_unit">
+          <option value="0" {% if data['temp_unit']=='0' %} selected {% endif %}>Celcius</option>
+          <option value="1" {% if data['temp_unit']=='1' %} selected {% endif %}>Fahrenheit</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+    <p class="text-xl pb-6 flex items-center">
+      <i class="fas fa-list mr-3"></i> Installation
+    </p>
+    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+      <div class="">
+        <label class="block text-sm text-gray-600" for="install_path">Installation Path</label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="install_path" name="install_path"
+          type="text" required="" placeholder="Installation Path" aria-label="Installation Path"
+          value="{{ data['install_path'] }}" />
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+    <p class="text-xl pb-6 flex items-center">
+      <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded" type="submit">
+        Save
+      </button>
+    </p>
+  </div>
+</form>
+
+{% endblock %}

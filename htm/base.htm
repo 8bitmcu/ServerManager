@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %} {% endblock %}</title>
+  <meta name="author" content="8bitmcu" />
+  <meta name="description" content="" />
+
+  <!-- Tailwind -->
+  <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <style>
+    @import url("https://fonts.googleapis.com/css?family=Karla:400,700&display=swap");
+
+    .font-family-karla {
+      font-family: karla;
+    }
+
+    .bg-sidebar {
+      background: #e3342f;
+    }
+
+    .active-nav-link {
+      background: #621b18;
+    }
+
+    .nav-item:hover {
+      background: #621b18;
+    }
+
+    .account-link:hover {
+      background: #3d68ff;
+    }
+
+    .toggle-checkbox:checked {
+      @apply: right-0 border-red-400;
+      right: 0;
+      border-color: #e3342f;
+    }
+
+    .toggle-checkbox:checked+.toggle-label {
+      @apply: bg-red-400;
+      background-color: #e3342f;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 font-family-karla flex">
+  <aside class="relative bg-sidebar h-screen w-96 hidden sm:block shadow-xl">
+    <div class="p-6">
+      <span class="text-white text-3xl font-semibold uppercase">ServerManager</span>
+      <div
+        class="w-full bg-white font-semibold py-2 mt-5 rounded-br-lg rounded-bl-lg rounded-tr-lg shadow-lg flex items-center justify-center flex-col">
+        <div>
+          <span>Server status: &nbsp;</span>
+          <div
+            class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-green-500 py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
+            <div class="mt-px">online</div>
+          </div>
+        </div>
+        <div>
+          <span>Server IP: &nbsp;</span><input type="textbox" class="text-gray-700 bg-gray-200 rounded"
+            value="174.118.36.72" style="width: 100px; text-align: center" />
+        </div>
+      </div>
+    </div>
+    <nav class="text-white text-base font-semibold pt-3">
+      <a href="{{ url_for('index') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path == url_for('index') %}active-nav-link{% endif %}">
+        <i class="fas fa-tachometer-alt mr-3"></i>
+        Server Dashboard
+      </a>
+      <a href="{{ url_for('veh_class') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('veh_class')) %}active-nav-link{% endif %}">
+        <i class="fas fa-car mr-3"></i>
+        Vehicle Classes
+      </a>
+      <a href="{{ url_for('time') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('time')) %}active-nav-link{% endif %}">
+        <i class="fas fa-cloud-moon-rain mr-3"></i>
+        Time and Weather Presets
+      </a>
+      <a href="{{ url_for('event') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('event')) %}active-nav-link{% endif %}">
+        <i class="fas fa-calendar-check mr-3"></i>
+        Event Presets
+      </a>
+      <a href="{{ url_for('difficulty') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('difficulty')) %}active-nav-link{% endif %}">
+        <i class="fas fa-signal mr-3"></i>
+        Difficulty Presets
+      </a>
+      <a href="{{ url_for('config') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('config')) %}active-nav-link{% endif %}">
+        <i class="fas fa-server mr-3"></i>
+        Server Configuration
+      </a>
+    </nav>
+    <div class="absolute w-full bottom-0 flex items-center justify-center py-4">
+      <img src="/static/img/corsa_logo.png" style="margin: auto; width: 80%" />
+    </div>
+  </aside>
+
+  <div class="w-full flex flex-col h-screen overflow-y-hidden">
+    <!-- Desktop Header -->
+    <header class="w-full items-center bg-white py-2 px-6 hidden sm:flex">
+      <div class="w-1/2"></div>
+      <div x-data="{ isOpen: false }" class="relative w-1/2 flex justify-end">
+        <button @click="isOpen = !isOpen"
+          class="realtive z-10 w-12 h-12 rounded-full overflow-hidden border-4 border-gray-400 hover:border-gray-300 focus:border-gray-300 focus:outline-none">
+          <img src="https://source.unsplash.com/uJ8LNVCBjFQ/400x400" />
+        </button>
+        <button x-show="isOpen" @click="isOpen = false" class="h-full w-full fixed inset-0 cursor-default"></button>
+        <div x-show="isOpen" class="absolute w-32 bg-white rounded-lg shadow-lg py-2 mt-16">
+          <a href="#" class="block px-4 py-2 account-link hover:text-white">Account</a>
+          <a href="#" class="block px-4 py-2 account-link hover:text-white">Support</a>
+          <a href="#" class="block px-4 py-2 account-link hover:text-white">Sign Out</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile Header & Nav -->
+    <header x-data="{ isOpen: false }" class="w-full bg-sidebar py-5 px-6 sm:hidden">
+      <div class="flex items-center justify-between">
+        <a href="index.html" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">Admin</a>
+        <button @click="isOpen = !isOpen" class="text-white text-3xl focus:outline-none">
+          <i x-show="!isOpen" class="fas fa-bars"></i>
+          <i x-show="isOpen" class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Dropdown Nav -->
+      <nav :class="isOpen ? 'flex': 'hidden'" class="flex flex-col pt-4">
+        <a href="index.html" class="flex items-center active-nav-link text-white py-2 pl-4 nav-item">
+          <i class="fas fa-tachometer-alt mr-3"></i>
+          Dashboard
+        </a>
+        <a href="blank.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-sticky-note mr-3"></i>
+          Blank Page
+        </a>
+        <a href="tables.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-table mr-3"></i>
+          Tables
+        </a>
+        <a href="forms.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-align-left mr-3"></i>
+          Forms
+        </a>
+        <a href="tabs.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-tablet-alt mr-3"></i>
+          Tabbed Content
+        </a>
+        <a href="calendar.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-calendar mr-3"></i>
+          Calendar
+        </a>
+        <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-cogs mr-3"></i>
+          Support
+        </a>
+        <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-user mr-3"></i>
+          My Account
+        </a>
+        <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-sign-out-alt mr-3"></i>
+          Sign Out
+        </a>
+      </nav>
+    </header>
+
+    <div class="w-full h-screen overflow-x-hidden border-t flex flex-col">
+      <main class="mb-auto w-full flex-grow p-6">
+        {% block content %} {% endblock %}
+      </main>
+
+      <footer class="w-full bg-white text-right p-4">
+        Built by 8bitmcu and codellama, 2024
+      </footer>
+    </div>
+  </div>
+
+  <!-- AlpineJS -->
+  <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+  <!-- Font Awesome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"
+    integrity="sha256-KzZiKy0DWYsnwMF+X1DvQngQ2/FxF7MF3Ff72XcpuPs=" crossorigin="anonymous"></script>
+</body>
+
+</html>

@@ -1,0 +1,286 @@
+{% extends 'base.htm' %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<script>
+//window.onbeforeunload = function() {
+//    return true;
+//};
+//window.onbeforeunload = null;
+</script>
+<h1 class="text-3xl text-black pb-6">Event Presets</h1>
+<div class="flex flex-wrap">
+  <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
+    <p class="text-xl pb-6 flex items-center"></p>
+    <div class="bg-white">
+      <nav class="flex flex-col sm:flex-row">
+        {% for d in data['list'] %}
+        <a href="{{ url_for('event', id=d['id']) }}"
+          class="py-4 px-6 block hover:text-red-500 focus:outline-none text-gray-500 border-b-2 font-medium {% if d['id'] == data['id'] %} text-red-500 border-red-500 {% endif %}">
+          <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
+        </a>
+        {% endfor %}
+
+        <form x-data="{ showModal: false, email: '' }" method="POST">
+          <a href="#" @click="showModal = true"
+            class="py-4 px-6 block hover:text-red-500 focus:outline-none font-medium">
+            <i class="fas fa-plus mr-3"></i> Add new Event
+          </a>
+          <!-- Background overlay -->
+          <div x-show="showModal" class="fixed inset-0 transition-opacity" aria-hidden="true"
+            @click="showModal = false">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <!-- Modal -->
+          <div x-show="showModal" x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <!-- Modal panel -->
+              <div
+                class="w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <!-- Modal content -->
+                  <div class="sm:flex sm:items-start">
+                    <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Add a new Event
+                      </h3>
+                      <div class="mt-2">
+                        <p class="text-sm text-gray-500">
+                          Enter the name of the event
+                        </p>
+                        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="event_name"
+                          name="event_name" type="text" required="" placeholder="Event Name" aria-label="Event Name" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex">
+                  <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
+                    Save
+                  </button>
+                  <button @click="showModal = false"
+                    class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </nav>
+
+      {% if data['form'] is defined %}
+      <form class="flex flex-wrap" method="POST">
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+          <p class="text-xl px-6 pb-6 flex items-center">
+            <i class="fas fa-list mr-3"></i> Booking
+          </p>
+          <div class="p-10 leading-loose"
+            x-data="{ booking_enabled: {{ 'true' if data.form['booking_enabled'] == '1' else 'false' }} }">
+            <div>
+              <label class="block text-sm text-gray-600" for="booking_enabled">Booking</label>
+              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
+                  data.form['booking_enabled']=='1' %} checked {% endif %}
+                  @click="booking_enabled = $event.target.checked"
+                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                <label for="booking_enabled"
+                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                <input type='hidden' value='0' name='booking_enabled'>
+              </div>
+            </div>
+            <div x-show="booking_enabled">
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="booking_time">Booking Time</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="booking_time" name="booking_time"
+                  type="text" required="" placeholder="Booking Time" aria-label="Booking Time"
+                  value="{{ data.form['booking_time'] }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+          <p class="text-xl px-6 pb-6 flex items-center">
+            <i class="fas fa-list mr-3"></i> Practice
+          </p>
+          <div class="p-10 leading-loose"
+            x-data="{ practice_enabled: {{ 'true' if data.form['practice_enabled'] == '1' else 'false' }} }">
+            <div>
+              <label class="block text-sm text-gray-600" for="practice_enabled">Practice</label>
+              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="practice_enabled" id="practice_enabled" value="1" {% if
+                  data.form['practice_enabled']=='1' %} checked {% endif %}
+                  @click="practice_enabled = $event.target.checked"
+                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                <label for="practice_enabled"
+                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                <input type='hidden' value='0' name='practice_enabled'>
+              </div>
+            </div>
+            <div x-show="practice_enabled">
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="practice_time">Practice Time</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="practice_time"
+                  name="practice_time" type="text" required="" placeholder="Practice Time" aria-label="Practice Time"
+                  value="{{ data.form['practice_time'] }}" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-600" for="practice_is_open">Can Join</label>
+                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                  <input type="checkbox" name="practice_is_open" id="practice_is_open" value="1" {% if
+                    data.form['practice_is_open']=='1' %} checked {% endif %}
+                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                  <label for="practice_is_open"
+                    class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                  <input type='hidden' value='0' name='practice_is_open'>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+          <p class="text-xl px-6 pb-6 flex items-center">
+            <i class="fas fa-list mr-3"></i> Qualify
+          </p>
+          <div class="p-10 leading-loose"
+            x-data="{ qualify_enabled: {{ 'true' if data.form['qualify_enabled'] == '1' else 'false' }} }">
+            <div>
+              <label class="block text-sm text-gray-600" for="qualify_enabled">Qualify</label>
+              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="qualify_enabled" id="qualify_enabled" value="1" {% if
+                  data.form['qualify_enabled']=='1' %} checked {% endif %}
+                  @click="qualify_enabled = $event.target.checked"
+                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                <label for="qualify_enabled"
+                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                <input type='hidden' value='0' name='qualify_enabled'>
+              </div>
+            </div>
+            <div x-show="qualify_enabled">
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="qualify_time">Qualify Time</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_time" name="qualify_time"
+                  type="text" required="" placeholder="Qualify Time" aria-label="Qualify Time"
+                  value="{{ data.form['qualify_time'] }}" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-600" for="qualify_is_open">Can Join</label>
+                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                  <input type="checkbox" name="qualify_is_open" id="qualify_is_open" value="1" {% if
+                    data.form['qualify_is_open']=='1' %} checked {% endif %}
+                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                  <label for="qualify_is_open"
+                    class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                  <input type='hidden' value='0' name='qualify_is_open'>
+                </div>
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="qualify_max_wait_perc">Qualify limit Perc.</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_max_wait_perc"
+                  name="qualify_max_wait_perc" type="text" required="" placeholder="Qualify limit Perc."
+                  aria-label="Qualify limit Perc." value="{{ data.form['qualify_max_wait_perc'] }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+          <p class="text-xl px-6 pb-6 flex items-center">
+            <i class="fas fa-list mr-3"></i> Race
+          </p>
+          <div class="p-10 leading-loose"
+            x-data="{ race_enabled: {{ 'true' if data.form['race_enabled'] == '1' else 'false' }} }">
+            <div>
+              <label class="block text-sm text-gray-600" for="race_enabled">Race</label>
+              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="race_enabled" id="race_enabled" value="1" {% if
+                  data.form['race_enabled']=='1' %} checked {% endif %} @click="race_enabled = $event.target.checked"
+                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                <label for="race_enabled"
+                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                <input type='hidden' value='0' name='race_enabled'>
+              </div>
+            </div>
+            <div x-show="race_enabled">
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="race_laps">Race Laps</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_laps" name="race_laps"
+                  type="text" required="" placeholder="Race Laps" aria-label="Race Laps"
+                  value="{{ data.form['race_laps'] }}" />
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="race_time">Race Minutes</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_time" name="race_time"
+                  type="text" required="" placeholder="Race Minutes" aria-label="Race Minutes"
+                  value="{{ data.form['race_time'] }}" />
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="race_over_time">Race Overtime</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_over_time"
+                  name="race_over_time" type="text" required="" placeholder="Race Overtime" aria-label="Race Overtime"
+                  value="{{ data.form['race_over_time'] }}" />
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="race_wait_time">Race Wait Time</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_wait_time"
+                  name="race_wait_time" type="text" required="" placeholder="Race Wait Time" aria-label="Race Wait Time"
+                  value="{{ data.form['race_wait_time'] }}" />
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="race_is_open">Join Type</label>
+                <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="race_is_open"
+                  name="race_is_open">
+                  <option value="0" {% if data.form['race_is_open']=='0' %} selected {% endif %}>Close</option>
+                  <option value="1" {% if data.form['race_is_open']=='1' %} selected {% endif %}>Open</option>
+                  <option value="2" {% if data.form['race_is_open']=='2' %} selected {% endif %}>Close at Start</option>
+                </select>
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600" for="reversed_grid_positions">Reversed Grid</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="reversed_grid_positions"
+                  name="reversed_grid_positions" type="text" required="" placeholder="Reversed Grid"
+                  aria-label="Reversed Grid" value="{{ data.form['reversed_grid_positions'] }}" />
+              </div>
+              <div class="inline-block mt-2 w-1/2 pr-1">
+                <label class="block text-sm text-gray-600" for="race_pit_window_start">Mandatory Pit (Start)</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_start"
+                  name="race_pit_window_start" type="text" required="" placeholder="Mandatory Pit"
+                  aria-label="Mandatory Pit" value="{{ data.form['race_pit_window_start'] }}" />
+              </div>
+              <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
+                <label class="block text-sm text-gray-600" for="race_pit_window_start">Mandatory Pit (End)</label>
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_end"
+                  name="race_pit_window_end" type="text" required="" placeholder="Mandatory Pit"
+                  aria-label="Mandatory Pit" value="{{ data.form['race_pit_window_end'] }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data=" { btnClick : true }">
+          <p class="text-xl pb-6 flex items-center">
+            <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
+              Save
+            </button>
+            <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button"
+              @click="document.getElementById('frmDelete').submit()">
+              Delete
+            </button>
+          </p>
+        </div>
+    </div>
+    </form>
+    <form id="frmDelete" action="{{ url_for('event_delete', id=data['id']) }}" method="POST"></form>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

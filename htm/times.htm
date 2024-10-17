@@ -1,0 +1,229 @@
+{% extends 'base.htm' %}
+{% block title %}Time and Weather{% endblock %}
+{% block content %}
+<h1 class="text-3xl text-black pb-6">Time and Weather Presets</h1>
+<div class="flex flex-wrap">
+  <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
+    <p class="text-xl pb-6 flex items-center"></p>
+    <div class="bg-white">
+      <nav class="flex flex-col sm:flex-row">
+        {% for d in data['list'] %}
+        <a href="{{ url_for('time', id=d['id']) }}"
+          class="py-4 px-6 block hover:text-red-500 focus:outline-none text-gray-500 border-b-2 font-medium {% if d['id'] == data['id'] %} text-red-500 border-red-500 {% endif %}">
+          <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
+        </a>
+        {% endfor %}
+
+        <form x-data="{ showModal: false, email: '' }" method="POST">
+          <a href="#" @click="showModal = true"
+            class="py-4 px-6 block hover:text-red-500 focus:outline-none font-medium">
+            <i class="fas fa-plus mr-3"></i> Add new Time and Weather
+          </a>
+          <!-- Background overlay -->
+          <div x-show="showModal" class="fixed inset-0 transition-opacity" aria-hidden="true"
+            @click="showModal = false">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <!-- Modal -->
+          <div x-show="showModal" x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <!-- Modal panel -->
+              <div
+                class="w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <!-- Modal content -->
+                  <div class="sm:flex sm:items-start">
+                    <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Add a new Time and Weather
+                      </h3>
+                      <div class="mt-2">
+                        <p class="text-sm text-gray-500">
+                          Enter the name of the time and weather preset
+                        </p>
+                        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="time_name"
+                          name="time_name" type="text" required="" placeholder="Time and Weather Name"
+                          aria-label="Time and Weather Name" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex">
+                  <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
+                    Save
+                  </button>
+                  <button @click="showModal = false"
+                    class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </nav>
+
+      {% if data['form'] is defined %}
+      <form class="flex flex-wrap" method="POST">
+        <div class="w-full mt-6 pl-0 lg:pl-2">
+          <p class="text-xl px-6 pb-6 flex items-center">
+            <i class="fas fa-list mr-3"></i> Time
+          </p>
+          <div class="p-10 leading-loose">
+            <div class="inline-block mt-2 w-1/4 pr-1">
+              <label for="time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Time of
+                Day:</label>
+              <div class="flex">
+                <input type="time" id="time" class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" name="time"
+                  value="{{ data.form['time'] }}" required>
+              </div>
+            </div>
+            <div class="inline-block mt-2 -mx-1 pl-1 w-1/4">
+              <label class="block text-sm text-gray-600" for="time_of_day_multi">Multiplier</label>
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="time_of_day_multi"
+                name="time_of_day_multi" type="text" required="" placeholder="Multiplier" aria-label="Multiplier"
+                value="{{ data.form['time_of_day_multi'] }}" />
+            </div>
+          </div>
+        </div>
+        <div class="w-full mt-6 pl-0 lg:pl-2">
+          <p class="text-xl px-6 pb-6 flex items-center">
+            <i class="fas fa-list mr-3"></i> Weather
+          </p>
+        </div>
+
+        <script>
+          function time_weather() {
+            return {
+              items: JSON.parse({{ data.form['weather'] | tojson }}),
+              add_panel() {
+                this.items.push({});
+              },
+              remove_panel(index) {
+                this.items = this.items.filter((item, idx) => {
+                  return index !== idx
+                })
+              }
+            }
+          }
+        </script>
+
+        <div x-data="time_weather()" class="flex flex-wrap flex-col sm:flex-row">
+          <template x-for="(time, index) in items">
+            <div class="w-full lg:w-1/3 mt-6 pl-0 lg:pl-2">
+              <div
+                class="p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100">
+                <h2 class="text-black">Weather Panel <span x-html="index+1"></span></h2>
+                <div class="">
+                  <label class="block text-sm text-gray-600" for="graphics">Weather</label>
+                  <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8"
+                    x-model="time.graphics">
+                    <option value="3_clear">Clear</option>
+                    <option value="7_heavy_clouds">Heavy Clouds</option>
+                    <option value="1_heavy_fog">Heavy Fog</option>
+                    <option value="5_light_clouds">Light Clouds</option>
+                    <option value="2_light_fog">Light Fog</option>
+                    <option value="4_mid_clear">Mid Clear</option>
+                    <option value="6_mid_clouds">Mid Clouds</option>
+                  </select>
+                </div>
+                <div class="inline-block mt-2 w-1/2 pr-1">
+                  <label class="block text-sm text-gray-600" for="base_temperature_ambient">Base Ambient Temp</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
+                    type="text" required="" placeholder="Base Ambient Temp" aria-label="Base Ambient Temp"
+                    x-model="time.base_temperature_ambient" />
+                </div>
+                <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
+                  <label class="block text-sm text-gray-600" for="wind_base_speed_min">Base Wind Min Speed</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
+                    type="text" required="" placeholder="Base Wind Min Speed" aria-label="Base Wind Min Speed"
+                    x-model="time.wind_base_speed_min" />
+                </div>
+                <div class="inline-block mt-2 w-1/2 pr-1">
+                  <label class="block text-sm text-gray-600" for="base_temperature_road">Base Road Temp</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
+                    type="text" required="" placeholder="Base Road Temp" aria-label="Base Road Temp"
+                    x-model="time.base_temperature_road" />
+                </div>
+                <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
+                  <label class="block text-sm text-gray-600" for="wind_base_speed_max">Base Wind Max Speed</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
+                    type="text" required="" placeholder="Base Wind Max Speed" aria-label="Base Wind Max Speed"
+                    x-model="time.wind_base_speed_max" />
+                </div>
+                <div class="inline-block mt-2 w-1/2 pr-1">
+                  <label class="block text-sm text-gray-600" for="variation_ambient">Ambient Variation</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text"
+                    required="" placeholder="Ambient Variation" aria-label="Ambient Variation"
+                    x-model="time.variation_ambient" />
+                </div>
+                <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
+                  <label class="block text-sm text-gray-600" for="wind_base_direction">Base Wind Direction</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
+                    type="text" required="" placeholder="Base Wind Direction" aria-label="Base Wind Direction"
+                    x-model="time.wind_base_direction" />
+                </div>
+                <div class="inline-block mt-2 w-1/2 pr-1">
+                  <label class="block text-sm text-gray-600" for="variation_road">Road Variation</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text"
+                    required="" placeholder="Road Variation" aria-label="Road Variation"
+                    x-model="time.variation_road" />
+                </div>
+                <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
+                  <label class="block text-sm text-gray-600" for="wind_variation_direction">Wind Direction
+                    Variation</label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
+                    type="text" required="" placeholder="Wind Direction Variation" aria-label="Wind Direction Variation"
+                    x-model="time.wind_variation_direction" />
+                </div>
+                <div class="inline-block mt-2 w-1/2 pr-1">
+                  <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="button"
+                    @click="remove_panel(index)" x-bind:disabled="items.length == 1">
+                    Remove Weather Panel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <div class="w-full lg:w-1/3 mt-6 pl-0 lg:pl-2 flex">
+            <div class="w-full p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100 text-white flex">
+              <div class="" style="align-self: flex-end;">
+                <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="button"
+                  @click="add_panel()">
+                  Add Weather Panel
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" x-model="JSON.stringify(items)" name="weather" />
+        </div>
+
+
+        <div class="w-full mt-6 pl-0 lg:pl-2" x-data=" { btnClick : true }">
+          <p class="text-xl pb-6 flex items-center">
+            <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
+              Save
+            </button>
+            <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button"
+              @click="document.getElementById('frmDelete').submit()">
+              Delete
+            </button>
+          </p>
+        </div>
+    </div>
+    </form>
+    <form id="frmDelete" action="{{ url_for('time_delete', id=data['id']) }}" method="POST"></form>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
