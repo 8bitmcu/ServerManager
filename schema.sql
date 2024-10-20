@@ -1,40 +1,118 @@
-DROP TABLE IF EXISTS config_category;
-DROP TABLE IF EXISTS config_key;
-DROP TABLE IF EXISTS user_config;
-DROP TABLE IF EXISTS user_config_value;
-DROP TABLE IF EXISTS settings;
-DROP TABLE IF EXISTS user_value;
-DROP TABLE IF EXISTS user_preset;
-DROP TABLE IF EXISTS cache_vehicle;
 
-
-CREATE TABLE config_category (
+CREATE TABLE user_config (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  key TEXT NOT NULL,
+  name TEXT,
+  password TEXT,
+  admin_password TEXT,
+  register_to_lobby INTEGER,
+  pickup_mode_enabled INTEGER,
+  locked_entry_list INTEGER,
+  result_screen_time INTEGER,
+  udp_port INTEGER,
+  tcp_port INTEGER,
+  http_port INTEGER,
+  client_send_interval INTEGER,
+  num_threads INTEGER,
+  measurement_unit INTEGER,
+  temp_unit INTEGER,
+  install_path TEXT
+);
+
+CREATE TABLE user_difficulty (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  abs_allowed INTEGER,
+  tc_allowed INTEGER,
+  stability_allowed INTEGER,
+  autoclutch_allowed INTEGER,
+  tyre_blankets_allowed INTEGER,
+  force_virtual_mirror INTEGER,
+  fuel_rate INTEGER,
+  damage_multiplier INTEGER,
+  tyre_wear_rate INTEGER,
+  allowed_tyres_out INTEGER,
+  max_ballast_kg INTEGER,
+  start_rule INTEGER,
+  race_gas_penality_disabled INTEGER,
+  dynamic_track INTEGER,
+  session_start INTEGER,
+  randomness INTEGER,
+  session_transfer INTEGER,
+  lap_gain INTEGER,
+  kick_quorum INTEGER,
+  voting_quorum INTEGER,
+  blacklist_mode INTEGER,
+  max_contacts_per_km INTEGER
+);
+
+CREATE TABLE user_time (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  time TEXT,
+  time_of_day_multi INTEGER
+);
+
+CREATE TABLE user_time_weather (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_time_id INTEGER NOT NULL,
+  graphics TEXT,
+  base_temperature_ambient INTEGER,
+  base_temperature_road INTEGER,
+  variation_ambient INTEGER,
+  variation_road INTEGER,
+  wind_base_speed_min INTEGER,
+  wind_base_speed_max INTEGER,
+  wind_base_direction INTEGER,
+  wind_variation_direction INTEGER
+);
+
+CREATE TABLE user_event (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  booking_enabled INTEGER,
+  booking_time INTEGER,
+  practice_enabled INTEGER,
+  practice_time INTEGER,
+  practice_is_open INTEGER,
+  qualify_enabled INTEGER,
+  qualify_time INTEGER,
+  qualify_is_open INTEGER,
+  qualify_max_wait_perc INTEGER,
+  race_enabled INTEGER,
+  race_laps INTEGER,
+  race_time INTEGER,
+  race_over_time INTEGER,
+  race_wait_time INTEGER,
+  race_is_open INTEGER,
+  reversed_grid_positions INTEGER,
+  race_pit_window_start INTEGER,
+  race_pit_window_end INTEGER
+);
+
+CREATE TABLE user_class (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL
 );
-INSERT INTO config_category (key, name) VALUES ("VEH_CLASS", "Vehicle Class");
-INSERT INTO config_category (key, name) VALUES ("EV_TYPE", "Event Types");
-INSERT INTO config_category (key, name) VALUES ("DIFF", "Difficulties");
-INSERT INTO config_category (key, name) VALUES ("TIME", "Time and Weather");
-INSERT INTO config_category (key, name) VALUES ("SERVER", "Server Config");
 
-
-CREATE TABLE user_value (
+CREATE TABLE user_class_entry (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  config_category_id INTEGER NOT NULL,
-  key TEXT NOT NULL,
-  value TEXT NOT NULL,
-  user_preset_id INTEGER
+  cache_vehicle_id TEXT NOT NULL,
+  skin_id TEXT NOT NULL,
+  ballast INTEGER
 );
 
-
-CREATE TABLE user_preset (
+CREATE TABLE cache_track (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  config_category_id INTEGER NOT NULL,
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+  desc TEXT,
+  tags TEXT,
+  country TEXT,
+  city TEXT,
+  length INTEGER,
+  width INTEGER,
+  pitboxes INTEGER,
+  run TEXT
 );
-
 
 CREATE TABLE cache_vehicle (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,5 +126,7 @@ CREATE TABLE cache_vehicle (
   torque TEXT,
   power TEXT,
   skins TEXT
-)
+);
+
+
 

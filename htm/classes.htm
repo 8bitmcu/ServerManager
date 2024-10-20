@@ -102,18 +102,20 @@
             // data loaded for all the cars.
             car_data: JSON.parse('{{ data.car_data | tojson }}'),
 
-            car_getdata: function(car_key) {
+            car_getdata: function (car_key) {
               if (!car_key)
                 return {
                   tags: [],
-                  specs: {}
-                }
-              return this.car_data.find(x => x.key == car_key);
+                  specs: {},
+                  skins: [],
+                };
+              return this.car_data.find((x) => x.key == car_key);
             },
-            skin_getdata: function(car_key, skin_id) {
-              if (!car_key || !skin_id)
-                return {}
-              return this.car_data.find(x => x.key == car_key).skins.find(x => x.skin_id == skin_id);
+            skin_getdata: function (car_key, skin_id) {
+              if (!car_key || !skin_id) return {};
+              return this.car_data
+                .find((x) => x.key == car_key)
+                .skins.find((x) => x.skin_id == skin_id);
             },
 
             // Car class panel
@@ -124,7 +126,7 @@
               // create a copy
               var obj = {
                 id: Math.random().toString(16).slice(2),
-                key: this.car_data[0].key
+                key: this.car_data[0].key,
               };
 
               this.class_cars.push(obj);
@@ -137,13 +139,15 @@
               move(this.class_cars, index + 1, index);
             },
             car_remove: function (car_index, uid) {
-              // remove details panel
-              if (this.details.carid == uid) {
-                this.details = {
-                  car: {},
-                  tags: [],
-                  specs: {}
-                };
+              // remove details panel, skinpicker, search
+              if (this.details_car.id == uid) {
+                this.details_car = {};
+              }
+              if (this.search_car.id == uid) {
+                this.search_car = {};
+              }
+              if (this.skinpicker_car.id == uid) {
+                this.skinpicker_car = {};
               }
 
               this.class_cars = this.class_cars.filter((item, idx) => {
@@ -152,8 +156,8 @@
             },
             car_changed(car) {
               // remove details panel
-              if (this.details.car.id == car.id) {
-                this.details = {car: {}, specs: {}, tags: [] }
+              if (this.details_car.id == car.id) {
+                this.details_car = {};
               }
 
               car.skin = this.car_data.find(
@@ -166,17 +170,15 @@
             search_tag: "",
             search_sortby: "name",
             search_sortor: "asc",
+            search_car: {},
             search_show: function (car) {
-              if (car.searchPanel == true) {
-                car.searchPanel = false;
+              if (this.search_car.id == car.id) {
+                this.search_car = {};
               } else {
-                this.class_cars.forEach((x) => {
-                  x.searchPanel = false;
-                });
-                car.searchPanel = true;
-                this.class_cars.forEach((x) => {
-                  x.SkinPanel = false;
-                });
+                this.search_car = car;
+                if (this.skinpicker_car) {
+                  this.skinpicker_car = {};
+                }
               }
             },
             search_getresults: function () {
@@ -211,76 +213,253 @@
                   return sort_num(a.specs.weight, b.specs.weight);
                 else if (sortby == "weight" && sortor == "desc")
                   return sort_num(b.specs.weight, a.specs.weight);
+                else if (sortby == "acceleration" && sortor == "asc")
+                  return sort_num(
+                    a.specs.acceleration.replace("0-100", ""),
+                    b.specs.acceleration.replace("0-100", ""),
+                  );
+                else if (sortby == "acceleration" && sortor == "desc")
+                  return sort_num(
+                    b.specs.acceleration.replace("0-100", ""),
+                    a.specs.acceleration.replace("0-100", ""),
+                  );
+                else if (sortby == "pwratio" && sortor == "asc")
+                  return sort_num(a.specs.pwratio, b.specs.pwratio);
+                else if (sortby == "pwratio" && sortor == "desc")
+                  return sort_num(b.specs.pwratio, a.specs.pwratio);
               });
 
               return sorted_results;
             },
 
             // skin picker panel
+            skinpicker_car: {},
             skinpicker_show: function (car) {
-              if (car.SkinPanel == true) {
-                car.SkinPanel = false;
+              if (this.skinpicker_car.id == car.id) {
+                this.skinpicker_car = {};
               } else {
-                this.class_cars.forEach((x) => {
-                  x.SkinPanel = false;
-                });
-                car.SkinPanel = true;
-                this.class_cars.forEach((x) => {
-                  x.searchPanel = false;
-                });
+                this.skinpicker_car = car;
+                if (this.search_car) {
+                  this.search_car = {};
+                }
               }
             },
-            skin_getimg: function(car_key, skin_id) {
-              if(!car_key || !skin_id) 
-                return ''
+            skin_getimg: function (car_key, skin_id) {
+              if (!car_key || !skin_id) return "";
               return "/api/skin_img/" + car_key + "/" + skin_id;
             },
 
             // details panel shown at the bottom
-            details: {car: {}, specs: {}, tags: []},
-
-            details_fetch: function(car) {
-              fetch("/api/car_details/" + car.key)
-                .then((response) => response.json())
-                .then((json) => {
-                  this.details = json;
-                  this.details.car = car;
-                })
-                .then((_) => {
-                  new Chart(document.getElementById("chartOne"), {
+            details: {specs: {}, tags: []},
+            details_car: {},
+            details_chart: null,
+            details_fetch: function (car) {
+              if (this.details_car.id == car.id) {
+                this.details_car = {};
+                return;
+              }
+              if (this.details_chart == null) {
+                this.details_chart = new Chart(
+                  document.getElementById("chartOne"),
+                  {
                     type: "line",
                     data: {
-                      labels: this.details.labels,
+                      labels: [],
                       datasets: [
                         {
                           label: "Power",
-                          data: this.details.power,
+                          data: [],
                           fill: false,
                           borderColor: "#fe6384",
                           tension: 0.1,
                         },
                         {
                           label: "Torque",
-                          data: this.details.torque,
+                          data: [],
                           fill: false,
                           borderColor: "#3ca5eb",
                           tension: 0.1,
                         },
                       ],
                     },
+                  },
+                );
+              } else {
+                // clear all chart data
+                while (this.details_chart.data.labels.length)
+                  this.details_chart.data.labels.pop();
+                this.details_chart.data.datasets.forEach((dataset) => {
+                  while (dataset.data.length) dataset.data.pop();
+                });
+              }
+              fetch("/api/car_details/" + car.key)
+                .then((response) => response.json())
+                .then((json) => {
+                  json.labels.forEach((x) => {
+                    this.details_chart.data.labels.push(x);
                   });
+
+                  json.power.forEach((x) => {
+                    this.details_chart.data.datasets[0].data.push(x);
+                  });
+
+                  json.torque.forEach((x) => {
+                    this.details_chart.data.datasets[1].data.push(x);
+                  });
+
+                  this.details = json;
+                  this.details_car = car;
+                  this.details_chart.update();
                 });
             },
-
           };
         }
       </script>
       <div class="w-3/4" x-data="class_data()">
         <nav class="flex flex-col">
+          <div class="w-full flex px-6 py-6" x-show="skinpicker_car.id">
+            <div class="w-full rounded-lg bg-gray-100">
+              <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
+              <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
+                <template x-for="skin in car_getdata(skinpicker_car.key).skins">
+                  <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
+                    x-bind:src="skin_getimg(skinpicker_car.key, skin.skin_id)"
+                    :class="skinpicker_car.skin == skin.skin_id ? 'border-red-500' : ''"
+                    @click="skinpicker_car.skin = skin.skin_id" />
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full flex px-6 py-6" x-show="search_car.id">
+            <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
+              <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-100" style="position: sticky; top: 0">
+                  <tr>
+                    <th colspan="2"
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                      <label class="block text-sm text-gray-600">Name</label>
+                      <div class="flex flex-row">
+                        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
+                          type="text" x-model="search_name" placeholder="Name" aria-label="Name" />
+                        <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                          <i class="fas fa-search"></i>
+                        </div>
+                      </div>
+                    </th>
+                    <th
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
+                      colspan="2">
+                      <label class="block text-sm text-gray-600">Tag</label>
+                      <div class="flex flex-row">
+                        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
+                          type="text" x-model="search_tag" placeholder="Tag" aria-label="Tag" />
+                        <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                          <i class="fas fa-search"></i>
+                        </div>
+                      </div>
+                    </th>
+                    <th colspan="2"></th>
+                  </tr>
+                  <tr>
+                    <th
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                      Name
+                      <button @click="search_sortby='name'; search_sortor='desc'"
+                        :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button @click="search_sortby='name'; search_sortor='asc'"
+                        :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                    </th>
+                    <th
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                      Power
+                      <button @click="search_sortby='power'; search_sortor='desc'"
+                        :class="(search_sortby == 'power' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button @click="search_sortby='power'; search_sortor='asc'"
+                        :class="(search_sortby == 'power' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                    </th>
+                    <th
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                      Torque
+                      <button @click="search_sortby='torque'; search_sortor='desc'"
+                        :class="(search_sortby == 'torque' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button @click="search_sortby='torque'; search_sortor='asc'"
+                        :class="(search_sortby == 'torque' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                    </th>
+                    <th
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                      Weight
+                      <button @click="search_sortby='weight'; search_sortor='desc'"
+                        :class="(search_sortby == 'weight' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button @click="search_sortby='weight'; search_sortor='asc'"
+                        :class="(search_sortby == 'weight' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                    </th>
+                    <th
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                      Accel
+                      <button @click="search_sortby='acceleration'; search_sortor='desc'"
+                        :class="(search_sortby == 'acceleration' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button @click="search_sortby='acceleration'; search_sortor='asc'"
+                        :class="(search_sortby == 'acceleration' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                    </th>
+                    <th
+                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                      Power/Weight
+                      <button @click="search_sortby='pwratio'; search_sortor='desc'"
+                        :class="(search_sortby == 'pwratio' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button @click="search_sortby='pwratio'; search_sortor='asc'"
+                        :class="(search_sortby == 'pwratio' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(result, r_index) in search_getresults()">
+                    <tr :class="search_car.key == result.key ? 'text-red-500' : ''">
+                      <td class="px-6 border-b border-grey-light">
+                        <a href="#" @click="search_car.key = result.key; car_changed(search_car)"
+                          x-text="result.name"></a>
+                      </td>
+                      <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
+                      <td class="px-6 border-b border-grey-light" x-text="result.specs.torque"></td>
+                      <td class="px-6 border-b border-grey-light" x-text="result.specs.weight"></td>
+                      <td class="px-6 border-b border-grey-light" x-text="result.specs.acceleration"></td>
+                      <td class="px-6 border-b border-grey-light" x-text="result.specs.pwratio"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <template x-for="(car, car_index) in class_cars" :key="car.id">
             <div class="flex flex-col border-b-2">
-              <div class="py-6 focus:outline-none text-gray-500 font-medium flex flex-row" {#
-                :class="details.carid == car.id ? 'bg-gray-100' : 'bg-white' #}">
+              <div class="py-6 focus:outline-none text-gray-500 font-medium flex flex-row"
+                :class="details_car.id == car.id ? 'bg-gray-100' : 'bg-white'">
                 <div class="w-1/10 px-6">
                   <img x-bind:src="skin_getimg(car.key, car.skin)" style="height: 80px" />
                 </div>
@@ -295,8 +474,8 @@
                       <option value="{{ d['key'] }}">{{ d['name'] }}</option>
                       {% endfor %}
                     </select>
-                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md" type="button"
-                      @click="search_show(car)">
+                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
+                      :class="search_car.id == car.id ? 'text-red-500' : ''" type="button" @click="search_show(car)">
                       <i class="fas fa-search"></i>
                     </button>
                   </div>
@@ -311,7 +490,8 @@
                         <option x-bind:value="skin.skin_id" x-text="skin.skin_name"></option>
                       </template>
                     </select>
-                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md" type="button"
+                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
+                      :class="skinpicker_car.id == car.id ? 'text-red-500' : ''" type="button"
                       @click="skinpicker_show(car)">
                       <i class="fas fa-grip-horizontal"></i>
                     </button>
@@ -336,124 +516,15 @@
                   </button>
                 </div>
               </div>
-
-              <div class="w-full flex px-6 py-6" x-show="car.SkinPanel">
-                <div class="w-full rounded-lg bg-gray-100">
-                  <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
-                  <div class="flex flex-row flex-wrap">
-                    <template x-for="skin in car_getdata(car.key).skins">
-                      <img class="mx-auto my-4 hover:border-red-500 border-2 rounded cursor-pointer"
-                        style="height: 140px" x-bind:src="skin_getimg(car.key, skin.skin_id)"
-                        @click="car.skin = skin.skin_id" />
-                    </template>
-                  </div>
-                </div>
-              </div>
-
-              <div class="w-full flex px-6 py-6" x-show="car.searchPanel">
-                <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
-                  <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
-                  <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-100" style="position: sticky; top: 0">
-                      <tr>
-                        <th colspan="2"
-                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                          <label class="block text-sm text-gray-600">Name</label>
-                          <div class="flex flex-row">
-                            <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
-                              type="text" x-model="search_name" placeholder="Name" aria-label="Name" />
-                            <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
-                              <i class="fas fa-search"></i>
-                            </div>
-                          </div>
-                        </th>
-                        <th
-                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
-                          colspan="2">
-                          <label class="block text-sm text-gray-600">Tag</label>
-                          <div class="flex flex-row">
-                            <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
-                              type="text" x-model="search_tag" placeholder="Tag" aria-label="Tag" />
-                            <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
-                              <i class="fas fa-search"></i>
-                            </div>
-                          </div>
-                        </th>
-                      </tr>
-                      <tr>
-                        <th
-                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                          Name
-                          <button @click="search_sortby='name'; search_sortor='desc'"
-                            :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-down"></i>
-                          </button>
-                          <button @click="search_sortby='name'; search_sortor='asc'"
-                            :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-up"></i>
-                          </button>
-                        </th>
-                        <th
-                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                          Power
-                          <button @click="search_sortby='power'; search_sortor='desc'"
-                            :class="(search_sortby == 'power' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-down"></i>
-                          </button>
-                          <button @click="search_sortby='power'; search_sortor='asc'"
-                            :class="(search_sortby == 'power' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-up"></i>
-                          </button>
-                        </th>
-                        <th
-                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                          Torque
-                          <button @click="search_sortby='torque'; search_sortor='desc'"
-                            :class="(search_sortby == 'torque' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-down"></i>
-                          </button>
-                          <button @click="search_sortby='torque'; search_sortor='asc'"
-                            :class="(search_sortby == 'torque' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-up"></i>
-                          </button>
-                        </th>
-                        <th
-                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                          Weight
-                          <button @click="search_sortby='weight'; search_sortor='desc'"
-                            :class="(search_sortby == 'weight' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-down"></i>
-                          </button>
-                          <button @click="search_sortby='weight'; search_sortor='asc'"
-                            :class="(search_sortby == 'weight' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                            <i class="fas fa-arrow-up"></i>
-                          </button>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <template x-for="(result, r_index) in search_getresults()">
-                        <tr class="hover:bg-grey-lighter">
-                          <td class="px-6 border-b border-grey-light">
-                            <a href="#" @click="car.key = result.key; car_changed(car)" x-text="result.name"></a>
-                          </td>
-                          <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
-                          <td class="px-6 border-b border-grey-light" x-text="result.specs.torque"></td>
-                          <td class="px-6 border-b border-grey-light" x-text="result.specs.weight"></td>
-                        </tr>
-                      </template>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
           </template>
+
           <a href="#" @click="car_add()" class="py-8 px-6 block hover:text-red-500 focus:outline-none font-medium">
             <i class="fas fa-plus mr-3"></i> Add new entry
           </a>
         </nav>
 
-        <div class="w-full px-6 py-6" x-show="details.car.id">
+        <div class="w-full px-6 py-6" x-show="details_car.id">
           <div class="p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100 flex flex-row">
             <div class="w-1/2 mx-6 flex flex-col">
               <div>
@@ -489,11 +560,12 @@
             </div>
             <div class="w-1/2 mx-6">
               <h2 class="text-lg"
-                x-text="car_getdata(details.car.key).name + ' - ' + skin_getdata(details.car.key, details.car.skin).skin_name"></h2>
-              <img x-bind:src="skin_getimg(details.car.key, details.car.skin)" class="py-4" />
+                x-text="car_getdata(details_car.key).name + ' - ' + skin_getdata(details_car.key, details_car.skin).skin_name">
+              </h2>
+              <img x-bind:src="skin_getimg(details_car.key, details_car.skin)" class="py-4" />
 
               <div>
-                <template x-for="tag in car_getdata(details.car.key).tags">
+                <template x-for="tag in car_getdata(details_car.key).tags">
                   <div
                     class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
                     <div class="mt-px" x-html="tag"></div>
@@ -507,13 +579,17 @@
                   margin-bottom: 1em;
                   line-height: 1.6;
                 ">
-                Power: <span x-text="car_getdata(details.car.key).specs.bhp"></span><br />
-                Torque: <span x-text="car_getdata(details.car.key).specs.torque"></span><br />
-                Weight: <span x-text="car_getdata(details.car.key).specs.weight"></span><br />
-                Top Speed: <span x-text="car_getdata(details.car.key).specs.topspeed"></span>
+                Power:
+                <span x-text="car_getdata(details_car.key).specs.bhp"></span><br />
+                Torque:
+                <span x-text="car_getdata(details_car.key).specs.torque"></span><br />
+                Weight:
+                <span x-text="car_getdata(details_car.key).specs.weight"></span><br />
+                Top Speed:
+                <span x-text="car_getdata(details_car.key).specs.topspeed"></span>
                 <br />
                 Acceleration:
-                <span x-text="car_getdata(details.car.key).specs.acceleration"></span>
+                <span x-text="car_getdata(details_car.key).specs.acceleration"></span>
               </p>
 
               <p class="text-xs text-justify py-4" x-html="details.desc"></p>
