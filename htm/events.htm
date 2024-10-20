@@ -1,12 +1,6 @@
 {% extends 'base.htm' %}
 {% block title %}Events{% endblock %}
 {% block content %}
-<script>
-//window.onbeforeunload = function() {
-//    return true;
-//};
-//window.onbeforeunload = null;
-</script>
 <h1 class="text-3xl text-black pb-6">Event Presets</h1>
 <div class="flex flex-wrap">
   <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
@@ -82,12 +76,12 @@
             <i class="fas fa-list mr-3"></i> Booking
           </p>
           <div class="p-10 leading-loose"
-            x-data="{ booking_enabled: {{ 'true' if data.form['booking_enabled'] == '1' else 'false' }} }">
+            x-data="{ booking_enabled: {{ 'true' if data.form['booking_enabled'] == 1 else 'false' }} }">
             <div>
               <label class="block text-sm text-gray-600" for="booking_enabled">Booking</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
-                  data.form['booking_enabled']=='1' %} checked {% endif %}
+                  data.form['booking_enabled']==1 %} checked {% endif %}
                   @click="booking_enabled = $event.target.checked"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="booking_enabled"
@@ -111,12 +105,12 @@
             <i class="fas fa-list mr-3"></i> Practice
           </p>
           <div class="p-10 leading-loose"
-            x-data="{ practice_enabled: {{ 'true' if data.form['practice_enabled'] == '1' else 'false' }} }">
+            x-data="{ practice_enabled: {{ 'true' if data.form['practice_enabled'] == 1 else 'false' }} }">
             <div>
               <label class="block text-sm text-gray-600" for="practice_enabled">Practice</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="practice_enabled" id="practice_enabled" value="1" {% if
-                  data.form['practice_enabled']=='1' %} checked {% endif %}
+                  data.form['practice_enabled']==1 %} checked {% endif %}
                   @click="practice_enabled = $event.target.checked"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="practice_enabled"
@@ -135,7 +129,7 @@
                 <label class="block text-sm text-gray-600" for="practice_is_open">Can Join</label>
                 <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                   <input type="checkbox" name="practice_is_open" id="practice_is_open" value="1" {% if
-                    data.form['practice_is_open']=='1' %} checked {% endif %}
+                    data.form['practice_is_open']==1 %} checked {% endif %}
                     class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                   <label for="practice_is_open"
                     class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -151,12 +145,12 @@
             <i class="fas fa-list mr-3"></i> Qualify
           </p>
           <div class="p-10 leading-loose"
-            x-data="{ qualify_enabled: {{ 'true' if data.form['qualify_enabled'] == '1' else 'false' }} }">
+            x-data="{ qualify_enabled: {{ 'true' if data.form['qualify_enabled'] == 1 else 'false' }} }">
             <div>
               <label class="block text-sm text-gray-600" for="qualify_enabled">Qualify</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="qualify_enabled" id="qualify_enabled" value="1" {% if
-                  data.form['qualify_enabled']=='1' %} checked {% endif %}
+                  data.form['qualify_enabled']==1 %} checked {% endif %}
                   @click="qualify_enabled = $event.target.checked"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="qualify_enabled"
@@ -175,7 +169,7 @@
                 <label class="block text-sm text-gray-600" for="qualify_is_open">Can Join</label>
                 <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                   <input type="checkbox" name="qualify_is_open" id="qualify_is_open" value="1" {% if
-                    data.form['qualify_is_open']=='1' %} checked {% endif %}
+                    data.form['qualify_is_open']==1 %} checked {% endif %}
                     class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                   <label for="qualify_is_open"
                     class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -197,12 +191,12 @@
             <i class="fas fa-list mr-3"></i> Race
           </p>
           <div class="p-10 leading-loose"
-            x-data="{ race_enabled: {{ 'true' if data.form['race_enabled'] == '1' else 'false' }} }">
+            x-data="{ race_enabled: {{ 'true' if data.form['race_enabled'] == 1 else 'false' }} }">
             <div>
               <label class="block text-sm text-gray-600" for="race_enabled">Race</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="race_enabled" id="race_enabled" value="1" {% if
-                  data.form['race_enabled']=='1' %} checked {% endif %} @click="race_enabled = $event.target.checked"
+                  data.form['race_enabled']==1 %} checked {% endif %} @click="race_enabled = $event.target.checked"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="race_enabled"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -238,9 +232,9 @@
                 <label class="block text-sm text-gray-600" for="race_is_open">Join Type</label>
                 <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="race_is_open"
                   name="race_is_open">
-                  <option value="0" {% if data.form['race_is_open']=='0' %} selected {% endif %}>Close</option>
-                  <option value="1" {% if data.form['race_is_open']=='1' %} selected {% endif %}>Open</option>
-                  <option value="2" {% if data.form['race_is_open']=='2' %} selected {% endif %}>Close at Start</option>
+                  <option value="0" {% if data.form['race_is_open']==0 %} selected {% endif %}>Close</option>
+                  <option value="1" {% if data.form['race_is_open']==1 %} selected {% endif %}>Open</option>
+                  <option value="2" {% if data.form['race_is_open']==2 %} selected {% endif %}>Close at Start</option>
                 </select>
               </div>
               <div class="mt-2">
@@ -265,7 +259,7 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data=" { btnClick : true }">
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="">
           <p class="text-xl pb-6 flex items-center">
             <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
               Save

@@ -1,9 +1,6 @@
-import sqlite3, os, json
-import json_repair
+import sqlite3, json
 
-
-
-class DbAccess: 
+class Dbaccess: 
     def __init__(self, name):
         # db filename
         self.name = name
@@ -213,18 +210,18 @@ class DbAccess:
         conn.execute("UPDATE user_time SET time = ?, time_of_day_multi = ? WHERE id = ?", values)
         conn.execute("DELETE FROM user_time_weather WHERE user_time_id = ?", (id, ))
 
-        for x in json.loads(form["weather"]):
+        for weather in json.loads(form["weather"]):
             values = [
                 id,
-                x["graphics"],
-                x["base_temperature_ambient"],
-                x["base_temperature_road"],
-                x["variation_ambient"],
-                x["variation_road"],
-                x["wind_base_speed_min"],
-                x["wind_base_speed_max"],
-                x["wind_base_direction"],
-                x["wind_variation_direction"]
+                weather["graphics"],
+                weather["base_temperature_ambient"],
+                weather["base_temperature_road"],
+                weather["variation_ambient"],
+                weather["variation_road"],
+                weather["wind_base_speed_min"],
+                weather["wind_base_speed_max"],
+                weather["wind_base_direction"],
+                weather["wind_variation_direction"]
             ]
             conn.execute("INSERT INTO user_time_weather (user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
 
@@ -235,6 +232,12 @@ class DbAccess:
     def get_class(self, id):
         conn = self.get_db_connection()
         data = conn.execute("SELECT * from user_class WHERE id = ? LIMIT 1", (id, )).fetchone()
+        conn.close()
+        return data
+
+    def get_class_entries(self, id):
+        conn = self.get_db_connection()
+        data = conn.execute("SELECT * from user_class_entry WHERE user_class_id = ?", (id, )).fetchall()
         conn.close()
         return data
 
@@ -260,13 +263,18 @@ class DbAccess:
 
     def update_class(self, id, form):
         conn = self.get_db_connection()
-        values = [
-            id
-        ]
 
-        conn.execute("UPDATE user_class WHERE id = ?", values)
+        conn.execute("DELETE FROM user_class_entry WHERE user_class_id = ?", (id, ))
 
-        # TODO: linked objects
+        for car in json.loads(form['cars']):
+            values = [
+                id,
+                car['key'],
+                car['skin'],
+                # TODO
+                #car['ballast']
+            ]
+            conn.execute("INSERT INTO user_class_entry (user_class_id, cache_vehicle_id, skin_id) VALUES (?, ?, ?)", values)
 
         conn.commit()
         conn.close()
@@ -274,52 +282,10 @@ class DbAccess:
 
 
 
-    def update_carlist(self):
-        cars_path = os.path.join(self.select_config()["install_path"], "content/cars")
-
+    def update_vehicles(self, data):
         conn = self.get_db_connection()
         conn.execute("DELETE FROM cache_vehicle")
-
-        for key in os.listdir(cars_path):
-            # if data.acd is missing, assume it"s a missing dlc and avoid listing/saving it
-            data_acd = os.path.join(cars_path, key, "data.acd")
-            if not os.path.isfile(data_acd):
-                continue
-
-            try:
-                json_path = os.path.join(cars_path, key, "ui/ui_car.json")
-                data = json_repair.from_file(json_path)
-            except:
-                try:
-                    json_path = os.path.join(cars_path, key, "ui/dlc_ui_car.json")
-                    data = json_repair.from_file(json_path)
-                except:
-                    data = None
-
-            skins_path = os.path.join(cars_path, key, "skins")
-
-            skins = []
-            for skin in os.listdir(skins_path):
-                skin_json = os.path.join(skins_path, skin, "ui_skin.json")
-                skin_data = json_repair.from_file(skin_json)
-
-                skin_name = skin_data.get("skinname")
-                if skin_name == "":
-                    skin_name = skin
-                skins.append({"skin_id": skin, "skin_name": skin_name})
-
-            if data is not None:
-                name = data.get("name")
-                brand = data.get("brand")
-                desc = data.get("description")
-                tags = json.dumps(data.get("tags"))
-                cls = data.get("class")
-                specs = json.dumps(data.get("specs"))
-                torque = json.dumps(data.get("torqueCurve"))
-                power = json.dumps(data.get("powerCurve"))
-                allskins = json.dumps(skins)
-
-                conn.execute("INSERT INTO cache_vehicle (key, name, brand, desc, tags, class, specs, torque, power, skins) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (key, name, brand, desc, tags, cls, specs, torque, power, allskins))
+        conn.executemany("INSERT INTO cache_vehicle (key, name, brand, desc, tags, class, specs, torque, power, skins) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", data)
 
         conn.commit()
         conn.close()
@@ -337,3 +303,7 @@ class DbAccess:
 
         conn.close()
         return data
+
+
+
+

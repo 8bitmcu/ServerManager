@@ -1,4 +1,3 @@
-
 CREATE TABLE user_config (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT,
@@ -40,6 +39,7 @@ CREATE TABLE user_difficulty (
   session_transfer INTEGER,
   lap_gain INTEGER,
   kick_quorum INTEGER,
+  vote_duration INTEGER,
   voting_quorum INTEGER,
   blacklist_mode INTEGER,
   max_contacts_per_km INTEGER
@@ -96,6 +96,7 @@ CREATE TABLE user_class (
 
 CREATE TABLE user_class_entry (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_class_id INTEGER NOT NULL,
   cache_vehicle_id TEXT NOT NULL,
   skin_id TEXT NOT NULL,
   ballast INTEGER
@@ -127,6 +128,4 @@ CREATE TABLE cache_vehicle (
   power TEXT,
   skins TEXT
 );
-
-
 

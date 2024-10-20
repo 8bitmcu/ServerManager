@@ -13,7 +13,7 @@
         </a>
         {% endfor %}
 
-        <form x-data="{ showModal: false, email: '' }" method="POST">
+        <form id="frmAdd" x-data="{ showModal: false, email: '' }" method="POST">
           <a href="#" @click="showModal = true"
             class="py-4 px-6 block hover:text-red-500 focus:outline-none font-medium">
             <i class="fas fa-plus mr-3"></i> Add new Class
@@ -119,16 +119,25 @@
             },
 
             // Car class panel
-            // keys: key, id, skin, skinPanel, searchPanel
+            // keys: key, id, skin, ballast
             class_cars: [],
 
-            car_add: function () {
-              // create a copy
-              var obj = {
-                id: Math.random().toString(16).slice(2),
-                key: this.car_data[0].key,
-              };
+            class_init: function() {
+              var init_data = JSON.parse('{{ data.entries | tojson }}');
 
+              init_data.forEach(x => {
+                let car = {
+                  id: Math.random().toString(16).slice(2),
+                  key: x['cache_vehicle_id'],
+                  skin: x['skin_id']
+                }
+
+                this.class_cars.push(car);
+              });
+            },
+
+            car_add: function () {
+              var obj = {};
               this.class_cars.push(obj);
               this.car_changed(obj);
             },
@@ -159,6 +168,12 @@
               if (this.details_car.id == car.id) {
                 this.details_car = {};
               }
+
+              if (!car.key)
+                car.key = this.car_data[0].key;
+
+              if (!car.id)
+                car.id = Math.random().toString(16).slice(2);
 
               car.skin = this.car_data.find(
                 (x) => x.key == car.key,
@@ -246,7 +261,7 @@
             },
             skin_getimg: function (car_key, skin_id) {
               if (!car_key || !skin_id) return "";
-              return "/api/skin_img/" + car_key + "/" + skin_id;
+              return "/api/skin_img/" + car_key + "/" + skin_id + ".jpg";
             },
 
             // details panel shown at the bottom
@@ -315,7 +330,10 @@
           };
         }
       </script>
-      <div class="w-3/4" x-data="class_data()">
+      <div class="w-3/4" x-data="class_data()" x-init="class_init()">
+        <form id="frmUpdate" method="POST" action="{{ url_for('veh_class', id=data['id']) }}">
+          <input type="hidden" x-model="JSON.stringify(class_cars)" name="cars" />
+        </form>
         <nav class="flex flex-col">
           <div class="w-full flex px-6 py-6" x-show="skinpicker_car.id">
             <div class="w-full rounded-lg bg-gray-100">
@@ -460,16 +478,18 @@
             <div class="flex flex-col border-b-2">
               <div class="py-6 focus:outline-none text-gray-500 font-medium flex flex-row"
                 :class="details_car.id == car.id ? 'bg-gray-100' : 'bg-white'">
-                <div class="w-1/10 px-6">
+
+                <div class="w-1/10 px-6 relative">
+                  <span class="text-2xl text-white px-2 py-1 absolute" x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
                   <img x-bind:src="skin_getimg(car.key, car.skin)" style="height: 80px" />
                 </div>
 
                 <div class="w-2/6 px-6">
                   <label class="block text-sm text-gray-600">Vehicle</label>
                   <div class="flex flex-row">
-                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.key"
+                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.key" required
                       @change="car_changed(car)">
-                      <option value="-1" disabled>Select ...</option>
+                      <option value="" disabled>Select ...</option>
                       {% for d in data['vehicles'] %}
                       <option value="{{ d['key'] }}">{{ d['name'] }}</option>
                       {% endfor %}
@@ -484,10 +504,10 @@
                 <div class="w-1/6 px-6">
                   <label class="block text-sm text-gray-600">Skin</label>
                   <div class="flex flex-row">
-                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin">
-                      <option value="-1" disabled>Select ...</option>
+                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin" required>
+                      <option value="" disabled>Select ...</option>
                       <template x-for="skin in car_getdata(car.key).skins">
-                        <option x-bind:value="skin.skin_id" x-text="skin.skin_name"></option>
+                        <option x-bind:value="skin.skin_id" x-text="skin.skin_name" :selected="car.skin == skin.skin_id"></option>
                       </template>
                     </select>
                     <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
@@ -579,17 +599,11 @@
                   margin-bottom: 1em;
                   line-height: 1.6;
                 ">
-                Power:
-                <span x-text="car_getdata(details_car.key).specs.bhp"></span><br />
-                Torque:
-                <span x-text="car_getdata(details_car.key).specs.torque"></span><br />
-                Weight:
-                <span x-text="car_getdata(details_car.key).specs.weight"></span><br />
-                Top Speed:
-                <span x-text="car_getdata(details_car.key).specs.topspeed"></span>
-                <br />
-                Acceleration:
-                <span x-text="car_getdata(details_car.key).specs.acceleration"></span>
+                Power: <span x-text="car_getdata(details_car.key).specs.bhp"></span><br />
+                Torque: <span x-text="car_getdata(details_car.key).specs.torque"></span><br />
+                Weight: <span x-text="car_getdata(details_car.key).specs.weight"></span><br />
+                Top Speed: <span x-text="car_getdata(details_car.key).specs.topspeed"></span> <br />
+                Acceleration: <span x-text="car_getdata(details_car.key).specs.acceleration"></span>
               </p>
 
               <p class="text-xs text-justify py-4" x-html="details.desc"></p>
@@ -600,13 +614,15 @@
 
       <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="">
         <p class="text-xl pb-6 flex items-center">
-          <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
+          <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="button"
+            @click="document.getElementById('frmUpdate').submit()">
             Save
           </button>
           <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button"
             @click="document.getElementById('frmDelete').submit()">
             Delete
           </button>
+
         </p>
       </div>
     </div>

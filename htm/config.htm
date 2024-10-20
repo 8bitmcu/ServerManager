@@ -2,7 +2,6 @@
 {% block title %}Server Configuration{% endblock %}
 {% block content %}
 <h1 class="text-3xl text-black pb-6">Server Configuration</h1>
-
 <form class="flex flex-wrap" method="POST">
   <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center">
@@ -29,7 +28,7 @@
         <label class="block text-sm text-gray-600" for="register_to_lobby">Show on Lobby</label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="register_to_lobby" id="register_to_lobby" value="1" {% if
-            data['register_to_lobby']=='1' %} checked {% endif %}
+            data['register_to_lobby']==1 %} checked {% endif %}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="register_to_lobby"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -40,7 +39,7 @@
         <label class="block text-sm text-gray-600" for="pickup_mode_enabled">Pickup Mode</label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="pickup_mode_enabled" id="pickup_mode_enabled" value="1" {% if
-            data['pickup_mode_enabled']=='1' %} checked {% endif %}
+            data['pickup_mode_enabled']==1 %} checked {% endif %}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="pickup_mode_enabled"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -51,7 +50,7 @@
         <label class="block text-sm text-gray-600" for="locked_entry_list">Pickup Locked Entry List</label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="locked_entry_list" id="locked_entry_list" value="1" {% if
-            data['locked_entry_list']=='1' %} checked {% endif %}
+            data['locked_entry_list']==1 %} checked {% endif %}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="locked_entry_list"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -109,15 +108,15 @@
       <div class="">
         <label class="block text-sm text-gray-600" for="measurement_unit">Measurement Unit</label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit" name="measurement_unit">
-          <option value="0" {% if data['measurement_unit']=='0' %} selected {% endif %}>KM, KM/h</option>
-          <option value="1" {% if data['measurement_unit']=='1' %} selected {% endif %}>Miles, MPH</option>
+          <option value="0" {% if data['measurement_unit']==0 %} selected {% endif %}>KM, KM/h</option>
+          <option value="1" {% if data['measurement_unit']==1 %} selected {% endif %}>Miles, MPH</option>
         </select>
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600" for="temp_unit">Temperature Unit</label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="temp_unit" name="temp_unit">
-          <option value="0" {% if data['temp_unit']=='0' %} selected {% endif %}>Celcius</option>
-          <option value="1" {% if data['temp_unit']=='1' %} selected {% endif %}>Fahrenheit</option>
+          <option value="0" {% if data['temp_unit']==0 %} selected {% endif %}>Celcius</option>
+          <option value="1" {% if data['temp_unit']==1 %} selected {% endif %}>Fahrenheit</option>
         </select>
       </div>
     </div>

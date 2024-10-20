@@ -1,12 +1,6 @@
 {% extends 'base.htm' %}
 {% block title %}Difficulties{% endblock %}
 {% block content %}
-<script>
-//window.onbeforeunload = function() {
-//    return true;
-//};
-//window.onbeforeunload = null;
-</script>
 <h1 class="text-3xl text-black pb-6">Difficulty Presets</h1>
 <div class="flex flex-wrap">
   <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
@@ -87,24 +81,24 @@
               <label class="block text-sm text-gray-600" for="abs_allowed">ABS</label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="abs_allowed"
                 name="abs_allowed">
-                <option value="0" {% if data.form['abs_allowed']=='0' %} selected {% endif %}>Denied</option>
-                <option value="1" {% if data.form['abs_allowed']=='1' %} selected {% endif %}>Factory</option>
-                <option value="2" {% if data.form['abs_allowed']=='2' %} selected {% endif %}>Force</option>
+                <option value="0" {% if data.form['abs_allowed']==0 %} selected {% endif %}>Denied</option>
+                <option value="1" {% if data.form['abs_allowed']==1 %} selected {% endif %}>Factory</option>
+                <option value="2" {% if data.form['abs_allowed']==2 %} selected {% endif %}>Force</option>
               </select>
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="tc_allowed">Traction Control</label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="tc_allowed" name="tc_allowed">
-                <option value="0" {% if data.form['tc_allowed']=='0' %} selected {% endif %}>Denied</option>
-                <option value="1" {% if data.form['tc_allowed']=='1' %} selected {% endif %}>Factory</option>
-                <option value="2" {% if data.form['tc_allowed']=='2' %} selected {% endif %}>Force</option>
+                <option value="0" {% if data.form['tc_allowed']==0 %} selected {% endif %}>Denied</option>
+                <option value="1" {% if data.form['tc_allowed']==1 %} selected {% endif %}>Factory</option>
+                <option value="2" {% if data.form['tc_allowed']==2 %} selected {% endif %}>Force</option>
               </select>
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="stability_allowed">Stability Control</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="stability_allowed" id="stability_allowed" value="1" {% if
-                  data.form['stability_allowed']=='1' %} checked {% endif %}
+                  data.form['stability_allowed']==1 %} checked {% endif %}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="stability_allowed"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -115,7 +109,7 @@
               <label class="block text-sm text-gray-600" for="autoclutch_allowed">Auto Clutch</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="autoclutch_allowed" id="autoclutch_allowed" value="1" {% if
-                  data.form['autoclutch_allowed']=='1' %} checked {% endif %}
+                  data.form['autoclutch_allowed']==1 %} checked {% endif %}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="autoclutch_allowed"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -126,7 +120,7 @@
               <label class="block text-sm text-gray-600" for="tyre_blankets_allowed">Tyre Blankets</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="tyre_blankets_allowed" id="tyre_blankets_allowed" value="1" {% if
-                  data.form['tyre_blankets_allowed']=='1' %} checked {% endif %}
+                  data.form['tyre_blankets_allowed']==1 %} checked {% endif %}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="tyre_blankets_allowed"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -137,7 +131,7 @@
               <label class="block text-sm text-gray-600" for="force_virtual_mirror">Force Virtual Mirrors</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="force_virtual_mirror" id="force_virtual_mirror" value="1" {% if
-                  data.form['force_virtual_mirror']=='1' %} checked {% endif %}
+                  data.form['force_virtual_mirror']==1 %} checked {% endif %}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="force_virtual_mirror"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -174,11 +168,11 @@
               <label class="block text-sm text-gray-600" for="allowed_tyres_out">Allowed Tyres Out</label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="allowed_tyres_out"
                 name="allowed_tyres_out">
-                <option value="0" {% if data.form['allowed_tyres_out']=='0' %} selected {% endif %}>0</option>
-                <option value="1" {% if data.form['allowed_tyres_out']=='1' %} selected {% endif %}>1</option>
-                <option value="2" {% if data.form['allowed_tyres_out']=='2' %} selected {% endif %}>2</option>
-                <option value="3" {% if data.form['allowed_tyres_out']=='3' %} selected {% endif %}>3</option>
-                <option value="4" {% if data.form['allowed_tyres_out']=='4' %} selected {% endif %}>4</option>
+                <option value="0" {% if data.form['allowed_tyres_out']==0 %} selected {% endif %}>0</option>
+                <option value="1" {% if data.form['allowed_tyres_out']==1 %} selected {% endif %}>1</option>
+                <option value="2" {% if data.form['allowed_tyres_out']==2 %} selected {% endif %}>2</option>
+                <option value="3" {% if data.form['allowed_tyres_out']==3 %} selected {% endif %}>3</option>
+                <option value="4" {% if data.form['allowed_tyres_out']==4 %} selected {% endif %}>4</option>
               </select>
             </div>
             <div class="mt-2">
@@ -190,16 +184,16 @@
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="start_rule">Jump Start</label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="start_rule" name="start_rule">
-                <option value="0" {% if data.form['start_rule']=='0' %} selected {% endif %}>Car Locked</option>
-                <option value="1" {% if data.form['start_rule']=='1' %} selected {% endif %}>Teleport To Pit</option>
-                <option value="2" {% if data.form['start_rule']=='2' %} selected {% endif %}>DriveThrough</option>
+                <option value="0" {% if data.form['start_rule']==0 %} selected {% endif %}>Car Locked</option>
+                <option value="1" {% if data.form['start_rule']==1 %} selected {% endif %}>Teleport To Pit</option>
+                <option value="2" {% if data.form['start_rule']==2 %} selected {% endif %}>DriveThrough</option>
               </select>
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="race_gas_penality_disabled">Race Gas Penality</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="race_gas_penality_disabled" id="race_gas_penality_disabled" value="1" {% if
-                  data.form['race_gas_penality_disabled']=='1' %} checked {% endif %}
+                  data.form['race_gas_penality_disabled']==1 %} checked {% endif %}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="race_gas_penality_disabled"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -210,7 +204,7 @@
         </div>
 
         <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2"
-          x-data="{ dynamic_open: {{ 'true' if data.form['dynamic_track'] == '1' else 'false' }} }">
+          x-data="{ dynamic_open: {{ 'true' if data.form['dynamic_track'] == 1 else 'false' }} }">
           <p class="text-xl px-6 pb-6 flex items-center">
             <i class="fas fa-list mr-3"></i> Dynamic Track
           </p>
@@ -219,7 +213,7 @@
               <label class="block text-sm text-gray-600" for="dynamic_track">Enabled</label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="dynamic_track" id="dynamic_track" value="1" {% if
-                  data.form['dynamic_track']=='1' %} checked {% endif %} @click="dynamic_open = $event.target.checked"
+                  data.form['dynamic_track']==1 %} checked {% endif %} @click="dynamic_open = $event.target.checked"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="dynamic_track"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -231,13 +225,13 @@
                 <label class="block text-sm text-gray-600" for="dynamic_track_preset">Preset</label>
                 <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="dynamic_track_preset"
                   name="dynamic_track_preset">
-                  <option>Custom</option>
-                  <option>Dusty</option>
-                  <option>Old</option>
-                  <option>Slow</option>
-                  <option>Green</option>
-                  <option>Fast</option>
-                  <option>Optimum</option>
+                  <option value="0" {% if data['dynamic_track_preset']==0 %} selected {% endif %}>Custom</option>
+                  <option value="1" {% if data['dynamic_track_preset']==1 %} selected {% endif %}>Dusty</option>
+                  <option value="2" {% if data['dynamic_track_preset']==2 %} selected {% endif %}>Old</option>
+                  <option value="3" {% if data['dynamic_track_preset']==3 %} selected {% endif %}>Slow</option>
+                  <option value="4" {% if data['dynamic_track_preset']==4 %} selected {% endif %}>Green</option>
+                  <option value="5" {% if data['dynamic_track_preset']==5 %} selected {% endif %}>Fast</option>
+                  <option value="6" {% if data['dynamic_track_preset']==6 %} selected {% endif %}>Optimum</option>
                 </select>
               </div>
               <div class="mt-2">
@@ -297,8 +291,8 @@
               <label class="block text-sm text-gray-600" for="blacklist_mode">Blacklist</label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="blacklist_mode"
                 name="blacklist_mode">
-                <option value="0" {% if data.form['blacklist_mode']=='0' %} selected {% endif %}>Kick Player</option>
-                <option value="1" {% if data.form['blacklist_mode']=='1' %} selected {% endif %}>Kick Until Restart
+                <option value="0" {% if data.form['blacklist_mode']==0 %} selected {% endif %}>Kick Player</option>
+                <option value="1" {% if data.form['blacklist_mode']==1 %} selected {% endif %}>Kick Until Restart
                 </option>
               </select>
             </div>

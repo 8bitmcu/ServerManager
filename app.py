@@ -1,10 +1,22 @@
 import sqlite3, os, json
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
-from DbAccess import DbAccess
+from py.dbaccess import Dbaccess
+from py.fsaccess import Fsaccess
 
 app = Flask(__name__, template_folder="htm")
 
-dba = DbAccess("sqlite.db")
+dba = Dbaccess("sqlite.db")
+fsa = Fsaccess(dba)
+
+
+def clean_dbdata(dbdata):
+    newdata = {}
+    if dbdata is None:
+        return None
+    for i in dict(dbdata):
+        if dbdata[i] is not None:
+            newdata[i] = dbdata[i]
+    return newdata
 
 # Dashboard / Index
 @app.route("/")
@@ -17,7 +29,7 @@ def config():
     if request.method == 'POST':
         dba.insertupdate_config(request.form)
 
-    data = dba.select_config()
+    data = clean_dbdata(dba.select_config())
     return render_template("config.htm", data=data)
 
 # Difficulties
@@ -35,8 +47,7 @@ def difficulty(id=None):
 
     if id is not None:
         data['id'] = id
-        data['form'] = dba.get_difficulty(id)
-
+        data['form'] = clean_dbdata(dba.get_difficulty(id))
 
     data['list'] = dba.get_difficulty_list()
 
@@ -62,7 +73,7 @@ def event(id=None):
 
     if id is not None:
         data['id'] = id
-        data['form'] = dba.get_event(id)
+        data['form'] = clean_dbdata(dba.get_event(id))
 
 
     data['list'] = dba.get_event_list()
@@ -89,8 +100,14 @@ def time(id=None):
 
     if id is not None:
         data['id'] = id
-        data['form'] = dba.get_time(id)
-        data['weather'] = json.dumps( [dict(ix) for ix in dba.get_weather(id)] ) 
+        data['form'] = clean_dbdata(dba.get_time(id))
+        wdata = [dict(ix) for ix in dba.get_weather(id)]
+
+        # add at least one weather panel
+        if len(wdata) == 0: 
+            wdata = [{}]
+
+        data['weather'] = json.dumps(wdata)
 
     data['list'] = dba.get_time_list()
 
@@ -119,11 +136,16 @@ def veh_class(id=None):
         data['id'] = id
         data['form'] = dba.get_class(id)
 
-        cars = dba.get_carlist()
-        data['vehicles'] = cars
+        # TODO: refactor vehicles
+        data['vehicles'] = dba.get_carlist() 
+
+
+        # add at least one car panel
+
+        data['entries'] =[dict(ix) for ix in dba.get_class_entries(id)] 
 
         data['car_data'] = []
-        for car in cars:
+        for car in dba.get_carlist():
             data['car_data'].append({
                 'key': car['key'],
                 'skins': json.loads(car['skins']),
@@ -140,10 +162,9 @@ def class_delete(id):
     return redirect(url_for("veh_class"));
 
 
-@app.route("/api/skin_img/<string:car>/<string:skin>")
-def skin_img(car, skin): 
-    cars_path = os.path.join(dba.select_config()["install_path"], "content", "cars", car, "skins", skin)
-    return send_from_directory(cars_path, "preview.jpg")
+@app.route("/api/skin_img/<string:car>/<string:skin>.jpg")
+def skin_img(car, skin):
+    return send_from_directory(fsa.get_skin(car, skin), "preview.jpg")
 
 
 @app.route("/api/car_details/<string:car>")
@@ -176,7 +197,7 @@ def car_details(car):
 
 @app.route("/api/update_carlist")
 def api_update_carlist():
-    dba.update_carlist()
+    fsa.parse_cars_folder(dba)
     return jsonify({'ok': 'OK'})
 
 
