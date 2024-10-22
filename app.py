@@ -1,4 +1,4 @@
-import sqlite3, os, json
+import sqlite3, json
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
 from py.dbaccess import Dbaccess
 from py.fsaccess import Fsaccess
@@ -19,9 +19,34 @@ def clean_dbdata(dbdata):
     return newdata
 
 # Dashboard / Index
-@app.route("/")
+@app.route("/", methods=('GET', 'POST'))
 def index():
-    return render_template("index.htm")
+    if request.method == 'POST':
+        dba.insertupdate_session(request.form)
+
+    data = {}
+
+    # TODO: refactor?
+    data['difficulties'] = [dict(ix) for ix in dba.get_difficulty_list(filled=True)]
+    data['events'] = [dict(ix) for ix in dba.get_event_list(filled=True)]
+    data['times'] = [dict(ix) for ix in dba.get_time_list(filled=True)]
+    data['classes'] = [dict(ix) for ix in dba.get_class_list(filled=True)]
+
+    data['session'] = dba.get_session()
+
+    data['track_data'] = [dict(ix) for ix in dba.get_tracklist()]
+    for x in data['track_data']:
+        x['tags'] = json.loads(x['tags'])
+
+    return render_template("index.htm", data=data)
+
+
+@app.route("/session_delete/<int:id>", methods=('GET', 'POST'))
+def session_delete(id):
+    dba.delete_session(id)
+    return redirect(url_for("index"));
+
+
 
 # Configuration
 @app.route("/config", methods=('GET', 'POST'))
@@ -166,6 +191,15 @@ def class_delete(id):
 def skin_img(car, skin):
     return send_from_directory(fsa.get_skin(car, skin), "preview.jpg")
 
+@app.route("/api/track_preview/<string:key>.png")
+@app.route("/api/track_preview/<string:key>/<string:config>.png")
+def track_preview(key, config=None):
+    return send_from_directory(fsa.get_track(key, config), "preview.png")
+
+@app.route("/api/track_outline/<string:key>.png")
+@app.route("/api/track_outline/<string:key>/<string:config>.png")
+def track_layout(key, config=None):
+    return send_from_directory(fsa.get_track(key, config), "outline.png")
 
 @app.route("/api/car_details/<string:car>")
 def car_details(car): 
@@ -198,6 +232,7 @@ def car_details(car):
 @app.route("/api/update_carlist")
 def api_update_carlist():
     fsa.parse_cars_folder(dba)
+    fsa.parse_tracks_folder(dba)
     return jsonify({'ok': 'OK'})
 
 

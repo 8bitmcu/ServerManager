@@ -34,6 +34,7 @@ CREATE TABLE user_difficulty (
   start_rule INTEGER,
   race_gas_penality_disabled INTEGER,
   dynamic_track INTEGER,
+  dynamic_track_preset INTEGER,
   session_start INTEGER,
   randomness INTEGER,
   session_transfer INTEGER,
@@ -42,14 +43,18 @@ CREATE TABLE user_difficulty (
   vote_duration INTEGER,
   voting_quorum INTEGER,
   blacklist_mode INTEGER,
-  max_contacts_per_km INTEGER
+  max_contacts_per_km INTEGER,
+
+  filled INTEGER
 );
 
 CREATE TABLE user_time (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   time TEXT,
-  time_of_day_multi INTEGER
+  time_of_day_multi INTEGER,
+
+  filled INTEGER
 );
 
 CREATE TABLE user_time_weather (
@@ -63,7 +68,7 @@ CREATE TABLE user_time_weather (
   wind_base_speed_min INTEGER,
   wind_base_speed_max INTEGER,
   wind_base_direction INTEGER,
-  wind_variation_direction INTEGER
+  wind_variation_direction INTEGER,
 );
 
 CREATE TABLE user_event (
@@ -86,12 +91,16 @@ CREATE TABLE user_event (
   race_is_open INTEGER,
   reversed_grid_positions INTEGER,
   race_pit_window_start INTEGER,
-  race_pit_window_end INTEGER
+  race_pit_window_end INTEGER,
+
+  filled INTEGER
 );
 
 CREATE TABLE user_class (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+
+  filled INTEGER
 );
 
 CREATE TABLE user_class_entry (
@@ -102,8 +111,25 @@ CREATE TABLE user_class_entry (
   ballast INTEGER
 );
 
+CREATE TABLE user_session (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cache_track_id INTEGER NOT NULL,
+  difficulty_id INTEGER NOT NULL,
+  event_id INTEGER NOT NULL,
+  class_id INTEGER NOT NULL,
+  time_id INTEGER NOT NULL,
+
+  laps INTEGER,
+  strategy INTEGER,
+
+  started_at DATETIME,
+  finished INTEGER
+);
+
 CREATE TABLE cache_track (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL,
+  config TEXT NOT NULL,
   name TEXT NOT NULL,
   desc TEXT,
   tags TEXT,

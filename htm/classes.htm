@@ -197,11 +197,12 @@
               }
             },
             search_getresults: function () {
-              name_results = this.car_data.filter(function (x) {
-                return x.name.match(new RegExp(this.search_name, "ig"));
+              let sn = this.search_name;
+              let name_results = this.car_data.filter(function (x) {
+                return x.name.match(new RegExp(sn, "ig"));
               });
 
-              tag_results = [];
+              let tag_results = [];
               let st = this.search_tag;
               name_results.forEach(function (car) {
                 if (car.tags.find((x) => x.match(new RegExp(st, "ig")))) {
@@ -627,10 +628,6 @@
       </div>
     </div>
     <form id="frmDelete" action="{{ url_for('class_delete', id=data['id']) }}" method="POST"></form>
-
-    <!-- ChartJS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"
-      integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
 
     {% endif %}
   </div>

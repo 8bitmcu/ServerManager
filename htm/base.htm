@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %} {% endblock %}</title>
+  <title>{% block title %}{% endblock %}</title>
   <meta name="author" content="8bitmcu" />
   <meta name="description" content="" />
 
@@ -16,15 +16,10 @@
   <!-- Font Awesome -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js" crossorigin="anonymous"></script>
 
+  <!-- ChartJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" crossorigin="anonymous"></script>
+
   <style>
-    .bg-sidebar {
-      background: #e3342f;
-    }
-
-    .active-nav-link {
-      background: #621b18;
-    }
-
     .nav-item:hover {
       background: #621b18;
     }
@@ -43,7 +38,7 @@
 </head>
 
 <body class="bg-gray-100 flex">
-  <aside class="relative bg-sidebar h-screen w-96 hidden sm:block shadow-xl">
+  <aside class="relative bg-red-500 h-screen w-96 hidden sm:block shadow-xl">
     <div class="p-6">
       <span class="text-white text-3xl font-semibold uppercase">ServerManager</span>
       <div
@@ -55,40 +50,42 @@
             <div class="mt-px">online</div>
           </div>
         </div>
-        <div>
-          <span>Server IP: &nbsp;</span><input type="textbox" class="text-gray-700 bg-gray-200 rounded"
-            value="174.118.36.72" style="width: 100px; text-align: center" />
+        <div class="mt-2">
+          <span>Server IP: &nbsp;</span>
+          <input type="textbox" class="text-gray-700 bg-gray-200 rounded text-center"
+            x-data="" @click="$el.select()"
+            value="174.118.36.72" style="width: 100px; font-weight: lighter" />
         </div>
       </div>
     </div>
     <nav class="text-white text-base font-semibold pt-3">
       <a href="{{ url_for('index') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path == url_for('index') %}active-nav-link{% endif %}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path == url_for('index') %}bg-red-900{% endif %}">
         <i class="fas fa-tachometer-alt mr-3"></i>
         Server Dashboard
       </a>
       <a href="{{ url_for('veh_class') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('veh_class')) %}active-nav-link{% endif %}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('veh_class')) %}bg-red-900{% endif %}">
         <i class="fas fa-car mr-3"></i>
         Vehicle Classes
       </a>
       <a href="{{ url_for('time') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('time')) %}active-nav-link{% endif %}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('time')) %}bg-red-900{% endif %}">
         <i class="fas fa-cloud-moon-rain mr-3"></i>
         Time and Weather Presets
       </a>
       <a href="{{ url_for('event') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('event')) %}active-nav-link{% endif %}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('event')) %}bg-red-900{% endif %}">
         <i class="fas fa-calendar-check mr-3"></i>
         Event Presets
       </a>
       <a href="{{ url_for('difficulty') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('difficulty')) %}active-nav-link{% endif %}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('difficulty')) %}bg-red-900{% endif %}">
         <i class="fas fa-signal mr-3"></i>
         Difficulty Presets
       </a>
       <a href="{{ url_for('config') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('config')) %}active-nav-link{% endif %}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('config')) %}bg-red-900{% endif %}">
         <i class="fas fa-server mr-3"></i>
         Server Configuration
       </a>

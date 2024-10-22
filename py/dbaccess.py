@@ -37,7 +37,7 @@ class Dbaccess:
             form["temp_unit"],
             form["install_path"]
         ]
-        # todo: change to `update if exists else insert` pattern
+        # TODO: change to `update if exists else insert` pattern
         conn.execute("DELETE FROM user_config");
         conn.execute("INSERT INTO user_config (name, password, admin_password, register_to_lobby, pickup_mode_enabled, locked_entry_list, result_screen_time, udp_port, tcp_port, http_port, client_send_interval, num_threads, measurement_unit, temp_unit, install_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
 
@@ -45,7 +45,70 @@ class Dbaccess:
         conn.close()
 
 
+    def get_session(self):
+        conn = self.get_db_connection()
+        data = conn.execute("""
+            SELECT
+                s.id as id,
+                s.laps as laps,
+                s.strategy as strategy,
+                t.name as track_name,
+                t.length as track_length,
+                t.pitboxes as pitboxes,
+                d.name as difficulty_name,
+                d.abs_allowed as abs_allowed,
+                d.tc_allowed as tc_allowed,
+                d.stability_allowed as stability_allowed,
+                d.autoclutch_allowed as autoclutch_allowed,
+                e.name as event_name,
+                e.booking_enabled as booking_enabled,
+                e.practice_enabled as practice_enabled,
+                e.qualify_enabled as qualify_enabled,
+                e.race_enabled as race_enabled,
+                c.name as class_name,
+                COUNT(ce.id) as entries,
+                tw.name as time_name,
+                tw.time as time
+            FROM user_session s
+            JOIN cache_track t
+                on s.cache_track_id = t.id
+            JOIN user_difficulty d
+                on s.difficulty_id = d.id
+            JOIN user_event e
+                on s.event_id = e.id
+            JOIN user_class c
+                on s.class_id = c.id
+            JOIN user_class_entry ce
+                on s.class_id = ce.user_class_id
+            JOIN user_time tw
+                on s.time_id = tw.id
+            GROUP BY (s.id)
+""").fetchall()
+        conn.close()
+        return data
 
+    def insertupdate_session(self, form):
+        conn = self.get_db_connection()
+
+        values = [
+            form["track"],
+            form["difficulty"],
+            form["event"],
+            form["class"],
+            form["time"],
+            form["laps"],
+            form["strategy"]
+        ]
+
+        conn.execute("INSERT INTO user_session (cache_track_id, difficulty_id, event_id, class_id, time_id, laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?)", values)
+        conn.commit()
+        conn.close()
+
+    def delete_session(self, id):
+        conn = self.get_db_connection()
+        conn.execute("DELETE FROM user_session WHERE id = ?", (id, ))
+        conn.commit()
+        conn.close()
 
     def get_difficulty(self, id):
         conn = self.get_db_connection()
@@ -53,9 +116,12 @@ class Dbaccess:
         conn.close()
         return data
 
-    def get_difficulty_list(self, ):
+    def get_difficulty_list(self, filled=False):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT id, name from user_difficulty").fetchall()
+        where = ""
+        if filled:
+            where = "WHERE filled = 1"
+        data = conn.execute("SELECT id, name from user_difficulty " + where).fetchall()
         conn.close()
         return data
 
@@ -74,6 +140,7 @@ class Dbaccess:
         conn.close()
 
     def update_difficulty(self, id, form):
+        print(form)
         conn = self.get_db_connection()
         values = [
             form["abs_allowed"],
@@ -90,17 +157,20 @@ class Dbaccess:
             form["start_rule"],
             form["race_gas_penality_disabled"],
             form["dynamic_track"],
+            form["dynamic_track_preset"],
             form["session_start"],
             form["randomness"],
             form["session_transfer"],
             form["lap_gain"],
             form["kick_quorum"],
+            form["voting_quorum"],
+            form["vote_duration"],
             form["blacklist_mode"],
             form["max_contacts_per_km"],
             id
         ]
 
-        conn.execute("UPDATE user_difficulty SET abs_allowed = ?, tc_allowed = ?, stability_allowed = ?, autoclutch_allowed = ?, tyre_blankets_allowed = ?, force_virtual_mirror = ?, fuel_rate = ?, damage_multiplier = ?, tyre_wear_rate = ?, allowed_tyres_out = ?, max_ballast_kg = ?, start_rule = ?, race_gas_penality_disabled = ?, dynamic_track = ?, session_start = ?, randomness = ?, session_transfer = ?, lap_gain = ?, kick_quorum = ?, blacklist_mode = ?, max_contacts_per_km = ? WHERE id = ?", values)
+        conn.execute("UPDATE user_difficulty SET abs_allowed = ?, tc_allowed = ?, stability_allowed = ?, autoclutch_allowed = ?, tyre_blankets_allowed = ?, force_virtual_mirror = ?, fuel_rate = ?, damage_multiplier = ?, tyre_wear_rate = ?, allowed_tyres_out = ?, max_ballast_kg = ?, start_rule = ?, race_gas_penality_disabled = ?, dynamic_track = ?, dynamic_track_preset = ?, session_start = ?, randomness = ?, session_transfer = ?, lap_gain = ?, kick_quorum = ?, voting_quorum = ?, vote_duration = ?, blacklist_mode = ?, max_contacts_per_km = ?, filled = 1 WHERE id = ?", values)
 
         conn.commit()
         conn.close()
@@ -113,9 +183,12 @@ class Dbaccess:
         conn.close()
         return data
 
-    def get_event_list(self, ):
+    def get_event_list(self, filled=False):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT id, name from user_event").fetchall()
+        where = ""
+        if filled:
+            where = "WHERE filled = 1"
+        data = conn.execute("SELECT id, name from user_event " + where).fetchall()
         conn.close()
         return data
 
@@ -157,7 +230,7 @@ class Dbaccess:
             id
         ]
 
-        conn.execute("UPDATE user_event SET booking_enabled = ?, booking_time = ?, practice_enabled = ?, practice_time = ?, practice_is_open = ?, qualify_enabled = ?, qualify_time = ?, qualify_is_open = ?, qualify_max_wait_perc = ?, race_enabled = ?, race_laps = ?, race_time = ?, race_over_time = ?, race_wait_time = ?, race_is_open = ?, reversed_grid_positions = ?, race_pit_window_start = ?, race_pit_window_end = ? WHERE id = ?", values)
+        conn.execute("UPDATE user_event SET booking_enabled = ?, booking_time = ?, practice_enabled = ?, practice_time = ?, practice_is_open = ?, qualify_enabled = ?, qualify_time = ?, qualify_is_open = ?, qualify_max_wait_perc = ?, race_enabled = ?, race_laps = ?, race_time = ?, race_over_time = ?, race_wait_time = ?, race_is_open = ?, reversed_grid_positions = ?, race_pit_window_start = ?, race_pit_window_end = ?, filled = 1 WHERE id = ?", values)
 
         conn.commit()
         conn.close()
@@ -179,9 +252,12 @@ class Dbaccess:
         conn.close()
         return data
 
-    def get_time_list(self, ):
+    def get_time_list(self, filled=False):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT id, name from user_time").fetchall()
+        where = ""
+        if filled:
+            where = "WHERE filled = 1"
+        data = conn.execute("SELECT id, name from user_time " + where).fetchall()
         conn.close()
         return data
 
@@ -207,7 +283,7 @@ class Dbaccess:
             id
         ]
 
-        conn.execute("UPDATE user_time SET time = ?, time_of_day_multi = ? WHERE id = ?", values)
+        conn.execute("UPDATE user_time SET time = ?, time_of_day_multi = ?, filled = 1 WHERE id = ?", values)
         conn.execute("DELETE FROM user_time_weather WHERE user_time_id = ?", (id, ))
 
         for weather in json.loads(form["weather"]):
@@ -241,9 +317,12 @@ class Dbaccess:
         conn.close()
         return data
 
-    def get_class_list(self, ):
+    def get_class_list(self, filled=False):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT id, name from user_class").fetchall()
+        where = ""
+        if filled:
+            where = "WHERE filled = 1"
+        data = conn.execute("SELECT id, name from user_class " + where).fetchall()
         conn.close()
         return data
 
@@ -265,6 +344,7 @@ class Dbaccess:
         conn = self.get_db_connection()
 
         conn.execute("DELETE FROM user_class_entry WHERE user_class_id = ?", (id, ))
+        conn.execute("UPDATE user_class SET filled = 1 WHERE id = ?", (id, ))
 
         for car in json.loads(form['cars']):
             values = [
@@ -306,4 +386,17 @@ class Dbaccess:
 
 
 
+    def update_tracks(self, data):
+        conn = self.get_db_connection()
+        conn.execute("DELETE FROM cache_track")
+        conn.executemany("INSERT INTO cache_track (key, config, name, desc, tags, country, city, length, width, pitboxes, run) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", data)
 
+        conn.commit()
+        conn.close()
+
+    def get_tracklist(self):
+        conn = self.get_db_connection()
+        data = conn.execute("SELECT * FROM cache_track ORDER BY Name ASC").fetchall()
+
+        conn.close()
+        return data
