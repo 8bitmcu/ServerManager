@@ -93,7 +93,7 @@
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="booking_time">Booking Time</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="booking_time" name="booking_time"
-                  type="text" :required="booking_enabled" placeholder="Booking Time" aria-label="Booking Time"
+                  type="number" :required="booking_enabled" placeholder="Booking Time" aria-label="Booking Time" min="1"
                   value="{{ data.form['booking_time'] }}" />
               </div>
             </div>
@@ -121,8 +121,8 @@
             <div x-show="practice_enabled">
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="practice_time">Practice Time</label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="practice_time"
-                  name="practice_time" type="text" :required="practice_enabled" placeholder="Practice Time" aria-label="Practice Time"
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="practice_time" min="1"
+                  name="practice_time" type="number" :required="practice_enabled" placeholder="Practice Time" aria-label="Practice Time"
                   value="{{ data.form['practice_time'] }}" />
               </div>
               <div>
@@ -162,7 +162,7 @@
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="qualify_time">Qualify Time</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_time" name="qualify_time"
-                  type="text" :required="qualify_enabled" placeholder="Qualify Time" aria-label="Qualify Time"
+                  type="number" :required="qualify_enabled" placeholder="Qualify Time" aria-label="Qualify Time" min="1"
                   value="{{ data.form['qualify_time'] }}" />
               </div>
               <div>
@@ -179,7 +179,7 @@
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="qualify_max_wait_perc">Qualify limit Perc.</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_max_wait_perc"
-                  name="qualify_max_wait_perc" type="text" :required="qualify_enabled" placeholder="Qualify limit Perc."
+                  name="qualify_max_wait_perc" type="number" :required="qualify_enabled" placeholder="Qualify limit Perc." min="0"
                   aria-label="Qualify limit Perc." value="{{ data.form['qualify_max_wait_perc'] }}" />
               </div>
             </div>
@@ -207,25 +207,25 @@
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="race_laps">Race Laps</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_laps" name="race_laps"
-                  type="text" :required="race_enabled" placeholder="Race Laps" aria-label="Race Laps"
+                  type="number" :required="race_enabled" placeholder="Race Laps" aria-label="Race Laps"
                   value="{{ data.form['race_laps'] }}" />
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="race_time">Race Minutes</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_time" name="race_time"
-                  type="text" :required="race_enabled" placeholder="Race Minutes" aria-label="Race Minutes"
+                  type="number" :required="race_enabled" placeholder="Race Minutes" aria-label="Race Minutes"
                   value="{{ data.form['race_time'] }}" />
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="race_over_time">Race Overtime</label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_over_time"
-                  name="race_over_time" type="text" :required="race_enabled" placeholder="Race Overtime" aria-label="Race Overtime"
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_over_time" min="30"
+                  name="race_over_time" type="number" :required="race_enabled" placeholder="Race Overtime" aria-label="Race Overtime"
                   value="{{ data.form['race_over_time'] }}" />
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="race_wait_time">Race Wait Time</label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_wait_time"
-                  name="race_wait_time" type="text" :required="race_enabled" placeholder="Race Wait Time" aria-label="Race Wait Time"
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_wait_time" min="20"
+                  name="race_wait_time" type="number" :required="race_enabled" placeholder="Race Wait Time" aria-label="Race Wait Time"
                   value="{{ data.form['race_wait_time'] }}" />
               </div>
               <div class="mt-2">
@@ -241,19 +241,19 @@
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="reversed_grid_positions">Reversed Grid</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="reversed_grid_positions"
-                  name="reversed_grid_positions" type="text" :required="race_enabled" placeholder="Reversed Grid"
+                  name="reversed_grid_positions" type="number" :required="race_enabled" placeholder="Reversed Grid" min="0"
                   aria-label="Reversed Grid" value="{{ data.form['reversed_grid_positions'] }}" />
               </div>
               <div class="inline-block mt-2 w-1/2 pr-1">
                 <label class="block text-sm text-gray-600" for="race_pit_window_start">Mandatory Pit (Start)</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_start"
-                  name="race_pit_window_start" type="text" :required="race_enabled" placeholder="Mandatory Pit"
+                  name="race_pit_window_start" type="number" :required="race_enabled" placeholder="Mandatory Pit" min="0"
                   aria-label="Mandatory Pit" value="{{ data.form['race_pit_window_start'] }}" />
               </div>
               <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
                 <label class="block text-sm text-gray-600" for="race_pit_window_start">Mandatory Pit (End)</label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_end"
-                  name="race_pit_window_end" type="text" :required="race_enabled" placeholder="Mandatory Pit"
+                  name="race_pit_window_end" type="number" :required="race_enabled" placeholder="Mandatory Pit" min="0"
                   aria-label="Mandatory Pit" value="{{ data.form['race_pit_window_end'] }}" />
               </div>
             </div>

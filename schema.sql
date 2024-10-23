@@ -68,7 +68,7 @@ CREATE TABLE user_time_weather (
   wind_base_speed_min INTEGER,
   wind_base_speed_max INTEGER,
   wind_base_direction INTEGER,
-  wind_variation_direction INTEGER,
+  wind_variation_direction INTEGER
 );
 
 CREATE TABLE user_event (
@@ -106,7 +106,7 @@ CREATE TABLE user_class (
 CREATE TABLE user_class_entry (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_class_id INTEGER NOT NULL,
-  cache_vehicle_id TEXT NOT NULL,
+  cache_vehicle_id INTEGER NOT NULL,
   skin_id TEXT NOT NULL,
   ballast INTEGER
 );
@@ -155,3 +155,17 @@ CREATE TABLE cache_vehicle (
   skins TEXT
 );
 
+CREATE TABLE cache_weather (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL,
+  name TEXT NOT NULL
+);
+
+
+INSERT INTO cache_weather (key, name) VALUES ('3_clear', 'Clear');
+INSERT INTO cache_weather (key, name) VALUES ('7_heavy_clouds', 'Heavy Clouds');
+INSERT INTO cache_weather (key, name) VALUES ('1_heavy_fog', 'Heavy Fog');
+INSERT INTO cache_weather (key, name) VALUES ('5_light_clouds', 'Light Clouds');
+INSERT INTO cache_weather (key, name) VALUES ('2_light_fog', 'Light Fog');
+INSERT INTO cache_weather (key, name) VALUES ('4_mid_clear', 'Mid Clear');
+INSERT INTO cache_weather (key, name) VALUES ('6_mid_clouds', 'Mid Clouds');

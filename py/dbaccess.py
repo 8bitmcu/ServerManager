@@ -45,7 +45,7 @@ class Dbaccess:
         conn.close()
 
 
-    def get_session(self):
+    def get_sessions(self):
         conn = self.get_db_connection()
         data = conn.execute("""
             SELECT
@@ -68,7 +68,13 @@ class Dbaccess:
                 c.name as class_name,
                 COUNT(ce.id) as entries,
                 tw.name as time_name,
-                tw.time as time
+                tw.time as time,
+                (SELECT
+                    GROUP_CONCAT(b.name, ', ')
+                FROM user_time_weather a
+                JOIN cache_weather b
+                    on a.graphics = b.key
+                WHERE user_time_id = tw.id) as graphics
             FROM user_session s
             JOIN cache_track t
                 on s.cache_track_id = t.id
@@ -87,7 +93,13 @@ class Dbaccess:
         conn.close()
         return data
 
-    def insertupdate_session(self, form):
+    def get_session(self, id):
+        conn = self.get_db_connection()
+        data = conn.execute("SELECT * FROM user_session WHERE id = ?", (id, )).fetchone()
+        conn.close()
+        return data
+
+    def insert_session(self, form):
         conn = self.get_db_connection()
 
         values = [
@@ -101,6 +113,24 @@ class Dbaccess:
         ]
 
         conn.execute("INSERT INTO user_session (cache_track_id, difficulty_id, event_id, class_id, time_id, laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?)", values)
+        conn.commit()
+        conn.close()
+
+    def update_session(self, form):
+        conn = self.get_db_connection()
+
+        values = [
+            form["track"],
+            form["difficulty"],
+            form["event"],
+            form["class"],
+            form["time"],
+            form["laps"],
+            form["strategy"],
+            form["id"]
+        ]
+
+        conn.execute("UPDATE user_session SET cache_track_id = ?, difficulty_id = ?, event_id = ?, class_id = ?, time_id = ?, laps = ?, strategy = ? WHERE id = ?", values)
         conn.commit()
         conn.close()
 
@@ -249,6 +279,12 @@ class Dbaccess:
     def get_weather(self, id):
         conn = self.get_db_connection()
         data = conn.execute("SELECT * from user_time_weather WHERE user_time_id = ?", (id, )).fetchall()
+        conn.close()
+        return data
+
+    def get_weather_names(self, id):
+        conn = self.get_db_connection()
+        data = conn.execute("SELECT * from user_time_weather a JOIN cache_weather b on a.graphics = b.key WHERE user_time_id = ?", (id, )).fetchall()
         conn.close()
         return data
 

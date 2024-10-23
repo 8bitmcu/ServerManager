@@ -1,0 +1,639 @@
+{% extends 'base.htm' %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+
+<script>
+  function sort_str(a, b) {
+    let x = a.toLowerCase();
+    let y = b.toLowerCase();
+    if (x < y) return -1;
+    if (x > y) return 1;
+    return 0;
+  }
+
+  function sort_num(a, b) {
+    return a - b;
+  }
+  function format_distance(len) {
+    return Math.round(Number(len) / 10) / 100 + " km";
+  }
+  function session() {
+    return {
+      tracks_data: JSON.parse('{{ data.track_data | tojson }}'),
+      class_data: JSON.parse('{{ data.classes | tojson }}'),
+      time_data: JSON.parse('{{ data.times | tojson }}'),
+
+
+      selection_track: "{{ data.form['cache_track_id'] }}",
+      selection_difficulty: "{{ data.form['difficulty_id'] }}",
+      selection_event: "{{ data.form['event_id'] }}",
+      selection_class: "{{ data.form['class_id'] }}",
+      selection_time: "{{ data.form['time_id'] }}",
+
+      get_trackdata: function(id) {
+        if (id == "")
+          return { tags: []}
+        return this.tracks_data.find(x => x.id == id);
+      },
+
+      loaded_difficulty: {},
+      loaded_event: {},
+      loaded_class: { entries: []},
+      loaded_time: { weathers: [], time: ''},
+
+      get_difficulty: function() {
+        if (this.selection_difficulty == "")
+          this.loaded_difficulty = {}
+        else
+          fetch('/api/get_difficulty/' + this.selection_difficulty)
+            .then((response) => response.json())
+            .then((json) => this.loaded_difficulty = json);
+      },
+      get_event: function() {
+        if(this.selection_event == "")
+          this.loaded_event = {}
+        else
+          fetch('/api/get_event/' + this.selection_event)
+            .then((response) => response.json())
+            .then((json) => this.loaded_event = json);
+      },
+      get_class: function() {
+        if(this.selection_class == "")
+          this.loaded_class = { entries: []}
+        else
+          fetch('/api/get_class/' + this.selection_class)
+            .then((response) => response.json())
+            .then((json) => this.loaded_class = json);
+      },
+      get_time: function() {
+        if(this.selection_time == "")
+          this.loaded_time = { weathers: [], time: ''}
+        else
+          fetch('/api/get_time/' + this.selection_time)
+            .then((response) => response.json())
+            .then((json) => this.loaded_time = json);
+      },
+
+      random_track: function() {
+        let rand = Math.floor(Math.random()*this.tracks_data.length);
+        this.selection_track = this.tracks_data[rand].id;
+      },
+      random_class: function() {
+        let rand = Math.floor(Math.random()*this.class_data.length);
+        this.selection_class = this.class_data[rand].id;
+        this.get_class();
+      },
+      random_time: function() {
+        let rand = Math.floor(Math.random()*this.time_data.length);
+        this.selection_time = this.time_data[rand].id;
+        this.get_time();
+      },
+
+
+      search_open: false,
+      search_toggle: function () {
+        this.search_open = !this.search_open;
+        if (this.search_open) this.trackpicker_open = false;
+      },
+      search_name: "",
+      search_tag: "",
+      search_sortby: "name",
+      search_sortor: "asc",
+      search_track: {},
+      search_getresults: function () {
+        let sn = this.search_name;
+        let name_results = this.tracks_data.filter(function (x) {
+          return x.name.match(new RegExp(sn, "ig"));
+        });
+
+        let tag_results = [];
+        let st = this.search_tag;
+        name_results.forEach(function (track) {
+          if (track.tags.find((x) => x.match(new RegExp(st, "ig")))) {
+            tag_results.push(track);
+          }
+        });
+
+        let sortby = this.search_sortby;
+        let sortor = this.search_sortor;
+        let sorted_results = tag_results.sort(function (a, b) {
+          if (sortby == "name" && sortor == "asc")
+            return sort_str(a.name, b.name);
+          else if (sortby == "name" && sortor == "desc")
+            return sort_str(b.name, a.name);
+          else if (sortby == "country" && sortor == "asc")
+            return sort_str(a.country, b.country);
+          else if (sortby == "country" && sortor == "desc")
+            return sort_str(b.country, a.country);
+          else if (sortby == "city" && sortor == "asc")
+            return sort_str(a.city, b.city);
+          else if (sortby == "city" && sortor == "desc")
+            return sort_str(b.city, a.city);
+          else if (sortby == "length" && sortor == "asc")
+            return sort_num(a.length, b.length);
+          else if (sortby == "length" && sortor == "desc")
+            return sort_num(b.length, a.length);
+          else if (sortby == "width" && sortor == "asc")
+            return sort_num(a.width, b.width);
+          else if (sortby == "width" && sortor == "desc")
+            return sort_num(b.width, a.width);
+          else if (sortby == "pitboxes" && sortor == "asc")
+            return sort_num(a.pitboxes, b.pitboxes);
+          else if (sortby == "pitboxes" && sortor == "desc")
+            return sort_num(b.pitboxes, a.pitboxes);
+        });
+
+        return sorted_results;
+      },
+
+      track_preview: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track_preview/" + key + ".png";
+        else return "/api/track_preview/" + key + "/" + config + ".png";
+      },
+      track_outline: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track_outline/" + key + ".png";
+        else return "/api/track_outline/" + key + "/" + config + ".png";
+      },
+
+      trackpicker_open: false,
+      trackpicker_toggle: function () {
+        this.trackpicker_open = !this.trackpicker_open;
+        if (this.trackpicker_open) this.search_open = false;
+      },
+    };
+  }
+</script>
+
+<h1 class="text-3xl text-black pb-6">Dashboard</h1>
+<div class="w-full mt-6" x-data="session()">
+  <p class="text-xl pb-3 flex items-center">
+    <i class="fas fa-list mr-3"></i>Current Session
+  </p>
+  <div class="overflow-auto">
+
+    <table class="min-w-full bg-white">
+      <thead class="bg-gray-800 text-white">
+        <tr>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Track
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Difficulty
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Event
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Class
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Time and Weather
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Action
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700">
+        {% for session in data['sessions'] %}
+        <tr class="{{ loop.cycle('bg-gray-100', 'bg-white') }}">
+          <td class="text-left py-3 px-4">
+            <span>{{ session.track_name }}</span>
+            <div class="py-2 text-xs">
+              <i class="fas fa-route"></i>
+              <span class="pr-2" x-html="format_distance({{ session.track_length }})"></span>
+              {% if session.laps %}
+              <span class="pr-2">{{ session.laps }} laps</span>
+              {% endif %}
+              <span>{{ session.pitboxes }} pitboxes</span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ session.difficulty_name }}</span>
+            <div class="py-2 text-xs flex flex-row">
+              <span :class="{{ session.abs_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">ABS</span>
+              </span>
+              <span :class="{{ session.tc_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">TC</span>
+              </span>
+              <span :class="{{ session.stability_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Stability</span>
+              </span>
+              <span :class="{{ session.autoclutch_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Clutch</span>
+              </span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ session.event_name }}</span>
+            <div class="px4 py-2 text-xs">
+              <span :class="{{ session.booking_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if session.booking_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Booking</span>
+              </span>
+              <span :class="{{ session.practice_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if session.practice_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Practice</span>
+              </span>
+              <span :class="{{ session.qualify_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if session.qualify_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Qualifying</span>
+              </span>
+              <span :class="{{ session.race_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if session.race_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Race</span>
+              </span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ session.class_name }}</span>
+            <div class="px4 py-2 text-xs">
+              <span><i class="fas fa-warehouse"></i>
+              {% if session.entries > session.pitboxes %}
+              {% if session.strategy == 1 %}first{% endif %} {{ session.pitboxes }} entries {% if session.strategy == 2 %}randomly{% endif %}
+              {% else %}
+              all {{ session.entries }} entries
+              {% endif %}
+              </span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ session.time_name }}</span>
+            <div class="px4 py-2 text-xs">
+              <span class="mr-4"><i class="fas fa-stopwatch"></i> {{ session.time }} </span>
+              <span><i class="fas fa-cloud-moon-rain"></i> {{ session.graphics }}</span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <a href="/session/{{ session.id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
+                Edit</button></a><a href="/session_delete/{{ session.id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
+              Remove
+              </button></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <form class="w-full mt-6 rounded-lg flex bg-white flex-row flex-wrap" action="{{ url_for('session') }}" method="POST">
+
+      <div class="w-full flex px-6 py-6" x-show="trackpicker_open">
+        <div class="w-full rounded-lg bg-gray-100">
+          <h2 class="px-6 py-4 text-xl">Track Picker</h2>
+          <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
+            <template x-for="track in tracks_data">
+              <div class="relative mx-auto pb-2 my-4 hover:border-red-300 border-2 rounded cursor-pointer"
+                :class="selection_track == track.id ? 'border-red-500':''" @click="selection_track = track.id">
+                <img style="height: 140px" x-bind:src="track_preview(track.key, track.config)" />
+                <img class="absolute" style="height: 140px; top: 0"
+                  x-bind:src="track_outline(track.key, track.config)" />
+                <p class="text-xs" x-text="track.name + ', ' + format_distance(track.length)"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white w-full flex px-6 py-6" x-show="search_open">
+        <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
+          <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-100" style="position: sticky; top: 0">
+              <tr>
+                <th colspan="2"
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  <label class="block text-sm text-gray-600">Name</label>
+                  <div class="flex flex-row">
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                      x-model="search_name" placeholder="Name" aria-label="Name" />
+                    <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                      <i class="fas fa-search"></i>
+                    </div>
+                  </div>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
+                  colspan="2">
+                  <label class="block text-sm text-gray-600">Tag</label>
+                  <div class="flex flex-row">
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                      x-model="search_tag" placeholder="Tag" aria-label="Tag" />
+                    <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                      <i class="fas fa-search"></i>
+                    </div>
+                  </div>
+                </th>
+                <th colspan="2"></th>
+              </tr>
+              <tr>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Name
+                  <button @click="search_sortby='name'; search_sortor='desc'"
+                    :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='name'; search_sortor='asc'"
+                    :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Country
+                  <button @click="search_sortby='country'; search_sortor='desc'"
+                    :class="(search_sortby == 'country' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='country'; search_sortor='asc'"
+                    :class="(search_sortby == 'country' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  City
+                  <button @click="search_sortby='city'; search_sortor='desc'"
+                    :class="(search_sortby == 'city' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='city'; search_sortor='asc'"
+                    :class="(search_sortby == 'city' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Length
+                  <button @click="search_sortby='length'; search_sortor='desc'"
+                    :class="(search_sortby == 'length' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='length'; search_sortor='asc'"
+                    :class="(search_sortby == 'length' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Width
+                  <button @click="search_sortby='width'; search_sortor='desc'"
+                    :class="(search_sortby == 'width' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='width'; search_sortor='asc'"
+                    :class="(search_sortby == 'width' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Pitboxes
+                  <button @click="search_sortby='pitboxes'; search_sortor='desc'"
+                    :class="(search_sortby == 'pitboxes' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='pitboxes'; search_sortor='asc'"
+                    :class="(search_sortby == 'pitboxes' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(result, r_index) in search_getresults()">
+                <tr :class="selection_track == result.id ? 'text-red-500':''">
+                  <td class="px-6 border-b border-grey-light">
+                    <a href="#" @click="selection_track = result.id" x-text="result.name"></a>
+                  </td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.country"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.city"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="format_distance(result.length)"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.width"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.pitboxes"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+      <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+        <p class="text-xl px-6 pb-6 flex items-center">
+        <i class="fas fa-list mr-3"></i> {% if data.form %}Edit{% else %}Add to{% endif %} session
+        </p>
+        <div class="p-10 leading-loose">
+          <div class="">
+            <label class="block text-sm text-gray-600" for="track">Track</label>
+            <div class="flex flex-row">
+              <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="track" x-model="selection_track"
+                required>
+                <option value="">Select ...</option>
+                {% for d in data['track_data'] %}
+                <option value="{{ d['id'] }}">
+                  {{ d['name'] }}
+                </option>
+                {% endfor %}
+              </select>
+              <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_track()">
+                <i class="fas fa-random"></i>
+              </button>
+              <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="search_toggle()"
+                :class="search_open ? 'text-red-500' : ''">
+                <i class="fas fa-search"></i>
+              </button>
+              <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md" type="button"
+                @click="trackpicker_toggle()" :class="trackpicker_open ? 'text-red-500' : ''">
+                <i class="fas fa-grip-horizontal"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-2">
+            <label class="block text-sm text-gray-600" for="difficulty">Difficulty</label>
+            <div class="flex flex-row">
+              <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="difficulty" x-model="selection_difficulty"
+                @change="get_difficulty()" required>
+                <option value="">Select ...</option>
+                {% for d in data['difficulties'] %}
+                <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="w-full mt-2 flex">
+            <div class="w-3/4">
+              <label class="block text-sm text-gray-600" for="event">Event</label>
+              <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="event" required x-model="selection_event"
+                @change="get_event()">
+                <option value="">Select ...</option>
+                {% for d in data['events'] %}
+                <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="w-1/4 ml-5">
+              <label class="block text-sm text-gray-600" for="laps">Laps</label>
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="laps" placeholder="Laps"
+                 aria-label="Laps" value="{{data.form['laps']}}"/>
+            </div>
+          </div>
+
+          <div class="w-full mt-2 flex">
+            <div class="w-3/4">
+              <label class="block text-sm text-gray-600" for="class">Class</label>
+              <div class="flex flex-row">
+                <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="class" required x-model="selection_class"
+                  @change="get_class()">
+                  <option value="">Select ...</option>
+                  {% for d in data['classes'] %}
+                  <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                  {% endfor %}
+                </select>
+                <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_class()">
+                  <i class="fas fa-random"></i>
+                </button>
+              </div>
+            </div>
+            <div class="w-1/4 ml-5">
+              <label class="block text-sm text-gray-600" for="strategy">Strategy</label>
+              <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="strategy" required>
+                <option value="">Select ...</option>
+                <option {% if data.form['strategy']==1 %} selected {% endif %} value="1">First</option>
+                <option {% if data.form['strategy']==2 %} selected {% endif %} value="2">Random</option>
+              </select>
+            </div>
+          </div>
+
+
+          <div class="mt-2">
+            <label class="block text-sm text-gray-600" for="time">Time and Weather</label>
+            <div class="flex flex-row">
+              <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="time" required x-model="selection_time"
+                @change="get_time()">
+                <option value="">Select ...</option>
+                {% for d in data['times'] %}
+                <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+              </select>
+              <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_time()">
+                <i class="fas fa-random"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+        <p class="text-xl px-6 pb-6 flex items-center">
+          <i class="fas fa-list mr-3"></i> Session Preview
+        </p>
+        <div class="pl-10 pt-10 leading-loose" x-show="selection_track">
+          <h2 class="py-4 text-xl">Track</h2>
+          <div class="flex flex-row text-gray-700">
+            <div class="w-1/2 relative">
+              <img x-bind:src="track_preview(get_trackdata(selection_track).key, get_trackdata(selection_track).config)" />
+              <img class="absolute" style="top: 0"
+                x-bind:src="track_outline(get_trackdata(selection_track).key, get_trackdata(selection_track).config)" />
+            </div>
+            <div class="w-1/2 pl-4">
+              <p> Track: <span x-html="get_trackdata(selection_track).name"></span> </p>
+              <p> Length: <span x-html="format_distance(get_trackdata(selection_track).length)"></span></p>
+              <p> Location: <span x-html="get_trackdata(selection_track).city + ', ' + get_trackdata(selection_track).country"></span></p>
+              <p> Pitboxes: <span x-html="get_trackdata(selection_track).pitboxes"></span></p>
+              <p> Width: <span x-html="get_trackdata(selection_track).width"></span></p>
+              <p> Run: <span x-html="get_trackdata(selection_track).run"></span></p>
+            </div>
+          </div>
+          <div class="w-full">
+            <div>
+              <template x-for="tag in get_trackdata(selection_track).tags">
+                <div
+                  class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+                  <div class="mt-px" x-html="tag"></div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <div class="pl-10 leading-loose flex flex-row">
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Difficulty</h2>
+            <p class="flex flex-row text-normal text-gray-700">
+              <span :class="loaded_difficulty.abs_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">ABS</span>
+              </span>
+              <span :class="loaded_difficulty.tc_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">TC</span>
+              </span>
+              <span :class="loaded_difficulty.stability_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Stability</span>
+              </span>
+              <span :class="loaded_difficulty.autoclutch_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Clutch</span>
+              </span>
+            </p>
+          </div>
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Event</h2>
+            <p class="flex flex-row text-normal text-gray-700">
+              <span :class="loaded_event.booking_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_event.booking_enabled"></i> <i class="fas fa-times" x-show="!loaded_event.booking_enabled"></i> <span class="pr-4">Booking</span>
+              </span>
+              <span :class="loaded_event.practice_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_event.practice_enabled"></i> <i class="fas fa-times" x-show="!loaded_event.practice_enabled"></i> <span class="pr-4">Practice</span>
+              </span>
+              <span :class="loaded_event.qualifying_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_event.qualify_enabled"></i> <i class="fas fa-times" x-show="!loaded_event.qualify_enabled"></i> <span class="pr-4">Qualifying</span>
+              </span>
+              <span :class="loaded_event.race_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_event.race_enabled"></i> <i class="fas fa-times" x-show="!loaded_event.race_enabled"></i> <span class="pr-4">Race</span>
+              </span>
+            </p>
+          </div>
+        </div>
+        <div class="pl-10 leading-loose flex flex-row">
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Class</h2>
+            <div class="flex flex-row text-normal text-gray-700">
+              <span><i class="fas fa-warehouse"></i> <span x-html="loaded_class.entries.length"></span> entries</span>
+
+            </div>
+          </div>
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Time and Weather</h2>
+            <div class="flex flex-row text-normal text-gray-700">
+              <span class="mr-4"><i class="fas fa-stopwatch"></i><span x-html="loaded_time.time"></span></span>
+              <span><i class="fas fa-cloud-moon-rain"></i>
+                <template x-for="w, i in loaded_time.weathers">
+                  <span x-html="w.name + (i == loaded_time.weathers.length-1 ? '' : ',')">
+                </template>
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="w-full mt-6 pl-0 lg:pl-2">
+        <p class="text-xl pb-6 flex items-center">
+          <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="submit">
+            Save
+          </button>
+        </p>
+      </div>
+    <input type="hidden" name="id" value="{{ data['form'].id }}"></input>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

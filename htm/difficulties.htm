@@ -205,20 +205,20 @@
           <div class="p-10 leading-loose">
             <div class="">
               <label class="block text-sm text-gray-600" for="fuel_rate">Fuel Rate</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="fuel_rate" name="fuel_rate"
-                type="text" required="" placeholder="Fuel Rate" aria-label="Fuel Rate"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="fuel_rate" name="fuel_rate" min="0" max="500"
+                type="number" required="" placeholder="Fuel Rate" aria-label="Fuel Rate"
                 value="{{ data.form['fuel_rate'] }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="damage_multiplier">Damage Rate</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="damage_multiplier"
-                name="damage_multiplier" type="text" required="" placeholder="Damage Rate" aria-label="Damage Rate"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="damage_multiplier" min="0" max="400"
+                name="damage_multiplier" type="number" required="" placeholder="Damage Rate" aria-label="Damage Rate"
                 value="{{ data.form['damage_multiplier'] }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="tyre_wear_rate">Tyre Wear</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tyre_wear_rate"
-                name="tyre_wear_rate" type="text" required="" placeholder="Tyre Wear" aria-label="Tyre Wear"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tyre_wear_rate" min="0" max="500"
+                name="tyre_wear_rate" type="number" required="" placeholder="Tyre Wear" aria-label="Tyre Wear"
                 value="{{ data.form['tyre_wear_rate'] }}" />
             </div>
             <div class="mt-2">
@@ -234,8 +234,8 @@
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="max_ballast_kg">Max Ballast (KG)</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_ballast_kg"
-                name="max_ballast_kg" type="text" required="" placeholder="Max Balast (KG)"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_ballast_kg" min="0" max="300"
+                name="max_ballast_kg" type="number" required="" placeholder="Max Balast (KG)"
                 aria-label="Max Ballast (KG)" value="{{ data.form['max_ballast_kg'] }}" />
             </div>
             <div class="mt-2">
@@ -294,26 +294,26 @@
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="session_start">Start Value</label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_start" x-model="session_start"
-                  name="session_start" type="text" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Start Value" aria-label="Start Value" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_start" x-model="session_start" min="80" max="100"
+                  name="session_start" type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Start Value" aria-label="Start Value" />
                 <input type="hidden" name="session_start" x-model="session_start" />
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="randomness">Randomness</label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="randomness" name="randomness"
-                  type="text" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Randomness" aria-label="Randomness" x-model="randomness" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="randomness" name="randomness" min="0" max="10"
+                  type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Randomness" aria-label="Randomness" x-model="randomness" />
                 <input type="hidden" name="randomness" x-model="randomness" />
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="session_transfer">Transfer Grip</label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_transfer" x-model="session_transfer"
-                  name="session_transfer" type="text" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Transfer Grip" aria-label="Transfer Grip" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_transfer" x-model="session_transfer" min="0" max="100"
+                  name="session_transfer" type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Transfer Grip" aria-label="Transfer Grip" />
                 <input type="hidden" name="session_transfer" x-model="session_transfer" />
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600" for="lap_gain">Laps to Improve Grip</label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="lap_gain" name="lap_gain" x-model="lap_gain"
-                  type="text" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Laps to Improve Grip" aria-label="Laps to Improve Grip" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="lap_gain" name="lap_gain" x-model="lap_gain" min="0" max="1000"
+                  type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Laps to Improve Grip" aria-label="Laps to Improve Grip" />
                 <input type="hidden" name="lap_gain" x-model="lap_gain" />
               </div>
             </div>
@@ -329,20 +329,20 @@
           <div class="p-10 leading-loose">
             <div class="">
               <label class="block text-sm text-gray-600" for="kick_quorum">Kick Vote Quorum</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="kick_quorum" name="kick_quorum"
-                type="text" required="" placeholder="Kick Vote Quorum" aria-label="Kick Vote Quorum"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="kick_quorum" name="kick_quorum" min="0" max="101"
+                type="number" required="" placeholder="Kick Vote Quorum" aria-label="Kick Vote Quorum"
                 value="{{ data.form['kick_quorum'] }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="voting_quorum">Session Vote Quorum</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="voting_quorum" name="voting_quorum"
-                type="text" required="" placeholder="Session Vote Quorum" aria-label="Session Vote Quorum"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="voting_quorum" name="voting_quorum" min="0" max="101"
+                type="number" required="" placeholder="Session Vote Quorum" aria-label="Session Vote Quorum"
                 value="{{ data.form['voting_quorum'] }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="vote_duration">Vote Duration</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="vote_duration" name="vote_duration"
-                type="text" required="" placeholder="Vote Duration" aria-label="Vote Duration"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="vote_duration" name="vote_duration" min="10" max="30"
+                type="number" required="" placeholder="Vote Duration" aria-label="Vote Duration"
                 value="{{ data.form['vote_duration'] }}" />
             </div>
             <div class="mt-2">
@@ -356,8 +356,8 @@
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600" for="max_contacts_per_km">Max Collision per KM</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_contacts_per_km"
-                name="max_contacts_per_km" type="text" required="" placeholder="Max Collision per KM"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_contacts_per_km" min="-1" max="128"
+                name="max_contacts_per_km" type="number" required="" placeholder="Max Collision per KM"
                 aria-label="Max Collision per KM" value="{{ data.form['max_contacts_per_km'] }}" />
             </div>
           </div>

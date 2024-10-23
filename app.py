@@ -2,12 +2,13 @@ import sqlite3, json
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
 from py.dbaccess import Dbaccess
 from py.fsaccess import Fsaccess
+from py.psaccess import Psaccess
 
 app = Flask(__name__, template_folder="htm")
 
 dba = Dbaccess("sqlite.db")
 fsa = Fsaccess(dba)
-
+psa = Psaccess(dba, fsa)
 
 def clean_dbdata(dbdata):
     newdata = {}
@@ -21,8 +22,37 @@ def clean_dbdata(dbdata):
 # Dashboard / Index
 @app.route("/", methods=('GET', 'POST'))
 def index():
-    if request.method == 'POST':
-        dba.insertupdate_session(request.form)
+    data = {}
+    data['is_running'] = psa.is_running()
+    return render_template("index.htm", data=data)
+
+@app.route("/api/console", methods=('GET', 'POST'))
+def console():
+    data = {
+        'is_running': psa.is_running(),
+        'text': psa.process_content()
+    }
+    return jsonify(data);
+
+@app.route("/api/console/start", methods=('GET', 'POST'))
+def console_start():
+    psa.start_server()
+    return console()
+
+@app.route("/api/console/stop", methods=('GET', 'POST'))
+def console_stop():
+    psa.stop_server()
+    return console()
+
+
+# Session
+@app.route("/session", methods=('GET', 'POST'))
+@app.route("/session/<int:id>", methods=('GET', 'POST'))
+def session(id=None):
+    if request.method == 'POST' and request.form['id']:
+        dba.update_session(request.form)
+    elif request.method == 'POST':
+        dba.insert_session(request.form)
 
     data = {}
 
@@ -32,14 +62,17 @@ def index():
     data['times'] = [dict(ix) for ix in dba.get_time_list(filled=True)]
     data['classes'] = [dict(ix) for ix in dba.get_class_list(filled=True)]
 
-    data['session'] = dba.get_session()
+    data['sessions'] = dba.get_sessions()
 
     data['track_data'] = [dict(ix) for ix in dba.get_tracklist()]
     for x in data['track_data']:
         x['tags'] = json.loads(x['tags'])
 
-    return render_template("index.htm", data=data)
+    data['form'] = {}
+    if id is not None:
+        data['form'] = dba.get_session(id)
 
+    return render_template("session.htm", data=data)
 
 @app.route("/session_delete/<int:id>", methods=('GET', 'POST'))
 def session_delete(id):
@@ -201,9 +234,9 @@ def track_preview(key, config=None):
 def track_layout(key, config=None):
     return send_from_directory(fsa.get_track(key, config), "outline.png")
 
-@app.route("/api/car_details/<string:car>")
-def car_details(car): 
-    car_data = dba.get_car(car)
+@app.route("/api/get_vehicle/<string:id>")
+def get_vehicle(id): 
+    car_data = dba.get_car(id)
 
     raw_power = json.loads(car_data['power'])
 
@@ -220,7 +253,7 @@ def car_details(car):
         labels.append(int(p[0]))
 
     json_data = {
-        'id': car,
+        'id': id,
         'desc': car_data['desc'],
         'power': power,
         'torque': torque,
@@ -228,6 +261,29 @@ def car_details(car):
     }
 
     return jsonify(json_data)
+
+@app.route("/api/get_difficulty/<int:id>")
+def get_difficulty(id):
+    diff_data = dict(dba.get_difficulty(id))
+    return jsonify(diff_data)
+
+@app.route("/api/get_event/<int:id>")
+def get_event(id):
+    event_data = dict(dba.get_event(id))
+    return jsonify(event_data)
+
+@app.route("/api/get_class/<int:id>")
+def get_class(id):
+    class_data = dict(dba.get_class(id))
+    class_data['entries'] = [dict(ix) for ix in dba.get_class_entries(id)] 
+    return jsonify(class_data)
+
+@app.route("/api/get_time/<int:id>")
+def get_time(id):
+    time_data = dict(dba.get_time(id))
+    time_data['weathers'] = [dict(ix) for ix in dba.get_weather_names(id)] 
+    return jsonify(time_data)
+
 
 @app.route("/api/update_carlist")
 def api_update_carlist():

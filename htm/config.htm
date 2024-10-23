@@ -9,23 +9,51 @@
     </p>
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
-        <label class="block text-sm text-gray-600" for="name">Server Name</label>
+        <label class="block text-sm text-gray-600 group relative" for="name">
+          Server Name
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              The name of the server that will appear on the lobby
+            </div>
+          </div>
+        </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="name" name="name" type="text" required=""
           placeholder="Server Name" aria-label="Name" value="{{data['name']}}" />
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="password">Password</label>
+        <label class="block text-sm text-gray-600 group relative" for="password">
+          Password
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              If you want to run a private server, just set a password and make it known to your friends
+            </div>
+          </div>
+        </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="password" name="password" type="password"
           required="" placeholder="Server Password" aria-label="Password" value="{{ data['password'] }}" />
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="admin_password">Admin Password</label>
+        <label class="block text-sm text-gray-600 group relative" for="admin_password">
+          Admin Password
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Chat -&gt; /admin your_password to become server admin or use it to join the server. Use /help to see the command list
+            </div>
+          </div>
+        </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="admin_password" name="admin_password"
           type="password" required="" placeholder="Admin Password" aria-label="Admin Password"
           value="{{ data['admin_password'] }}" />
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="register_to_lobby">Show on Lobby</label>
+        <label class="block text-sm text-gray-600 group relative" for="register_to_lobby">
+          Show on Lobby
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Flag it if you want your server to be visible on the Online Lobby
+            </div>
+          </div>
+        </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="register_to_lobby" id="register_to_lobby" value="1" {% if
             data['register_to_lobby']==1 %} checked {% endif %}
@@ -36,7 +64,14 @@
         </div>
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="pickup_mode_enabled">Pickup Mode</label>
+        <label class="block text-sm text-gray-600 group relative" for="pickup_mode_enabled">
+          Pickup Mode
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Flag it if you want to start a server without booking.
+            </div>
+          </div>
+        </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="pickup_mode_enabled" id="pickup_mode_enabled" value="1" {% if
             data['pickup_mode_enabled']==1 %} checked {% endif %}
@@ -47,7 +82,14 @@
         </div>
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="locked_entry_list">Pickup Locked Entry List</label>
+        <label class="block text-sm text-gray-600 group relative" for="locked_entry_list">
+         Pickup Locked Entry List 
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Flag it if you want to limit the server to the entrylist GUID player and ignore password
+            </div>
+          </div>
+        </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="locked_entry_list" id="locked_entry_list" value="1" {% if
             data['locked_entry_list']==1 %} checked {% endif %}
@@ -58,9 +100,16 @@
         </div>
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="result_screen_time">Result Screen Time</label>
+        <label class="block text-sm text-gray-600 group relative" for="result_screen_time">
+         Result Screen Time 
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Seconds what the server is going to wait for players to end the race
+            </div>
+          </div>
+        </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="result_screen_time"
-          name="result_screen_time" type="text" required="" placeholder="Result Screen Time"
+          name="result_screen_time" type="number" required="" placeholder="Result Screen Time" min="10"
           aria-label="Result Screen Time" value="{{ data['result_screen_time'] }}" />
       </div>
     </div>
@@ -72,30 +121,67 @@
     </p>
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
-        <label class="block text-sm text-gray-600" for="name">UDP Port</label>
-        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="udp_port" name="udp_port" type="text"
-          required="" placeholder="UDP Port" aria-label="UDP Port" value="{{ data['udp_port'] }}" />
+        <label class="block text-sm text-gray-600 group relative" for="udp_port">
+         UDP Port
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Remember to open this port on your firewall
+            </div>
+          </div>
+        </label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="udp_port" name="udp_port" type="number"
+          required="" placeholder="UDP Port" aria-label="UDP Port" value="{{ data['udp_port'] }}" min="1" max="65535" />
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="tcp_port">TCP Port</label>
-        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tcp_port" name="tcp_port" type="text"
-          required="" placeholder="TCP Port" aria-label="TCP Port" value="{{ data['tcp_port'] }}" />
+        <label class="block text-sm text-gray-600 group relative" for="tcp_port">
+         TCP Port
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Remember to open this port on your firewall
+            </div>
+          </div>
+        </label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tcp_port" name="tcp_port" type="number"
+          required="" placeholder="TCP Port" aria-label="TCP Port" value="{{ data['tcp_port'] }}" min="1" max="65535" />
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="http_port">HTTP Port</label>
-        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="http_port" name="http_port" type="text"
-          required="" placeholder="HTTP Port" aria-label="HTTP Port" value="{{ data['http_port'] }}" />
+        <label class="block text-sm text-gray-600 group relative" for="http_port">
+         HTTP Port
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              HTTP is TCP. Remember to open this port on your firewall
+            </div>
+          </div>
+        </label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="http_port" name="http_port" type="number"
+          required="" placeholder="HTTP Port" aria-label="HTTP Port" value="{{ data['http_port'] }}" min="1"
+          max="65535" />
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="client_send_interval">Packet HZ</label>
-        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="client_send_interval"
-          name="client_send_interval" type="text" required="" placeholder="Packet HZ" aria-label="Packet HZ"
+        <label class="block text-sm text-gray-600 group relative" for="client_send_interval">
+         Packet HZ
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Higher value gives better MP quality, but requires a more powerful connection
+            </div>
+          </div>
+        </label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="client_send_interval" min="10" max="35"
+          name="client_send_interval" type="number" required="" placeholder="Packet HZ" aria-label="Packet HZ"
           value="{{ data['client_send_interval'] }}" />
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="num_threads">Threads</label>
-        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="num_threads" name="num_threads"
-          type="text" required="" placeholder="Threads" aria-label="Threads" value="{{ data['num_threads'] }}" />
+        <label class="block text-sm text-gray-600 group relative" for="num_threads">
+         Threads
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              # TODO: caption
+            </div>
+          </div>
+        </label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="num_threads" name="num_threads" min="2"
+          max="8" type="number" required="" placeholder="Threads" aria-label="Threads"
+          value="{{ data['num_threads'] }}" />
       </div>
     </div>
   </div>
@@ -107,7 +193,8 @@
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
         <label class="block text-sm text-gray-600" for="measurement_unit">Measurement Unit</label>
-        <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit" name="measurement_unit">
+        <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit"
+          name="measurement_unit">
           <option value="0" {% if data['measurement_unit']==0 %} selected {% endif %}>KM, KM/h</option>
           <option value="1" {% if data['measurement_unit']==1 %} selected {% endif %}>Miles, MPH</option>
         </select>

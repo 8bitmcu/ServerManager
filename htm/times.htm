@@ -87,8 +87,8 @@
             </div>
             <div class="inline-block mt-2 -mx-1 pl-1 w-1/4">
               <label class="block text-sm text-gray-600" for="time_of_day_multi">Multiplier</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="time_of_day_multi"
-                name="time_of_day_multi" type="text" required="" placeholder="Multiplier" aria-label="Multiplier"
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="time_of_day_multi" min="1" max="10"
+                name="time_of_day_multi" type="number" required="" placeholder="Multiplier" aria-label="Multiplier"
                 value="{{ data.form['time_of_day_multi'] }}" />
             </div>
           </div>
@@ -137,51 +137,51 @@
                 </div>
                 <div class="inline-block mt-2 w-1/2 pr-1">
                   <label class="block text-sm text-gray-600" for="base_temperature_ambient">Base Ambient Temp</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
-                    type="text" required="" placeholder="Base Ambient Temp" aria-label="Base Ambient Temp"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="0"
+                    type="number" required="" placeholder="Base Ambient Temp" aria-label="Base Ambient Temp"
                     x-model="time.base_temperature_ambient" />
                 </div>
                 <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
                   <label class="block text-sm text-gray-600" for="wind_base_speed_min">Base Wind Min Speed</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
-                    type="text" required="" placeholder="Base Wind Min Speed" aria-label="Base Wind Min Speed"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="0" max="40"
+                    type="number" required="" placeholder="Base Wind Min Speed" aria-label="Base Wind Min Speed"
                     x-model="time.wind_base_speed_min" />
                 </div>
                 <div class="inline-block mt-2 w-1/2 pr-1">
                   <label class="block text-sm text-gray-600" for="base_temperature_road">Base Road Temp</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
-                    type="text" required="" placeholder="Base Road Temp" aria-label="Base Road Temp"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="0"
+                    type="number" required="" placeholder="Base Road Temp" aria-label="Base Road Temp"
                     x-model="time.base_temperature_road" />
                 </div>
                 <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
                   <label class="block text-sm text-gray-600" for="wind_base_speed_max">Base Wind Max Speed</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
-                    type="text" required="" placeholder="Base Wind Max Speed" aria-label="Base Wind Max Speed"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="0" max="40"
+                    type="number" required="" placeholder="Base Wind Max Speed" aria-label="Base Wind Max Speed"
                     x-model="time.wind_base_speed_max" />
                 </div>
                 <div class="inline-block mt-2 w-1/2 pr-1">
                   <label class="block text-sm text-gray-600" for="variation_ambient">Ambient Variation</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="number" min="0"
                     required="" placeholder="Ambient Variation" aria-label="Ambient Variation"
                     x-model="time.variation_ambient" />
                 </div>
                 <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
                   <label class="block text-sm text-gray-600" for="wind_base_direction">Base Wind Direction</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
-                    type="text" required="" placeholder="Base Wind Direction" aria-label="Base Wind Direction"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="0" max="359"
+                    type="number" required="" placeholder="Base Wind Direction" aria-label="Base Wind Direction"
                     x-model="time.wind_base_direction" />
                 </div>
                 <div class="inline-block mt-2 w-1/2 pr-1">
                   <label class="block text-sm text-gray-600" for="variation_road">Road Variation</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="number" min="0"
                     required="" placeholder="Road Variation" aria-label="Road Variation"
                     x-model="time.variation_road" />
                 </div>
                 <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
                   <label class="block text-sm text-gray-600" for="wind_variation_direction">Wind Direction
                     Variation</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
-                    type="text" required="" placeholder="Wind Direction Variation" aria-label="Wind Direction Variation"
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="0" max="359"
+                    type="number" required="" placeholder="Wind Direction Variation" aria-label="Wind Direction Variation"
                     x-model="time.wind_variation_direction" />
                 </div>
                 <div class="inline-block mt-2 w-1/2 pr-1">

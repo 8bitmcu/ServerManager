@@ -10,6 +10,12 @@ class Fsaccess:
     def get_basepath(self):
         return self.dba.select_config()["install_path"]
 
+    def get_serverexe(self):
+        # TODO: different for windows
+        return os.path.join(self.get_serverpath(), "acServer")
+
+    def get_serverpath(self):
+        return os.path.join(self.get_basepath(), "server")
 
     def get_skin(self, car_id, skin_id):
         return os.path.join(self.get_basepath(), "content", "cars", car_id, "skins", skin_id)

@@ -286,14 +286,14 @@
                           label: "Power",
                           data: [],
                           fill: false,
-                          borderColor: "#fe6384",
+                          borderColor: "#EF4444",
                           tension: 0.1,
                         },
                         {
                           label: "Torque",
                           data: [],
                           fill: false,
-                          borderColor: "#3ca5eb",
+                          borderColor: "#3B82F6",
                           tension: 0.1,
                         },
                       ],
@@ -308,7 +308,7 @@
                   while (dataset.data.length) dataset.data.pop();
                 });
               }
-              fetch("/api/car_details/" + car.key)
+              fetch("/api/get_vehicle/" + car.key)
                 .then((response) => response.json())
                 .then((json) => {
                   json.labels.forEach((x) => {
