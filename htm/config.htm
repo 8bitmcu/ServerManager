@@ -192,7 +192,14 @@
     </p>
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
-        <label class="block text-sm text-gray-600" for="measurement_unit">Measurement Unit</label>
+        <label class="block text-sm text-gray-600 group relative" for="measurement_unit">
+         Measurement Units
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Measurement units to be used in the web ui
+            </div>
+          </div>
+        </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit"
           name="measurement_unit">
           <option value="0" {% if data['measurement_unit']==0 %} selected {% endif %}>KM, KM/h</option>
@@ -200,7 +207,14 @@
         </select>
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600" for="temp_unit">Temperature Unit</label>
+        <label class="block text-sm text-gray-600 group relative" for="temp_unit">
+         Temperature Units
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Temperature units to be used in the web ui
+            </div>
+          </div>
+        </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="temp_unit" name="temp_unit">
           <option value="0" {% if data['temp_unit']==0 %} selected {% endif %}>Celcius</option>
           <option value="1" {% if data['temp_unit']==1 %} selected {% endif %}>Fahrenheit</option>
@@ -215,7 +229,14 @@
     </p>
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
-        <label class="block text-sm text-gray-600" for="install_path">Installation Path</label>
+        <label class="block text-sm text-gray-600 group relative" for="install_path">
+         Installation Path
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Root folder of your Assetto Corsa installation path
+            </div>
+          </div>
+        </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="install_path" name="install_path"
           type="text" required="" placeholder="Installation Path" aria-label="Installation Path"
           value="{{ data['install_path'] }}" />

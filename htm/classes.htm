@@ -102,19 +102,19 @@
             // data loaded for all the cars.
             car_data: JSON.parse('{{ data.car_data | tojson }}'),
 
-            car_getdata: function (car_key) {
-              if (!car_key)
+            car_getdata: function (car_id) {
+              if (!car_id)
                 return {
                   tags: [],
                   specs: {},
                   skins: [],
                 };
-              return this.car_data.find((x) => x.key == car_key);
+              return this.car_data.find((x) => x.id == car_id);
             },
-            skin_getdata: function (car_key, skin_id) {
-              if (!car_key || !skin_id) return {};
+            skin_getdata: function (car_id, skin_id) {
+              if (!car_id || !skin_id) return {};
               return this.car_data
-                .find((x) => x.key == car_key)
+                .find((x) => x.id == car_id)
                 .skins.find((x) => x.skin_id == skin_id);
             },
 
@@ -127,8 +127,9 @@
 
               init_data.forEach(x => {
                 let car = {
-                  id: Math.random().toString(16).slice(2),
-                  key: x['cache_vehicle_id'],
+                  uid: Math.random().toString(16).slice(2),
+                  id: x['cache_vehicle_id'],
+                  key: this.car_getdata(x['cache_vehicle_id']).key,
                   skin: x['skin_id']
                 }
 
@@ -149,13 +150,13 @@
             },
             car_remove: function (car_index, uid) {
               // remove details panel, skinpicker, search
-              if (this.details_car.id == uid) {
+              if (this.details_car.uid == uid) {
                 this.details_car = {};
               }
-              if (this.search_car.id == uid) {
+              if (this.search_car.uid == uid) {
                 this.search_car = {};
               }
-              if (this.skinpicker_car.id == uid) {
+              if (this.skinpicker_car.uid == uid) {
                 this.skinpicker_car = {};
               }
 
@@ -165,19 +166,23 @@
             },
             car_changed(car) {
               // remove details panel
-              if (this.details_car.id == car.id) {
+              if (this.details_car.uid == car.uid) {
                 this.details_car = {};
               }
 
-              if (!car.key)
-                car.key = this.car_data[0].key;
-
               if (!car.id)
-                car.id = Math.random().toString(16).slice(2);
+                car.id = this.car_data[0].id;
 
-              car.skin = this.car_data.find(
-                (x) => x.key == car.key,
-              ).skins[0].skin_id;
+              var cd = this.car_data.find(
+                (x) => x.id == car.id,
+              );
+
+              car.key = cd.key;
+
+              if (!car.uid)
+                car.uid = Math.random().toString(16).slice(2);
+
+              car.skin = cd.skins[0].skin_id;
             },
 
             // search panel
@@ -187,7 +192,7 @@
             search_sortor: "asc",
             search_car: {},
             search_show: function (car) {
-              if (this.search_car.id == car.id) {
+              if (this.search_car.uid == car.uid) {
                 this.search_car = {};
               } else {
                 this.search_car = car;
@@ -251,7 +256,7 @@
             // skin picker panel
             skinpicker_car: {},
             skinpicker_show: function (car) {
-              if (this.skinpicker_car.id == car.id) {
+              if (this.skinpicker_car.uid == car.uid) {
                 this.skinpicker_car = {};
               } else {
                 this.skinpicker_car = car;
@@ -270,7 +275,7 @@
             details_car: {},
             details_chart: null,
             details_fetch: function (car) {
-              if (this.details_car.id == car.id) {
+              if (this.details_car.uid == car.uid) {
                 this.details_car = {};
                 return;
               }
@@ -336,11 +341,11 @@
           <input type="hidden" x-model="JSON.stringify(class_cars)" name="cars" />
         </form>
         <nav class="flex flex-col">
-          <div class="w-full flex px-6 py-6" x-show="skinpicker_car.id">
+          <div class="w-full flex px-6 py-6" x-show="skinpicker_car.uid">
             <div class="w-full rounded-lg bg-gray-100">
               <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
               <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
-                <template x-for="skin in car_getdata(skinpicker_car.key).skins">
+                <template x-for="skin in car_getdata(skinpicker_car.id).skins">
                   <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
                     x-bind:src="skin_getimg(skinpicker_car.key, skin.skin_id)"
                     :class="skinpicker_car.skin == skin.skin_id ? 'border-red-500' : ''"
@@ -350,7 +355,7 @@
             </div>
           </div>
 
-          <div class="w-full flex px-6 py-6" x-show="search_car.id">
+          <div class="w-full flex px-6 py-6" x-show="search_car.uid">
             <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
               <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
               <table class="w-full text-left border-collapse">
@@ -458,9 +463,9 @@
                 </thead>
                 <tbody>
                   <template x-for="(result, r_index) in search_getresults()">
-                    <tr :class="search_car.key == result.key ? 'text-red-500' : ''">
+                    <tr :class="search_car.id == result.id ? 'text-red-500' : ''">
                       <td class="px-6 border-b border-grey-light">
-                        <a href="#" @click="search_car.key = result.key; car_changed(search_car)"
+                        <a href="#" @click="search_car.id = result.id; car_changed(search_car)"
                           x-text="result.name"></a>
                       </td>
                       <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
@@ -475,10 +480,10 @@
             </div>
           </div>
 
-          <template x-for="(car, car_index) in class_cars" :key="car.id">
+          <template x-for="(car, car_index) in class_cars" :key="car.uid">
             <div class="flex flex-col border-b-2">
               <div class="py-6 focus:outline-none text-gray-500 font-medium flex flex-row"
-                :class="details_car.id == car.id ? 'bg-gray-100' : 'bg-white'">
+                :class="details_car.uid == car.uid ? 'bg-gray-100' : 'bg-white'">
 
                 <div class="w-1/10 px-6 relative">
                   <span class="text-2xl text-white px-2 py-1 absolute" x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
@@ -488,15 +493,15 @@
                 <div class="w-2/6 px-6">
                   <label class="block text-sm text-gray-600">Vehicle</label>
                   <div class="flex flex-row">
-                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.key" required
+                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.id" required
                       @change="car_changed(car)">
                       <option value="" disabled>Select ...</option>
                       {% for d in data['vehicles'] %}
-                      <option value="{{ d['key'] }}">{{ d['name'] }}</option>
+                      <option value="{{ d['id'] }}">{{ d['name'] }}</option>
                       {% endfor %}
                     </select>
                     <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
-                      :class="search_car.id == car.id ? 'text-red-500' : ''" type="button" @click="search_show(car)">
+                      :class="search_car.uid == car.uid ? 'text-red-500' : ''" type="button" @click="search_show(car)">
                       <i class="fas fa-search"></i>
                     </button>
                   </div>
@@ -507,12 +512,12 @@
                   <div class="flex flex-row">
                     <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin" required>
                       <option value="" disabled>Select ...</option>
-                      <template x-for="skin in car_getdata(car.key).skins">
+                      <template x-for="skin in car_getdata(car.id).skins">
                         <option x-bind:value="skin.skin_id" x-text="skin.skin_name" :selected="car.skin == skin.skin_id"></option>
                       </template>
                     </select>
                     <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
-                      :class="skinpicker_car.id == car.id ? 'text-red-500' : ''" type="button"
+                      :class="skinpicker_car.uid == car.uid ? 'text-red-500' : ''" type="button"
                       @click="skinpicker_show(car)">
                       <i class="fas fa-grip-horizontal"></i>
                     </button>
@@ -532,7 +537,7 @@
                     More
                   </button>
                   <button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button"
-                    @click="car_remove(car_index, car.id)">
+                    @click="car_remove(car_index, car.uid)">
                     Remove
                   </button>
                 </div>
@@ -545,7 +550,7 @@
           </a>
         </nav>
 
-        <div class="w-full px-6 py-6" x-show="details_car.id">
+        <div class="w-full px-6 py-6" x-show="details_car.uid">
           <div class="p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100 flex flex-row">
             <div class="w-1/2 mx-6 flex flex-col">
               <div>
@@ -581,12 +586,12 @@
             </div>
             <div class="w-1/2 mx-6">
               <h2 class="text-lg"
-                x-text="car_getdata(details_car.key).name + ' - ' + skin_getdata(details_car.key, details_car.skin).skin_name">
+                x-text="car_getdata(details_car.id).name + ' - ' + skin_getdata(details_car.id, details_car.skin).skin_name">
               </h2>
               <img x-bind:src="skin_getimg(details_car.key, details_car.skin)" class="py-4" />
 
               <div>
-                <template x-for="tag in car_getdata(details_car.key).tags">
+                <template x-for="tag in car_getdata(details_car.id).tags">
                   <div
                     class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
                     <div class="mt-px" x-html="tag"></div>
@@ -600,11 +605,11 @@
                   margin-bottom: 1em;
                   line-height: 1.6;
                 ">
-                Power: <span x-text="car_getdata(details_car.key).specs.bhp"></span><br />
-                Torque: <span x-text="car_getdata(details_car.key).specs.torque"></span><br />
-                Weight: <span x-text="car_getdata(details_car.key).specs.weight"></span><br />
-                Top Speed: <span x-text="car_getdata(details_car.key).specs.topspeed"></span> <br />
-                Acceleration: <span x-text="car_getdata(details_car.key).specs.acceleration"></span>
+                Power: <span x-text="car_getdata(details_car.id).specs.bhp"></span><br />
+                Torque: <span x-text="car_getdata(details_car.id).specs.torque"></span><br />
+                Weight: <span x-text="car_getdata(details_car.id).specs.weight"></span><br />
+                Top Speed: <span x-text="car_getdata(details_car.id).specs.topspeed"></span> <br />
+                Acceleration: <span x-text="car_getdata(details_car.id).specs.acceleration"></span>
               </p>
 
               <p class="text-xs text-justify py-4" x-html="details.desc"></p>

@@ -3,16 +3,19 @@ import os, json
 import json_repair
 
 class Fsaccess: 
-    def __init__(self, dba):
+    def __init__(self, dba, osa):
         # base root folder
         self.dba = dba
+        self.osa = osa
 
     def get_basepath(self):
         return self.dba.select_config()["install_path"]
 
     def get_serverexe(self):
-        # TODO: different for windows
-        return os.path.join(self.get_serverpath(), "acServer")
+        if self.osa.is_unix():
+            return os.path.join(self.get_serverpath(), "acServer")
+        else:
+            return os.path.join(self.get_serverpath(), "acServer.exe")
 
     def get_serverpath(self):
         return os.path.join(self.get_basepath(), "server")

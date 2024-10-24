@@ -203,8 +203,8 @@ content %}
             <div class="py-2 text-xs">
               <i class="fas fa-route"></i>
               <span class="pr-2" x-html="format_distance({{ session.track_length }})"></span>
-              {% if session.laps %}
-              <span class="pr-2">{{ session.laps }} laps</span>
+              {% if session.race_laps %}
+              <span class="pr-2">{{ session.race_laps }} laps</span>
               {% endif %}
               <span>{{ session.pitboxes }} pitboxes</span>
             </div>
@@ -478,9 +478,9 @@ content %}
               </select>
             </div>
             <div class="w-1/4 ml-5">
-              <label class="block text-sm text-gray-600" for="laps">Laps</label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="laps" placeholder="Laps"
-                 aria-label="Laps" value="{{data.form['laps']}}"/>
+              <label class="block text-sm text-gray-600" for="race_laps">Laps</label>
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="race_laps" placeholder="Laps"
+                 aria-label="Laps" value="{{data.form['race_laps']}}"/>
             </div>
           </div>
 

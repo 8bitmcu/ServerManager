@@ -84,8 +84,8 @@ CREATE TABLE user_event (
   qualify_is_open INTEGER,
   qualify_max_wait_perc INTEGER,
   race_enabled INTEGER,
-  race_laps INTEGER,
   race_time INTEGER,
+  race_extra_lap INTEGER,
   race_over_time INTEGER,
   race_wait_time INTEGER,
   race_is_open INTEGER,
@@ -119,7 +119,7 @@ CREATE TABLE user_session (
   class_id INTEGER NOT NULL,
   time_id INTEGER NOT NULL,
 
-  laps INTEGER,
+  race_laps INTEGER,
   strategy INTEGER,
 
   started_at DATETIME,

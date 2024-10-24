@@ -135,7 +135,14 @@
           </p>
           <div class="p-10 leading-loose">
             <div class="">
-              <label class="block text-sm text-gray-600" for="abs_allowed">ABS</label>
+              <label class="block text-sm text-gray-600 group relative" for="abs_allowed">
+                ABS
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    # TODO: caption
+                  </div>
+                </div>
+              </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="abs_allowed"
                 name="abs_allowed">
                 <option value="0" {% if data.form['abs_allowed']==0 %} selected {% endif %}>Denied</option>
@@ -144,7 +151,14 @@
               </select>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="tc_allowed">Traction Control</label>
+              <label class="block text-sm text-gray-600 group relative" for="tc_allowed">
+                Traction Control
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    # TODO: caption
+                  </div>
+                </div>
+              </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="tc_allowed" name="tc_allowed">
                 <option value="0" {% if data.form['tc_allowed']==0 %} selected {% endif %}>Denied</option>
                 <option value="1" {% if data.form['tc_allowed']==1 %} selected {% endif %}>Factory</option>
@@ -152,7 +166,14 @@
               </select>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="stability_allowed">Stability Control</label>
+              <label class="block text-sm text-gray-600 group relative" for="stability_allowed">
+                Stability Control
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    If flagged the AI will help you to keep control of the car
+                  </div>
+                </div>
+              </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="stability_allowed" id="stability_allowed" value="1" {% if
                   data.form['stability_allowed']==1 %} checked {% endif %}
@@ -163,7 +184,14 @@
               </div>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="autoclutch_allowed">Auto Clutch</label>
+              <label class="block text-sm text-gray-600 group relative" for="autoclutch_allowed">
+                Auto Clutch
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    If flagged the clutch is automatically pressed when the car is stopped
+                  </div>
+                </div>
+              </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="autoclutch_allowed" id="autoclutch_allowed" value="1" {% if
                   data.form['autoclutch_allowed']==1 %} checked {% endif %}
@@ -174,7 +202,14 @@
               </div>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="tyre_blankets_allowed">Tyre Blankets</label>
+              <label class="block text-sm text-gray-600 group relative" for="tyre_blankets_allowed">
+                Tyre Blankets
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    If flagged the car will leave the box with warmed up tires
+                  </div>
+                </div>
+              </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="tyre_blankets_allowed" id="tyre_blankets_allowed" value="1" {% if
                   data.form['tyre_blankets_allowed']==1 %} checked {% endif %}
@@ -185,7 +220,14 @@
               </div>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="force_virtual_mirror">Force Virtual Mirrors</label>
+              <label class="block text-sm text-gray-600 group relative" for="force_virtual_mirror">
+                Force Virtual Mirrors
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    If flagged the client will be force to have virtual mirrors enabled
+                  </div>
+                </div>
+              </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="force_virtual_mirror" id="force_virtual_mirror" value="1" {% if
                   data.form['force_virtual_mirror']==1 %} checked {% endif %}
@@ -204,25 +246,53 @@
           </p>
           <div class="p-10 leading-loose">
             <div class="">
-              <label class="block text-sm text-gray-600" for="fuel_rate">Fuel Rate</label>
+              <label class="block text-sm text-gray-600 group relative" for="fuel_rate">
+                Fuel Rate
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Percentage of fuel usage: 0 = no fuel usage
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="fuel_rate" name="fuel_rate" min="0" max="500"
                 type="number" required="" placeholder="Fuel Rate" aria-label="Fuel Rate"
                 value="{{ data.form['fuel_rate'] }}" />
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="damage_multiplier">Damage Rate</label>
+              <label class="block text-sm text-gray-600 group relative" for="damage_multiplier">
+                Damage Rate
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Percentage of damage: 0 = no damage
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="damage_multiplier" min="0" max="400"
                 name="damage_multiplier" type="number" required="" placeholder="Damage Rate" aria-label="Damage Rate"
                 value="{{ data.form['damage_multiplier'] }}" />
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="tyre_wear_rate">Tyre Wear</label>
+              <label class="block text-sm text-gray-600 group relative" for="tyre_wear_rate">
+                Tyre Wear
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Percentage of tyre wear rate: 0 = no damage
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tyre_wear_rate" min="0" max="500"
                 name="tyre_wear_rate" type="number" required="" placeholder="Tyre Wear" aria-label="Tyre Wear"
                 value="{{ data.form['tyre_wear_rate'] }}" />
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="allowed_tyres_out">Allowed Tyres Out</label>
+              <label class="block text-sm text-gray-600 group relative" for="allowed_tyres_out">
+                Allowed Tyres Out
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    #TODO: caption
+                  </div>
+                </div>
+              </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="allowed_tyres_out"
                 name="allowed_tyres_out">
                 <option value="0" {% if data.form['allowed_tyres_out']==0 %} selected {% endif %}>0</option>
@@ -233,13 +303,27 @@
               </select>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="max_ballast_kg">Max Ballast (KG)</label>
+              <label class="block text-sm text-gray-600 group relative" for="max_ballast_kg">
+                Max Ballast (KG)
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Max ballast allowed on server
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_ballast_kg" min="0" max="300"
                 name="max_ballast_kg" type="number" required="" placeholder="Max Balast (KG)"
                 aria-label="Max Ballast (KG)" value="{{ data.form['max_ballast_kg'] }}" />
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="start_rule">Jump Start</label>
+              <label class="block text-sm text-gray-600 group relative" for="start_rule">
+                Jump Start
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    DriveThrough is not valid if race has 3 laps or less: Teleport will be used
+                  </div>
+                </div>
+              </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="start_rule" name="start_rule">
                 <option value="0" {% if data.form['start_rule']==0 %} selected {% endif %}>Car Locked</option>
                 <option value="1" {% if data.form['start_rule']==1 %} selected {% endif %}>Teleport To Pit</option>
@@ -247,7 +331,14 @@
               </select>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="race_gas_penality_disabled">Race Gas Penality</label>
+              <label class="block text-sm text-gray-600 group relative" for="race_gas_penality_disabled">
+                Race Gas Penality
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Flag it if you want to disable race Gas Penality. Cuts will be registered on result jsons
+                  </div>
+                </div>
+              </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="race_gas_penality_disabled" id="race_gas_penality_disabled" value="1" {% if
                   data.form['race_gas_penality_disabled']==1 %} checked {% endif %}
@@ -267,7 +358,14 @@
           </p>
           <div class="p-10 leading-loose">
             <div class="">
-              <label class="block text-sm text-gray-600" for="dynamic_track">Enabled</label>
+              <label class="block text-sm text-gray-600 group relative" for="dynamic_track">
+                Enabled
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Flag it to use the dynamic improvement of the track surface
+                  </div>
+                </div>
+              </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="dynamic_track" id="dynamic_track" value="1" {% if
                   data.form['dynamic_track']==1 %} checked {% endif %} @click="set_open($event.target.checked)"
@@ -280,7 +378,14 @@
 
             <div x-show="open">
               <div class="mt-2">
-                <label class="block text-sm text-gray-600" for="dynamic_track_preset">Preset</label>
+                <label class="block text-sm text-gray-600 group relative" for="dynamic_track_preset">
+                  Preset
+                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                      # TODO: caption
+                    </div>
+                  </div>
+                </label>
                 <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="dynamic_track_preset"
                   :required="open" name="dynamic_track_preset" x-model="dynamic_track_preset" @change="preset_changed()">
                   <option value="0" {% if data.form['dynamic_track_preset']==0 %} selected {% endif %}>Custom</option>
@@ -293,25 +398,53 @@
                 </select>
               </div>
               <div class="mt-2">
-                <label class="block text-sm text-gray-600" for="session_start">Start Value</label>
+                <label class="block text-sm text-gray-600 group relative" for="session_start">
+                  Start Value
+                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                      Percentage of track grip
+                    </div>
+                  </div>
+                </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_start" x-model="session_start" min="80" max="100"
                   name="session_start" type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Start Value" aria-label="Start Value" />
                 <input type="hidden" name="session_start" x-model="session_start" />
               </div>
               <div class="mt-2">
-                <label class="block text-sm text-gray-600" for="randomness">Randomness</label>
+                <label class="block text-sm text-gray-600 group relative" for="randomness">
+                  Randomness
+                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                      Alteration percentage of the start value
+                    </div>
+                  </div>
+                </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="randomness" name="randomness" min="0" max="10"
                   type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Randomness" aria-label="Randomness" x-model="randomness" />
                 <input type="hidden" name="randomness" x-model="randomness" />
               </div>
               <div class="mt-2">
-                <label class="block text-sm text-gray-600" for="session_transfer">Transfer Grip</label>
+                <label class="block text-sm text-gray-600 group relative" for="session_transfer">
+                  Transfer Grip
+                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                      Percentage of transferred grip between sessions
+                    </div>
+                  </div>
+                </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_transfer" x-model="session_transfer" min="0" max="100"
                   name="session_transfer" type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Transfer Grip" aria-label="Transfer Grip" />
                 <input type="hidden" name="session_transfer" x-model="session_transfer" />
               </div>
               <div class="mt-2">
-                <label class="block text-sm text-gray-600" for="lap_gain">Laps to Improve Grip</label>
+                <label class="block text-sm text-gray-600 group relative" for="lap_gain">
+                  Laps to Improve Grip
+                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                      How many combined laps are needed to increase grip of 1%
+                    </div>
+                  </div>
+                </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="lap_gain" name="lap_gain" x-model="lap_gain" min="0" max="1000"
                   type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Laps to Improve Grip" aria-label="Laps to Improve Grip" />
                 <input type="hidden" name="lap_gain" x-model="lap_gain" />
@@ -328,25 +461,53 @@
           </p>
           <div class="p-10 leading-loose">
             <div class="">
-              <label class="block text-sm text-gray-600" for="kick_quorum">Kick Vote Quorum</label>
+              <label class="block text-sm text-gray-600 group relative" for="kick_quorum">
+                Kick Vote Quorum
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Percentage of 'Yes' needed to kick a player
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="kick_quorum" name="kick_quorum" min="0" max="101"
                 type="number" required="" placeholder="Kick Vote Quorum" aria-label="Kick Vote Quorum"
                 value="{{ data.form['kick_quorum'] }}" />
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="voting_quorum">Session Vote Quorum</label>
+              <label class="block text-sm text-gray-600 group relative" for="voting_quorum">
+                Session Vote Quorum
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Percentage of 'Yes' needed to restart or skip a session
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="voting_quorum" name="voting_quorum" min="0" max="101"
                 type="number" required="" placeholder="Session Vote Quorum" aria-label="Session Vote Quorum"
                 value="{{ data.form['voting_quorum'] }}" />
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="vote_duration">Vote Duration</label>
+              <label class="block text-sm text-gray-600 group relative" for="vote_duration">
+                Vote Duration
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Seconds needed to close the voting session
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="vote_duration" name="vote_duration" min="10" max="30"
                 type="number" required="" placeholder="Vote Duration" aria-label="Vote Duration"
                 value="{{ data.form['vote_duration'] }}" />
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="blacklist_mode">Blacklist</label>
+              <label class="block text-sm text-gray-600 group relative" for="blacklist_mode">
+                Blacklist
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    # TODO: caption
+                  </div>
+                </div>
+              </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="blacklist_mode"
                 name="blacklist_mode">
                 <option value="0" {% if data.form['blacklist_mode']==0 %} selected {% endif %}>Kick Player</option>
@@ -355,7 +516,14 @@
               </select>
             </div>
             <div class="mt-2">
-              <label class="block text-sm text-gray-600" for="max_contacts_per_km">Max Collision per KM</label>
+              <label class="block text-sm text-gray-600 group relative" for="max_contacts_per_km">
+                Max Collisions x KM
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    The player will be kicked if he hits X different cars dfuring the same Km (-1 to disable it)
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_contacts_per_km" min="-1" max="128"
                 name="max_contacts_per_km" type="number" required="" placeholder="Max Collision per KM"
                 aria-label="Max Collision per KM" value="{{ data.form['max_contacts_per_km'] }}" />

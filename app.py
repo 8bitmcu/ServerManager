@@ -3,12 +3,14 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 from py.dbaccess import Dbaccess
 from py.fsaccess import Fsaccess
 from py.psaccess import Psaccess
-
-app = Flask(__name__, template_folder="htm")
+from py.osaccess import Osaccess
 
 dba = Dbaccess("sqlite.db")
-fsa = Fsaccess(dba)
+osa = Osaccess()
+fsa = Fsaccess(dba, osa)
 psa = Psaccess(dba, fsa)
+
+app = Flask(__name__, template_folder="htm")
 
 def clean_dbdata(dbdata):
     newdata = {}
@@ -18,6 +20,31 @@ def clean_dbdata(dbdata):
         if dbdata[i] is not None:
             newdata[i] = dbdata[i]
     return newdata
+
+
+@app.route("/server_cfg", methods=('GET', 'POST'))
+def server_cfg():
+    session = dba.get_session(2)
+    data = {}
+    # TODO refactor into single query ?
+    data['session'] = session
+    data['config'] = dba.select_config()
+    data['diff'] = dba.get_difficulty(session['difficulty_id'])
+    data['event'] = dba.get_event(session['event_id'])
+    data['time'] = dba.get_time(session['time_id'])
+    data['weather'] = dba.get_weather(session['time_id'])
+    data['class'] = dba.get_class_entries_cache(session['class_id'])
+    data['track'] = dba.get_track(session['cache_track_id'])
+
+    return render_template("server_cfg.ini", data=data)
+
+@app.route("/entry_list", methods=('GET', 'POST'))
+def entry_list():
+    session = dba.get_session(2)
+    data = {}
+    data['class'] = dba.get_class_entries_cache(session['class_id'])
+
+    return render_template("entry_list.ini", data=data)
 
 # Dashboard / Index
 @app.route("/", methods=('GET', 'POST'))
@@ -205,6 +232,7 @@ def veh_class(id=None):
         data['car_data'] = []
         for car in dba.get_carlist():
             data['car_data'].append({
+                'id': car['id'],
                 'key': car['key'],
                 'skins': json.loads(car['skins']),
                 'name': car['name'],
