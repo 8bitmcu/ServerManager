@@ -1,15 +1,35 @@
 import sqlite3, json
 
 class Dbaccess: 
-    def __init__(self, name):
-        # db filename
+    def __init__(self):
+        self.name = None
+        pass
+
+    def open(self, name):
         self.name = name
 
     def get_db_connection(self):
+        if self.name is None:
+            raise ValueError("database not open")
+
         conn = sqlite3.connect(self.name)
         conn.row_factory = sqlite3.Row
         return conn
 
+
+
+    def table_exists(self, name):
+        conn = self.get_db_connection()
+        data = conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?", (name, )).fetchone()[0]
+        conn.close()
+        return data
+
+    def apply_schema(self, ):
+        connection = self.get_db_connection()
+        with open('schema.sql') as f:
+            connection.executescript(f.read())
+        connection.commit()
+        connection.close()
 
     def select_config(self, ):
         conn = self.get_db_connection()

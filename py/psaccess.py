@@ -21,13 +21,13 @@ class Psaccess:
         self.thread = None
         self.lines = ""
 
-    def start_server(self):
+    def start_server(self, osa):
         if self.is_running():
             return
 
         self.lines = ""
 
-        acserverexe = self.fsa.get_serverexe()
+        acserverexe = self.fsa.get_serverexe(osa)
         cwd = self.fsa.get_serverpath()
         self.process = Popen(acserverexe, stdout=PIPE, bufsize=1, close_fds=ON_POSIX, cwd=cwd)
         self.queue = Queue()

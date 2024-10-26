@@ -1,80 +1,52 @@
 import sqlite3, json
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
+from functools import wraps
 from py.dbaccess import Dbaccess
 from py.fsaccess import Fsaccess
 from py.psaccess import Psaccess
 from py.osaccess import Osaccess
-
-dba = Dbaccess("sqlite.db")
-osa = Osaccess()
-fsa = Fsaccess(dba, osa)
-psa = Psaccess(dba, fsa)
+from py.utilities import Utilities
 
 app = Flask(__name__, template_folder="htm")
 
-def clean_dbdata(dbdata):
-    newdata = {}
-    if dbdata is None:
-        return None
-    for i in dict(dbdata):
-        if dbdata[i] is not None:
-            newdata[i] = dbdata[i]
-    return newdata
+
+dba = Dbaccess()
+osa = Osaccess()
+fsa = Fsaccess(dba)
+psa = Psaccess(dba, fsa)
+util = Utilities()
+
+@app.before_request
+def before_request_func():
+    dba.open(fsa.get_database())
+
+def require_config_set(f):
+    @wraps(f)
+
+    def check_config_exists(*args, **kwargs):
+        if not dba.table_exists("user_config"):
+            dba.apply_schema()
+        if dba.select_config() is None:
+            return redirect(url_for("config", welcome=True))
+        return f(*args, **kwargs)
+    return check_config_exists
 
 
-@app.route("/server_cfg", methods=('GET', 'POST'))
-def server_cfg():
-    session = dba.get_session(2)
-    data = {}
-    # TODO refactor into single query ?
-    data['session'] = session
-    data['config'] = dba.select_config()
-    data['diff'] = dba.get_difficulty(session['difficulty_id'])
-    data['event'] = dba.get_event(session['event_id'])
-    data['time'] = dba.get_time(session['time_id'])
-    data['weather'] = dba.get_weather(session['time_id'])
-    data['class'] = dba.get_class_entries_cache(session['class_id'])
-    data['track'] = dba.get_track(session['cache_track_id'])
 
-    return render_template("server_cfg.ini", data=data)
 
-@app.route("/entry_list", methods=('GET', 'POST'))
-def entry_list():
-    session = dba.get_session(2)
-    data = {}
-    data['class'] = dba.get_class_entries_cache(session['class_id'])
-
-    return render_template("entry_list.ini", data=data)
 
 # Dashboard / Index
 @app.route("/", methods=('GET', 'POST'))
+@require_config_set
 def index():
     data = {}
     data['is_running'] = psa.is_running()
     return render_template("index.htm", data=data)
 
-@app.route("/api/console", methods=('GET', 'POST'))
-def console():
-    data = {
-        'is_running': psa.is_running(),
-        'text': psa.process_content()
-    }
-    return jsonify(data);
-
-@app.route("/api/console/start", methods=('GET', 'POST'))
-def console_start():
-    psa.start_server()
-    return console()
-
-@app.route("/api/console/stop", methods=('GET', 'POST'))
-def console_stop():
-    psa.stop_server()
-    return console()
-
-
 # Session
 @app.route("/session", methods=('GET', 'POST'))
 @app.route("/session/<int:id>", methods=('GET', 'POST'))
+@require_config_set
 def session(id=None):
     if request.method == 'POST' and request.form['id']:
         dba.update_session(request.form)
@@ -102,11 +74,10 @@ def session(id=None):
     return render_template("session.htm", data=data)
 
 @app.route("/session_delete/<int:id>", methods=('GET', 'POST'))
+@require_config_set
 def session_delete(id):
     dba.delete_session(id)
     return redirect(url_for("index"));
-
-
 
 # Configuration
 @app.route("/config", methods=('GET', 'POST'))
@@ -114,12 +85,17 @@ def config():
     if request.method == 'POST':
         dba.insertupdate_config(request.form)
 
-    data = clean_dbdata(dba.select_config())
+    # TODO: when install_path changes, refresh content
+
+    data = {}
+    data['form'] = util.clean_dbdata(dba.select_config())
+    data['welcome'] = request.args.get("welcome")
     return render_template("config.htm", data=data)
 
 # Difficulties
 @app.route("/difficulty", methods=('GET', 'POST'))
 @app.route("/difficulty/<int:id>", methods=('GET', 'POST'))
+@require_config_set
 def difficulty(id=None):
     data = {}
 
@@ -132,13 +108,14 @@ def difficulty(id=None):
 
     if id is not None:
         data['id'] = id
-        data['form'] = clean_dbdata(dba.get_difficulty(id))
+        data['form'] = util.clean_dbdata(dba.get_difficulty(id))
 
     data['list'] = dba.get_difficulty_list()
 
     return render_template("difficulties.htm", data=data)
 
 @app.route("/difficulty/delete/<int:id>", methods=('POST',))
+@require_config_set
 def difficulty_delete(id):
     dba.delete_difficulty(id)
     return redirect(url_for("difficulty"));
@@ -146,6 +123,7 @@ def difficulty_delete(id):
 # Events
 @app.route("/event", methods=('GET', 'POST'))
 @app.route("/event/<int:id>", methods=('GET', 'POST'))
+@require_config_set
 def event(id=None):
     data = {}
 
@@ -158,7 +136,7 @@ def event(id=None):
 
     if id is not None:
         data['id'] = id
-        data['form'] = clean_dbdata(dba.get_event(id))
+        data['form'] = util.clean_dbdata(dba.get_event(id))
 
 
     data['list'] = dba.get_event_list()
@@ -166,6 +144,7 @@ def event(id=None):
     return render_template("events.htm", data=data)
 
 @app.route("/event/delete/<int:id>", methods=('POST',))
+@require_config_set
 def event_delete(id):
     dba.delete_event(id)
     return redirect(url_for("event"));
@@ -173,6 +152,7 @@ def event_delete(id):
 # Time & Weather
 @app.route("/time", methods=('GET', 'POST'))
 @app.route("/time/<int:id>", methods=('GET', 'POST'))
+@require_config_set
 def time(id=None):
     data = {}
 
@@ -185,7 +165,7 @@ def time(id=None):
 
     if id is not None:
         data['id'] = id
-        data['form'] = clean_dbdata(dba.get_time(id))
+        data['form'] = util.clean_dbdata(dba.get_time(id))
         wdata = [dict(ix) for ix in dba.get_weather(id)]
 
         # add at least one weather panel
@@ -199,6 +179,7 @@ def time(id=None):
     return render_template("times.htm", data=data)
 
 @app.route("/time/delete/<int:id>", methods=('POST',))
+@require_config_set
 def time_delete(id):
     dba.delete_time(id)
     return redirect(url_for("time"));
@@ -206,6 +187,7 @@ def time_delete(id):
 # Vehicle Classes
 @app.route("/class", methods=('GET', 'POST'))
 @app.route("/class/<int:id>", methods=('GET', 'POST'))
+@require_config_set
 def veh_class(id=None):
     data = {}
 
@@ -243,26 +225,75 @@ def veh_class(id=None):
     return render_template("classes.htm", data=data)
 
 @app.route("/class/delete/<int:id>", methods=('POST',))
+@require_config_set
 def class_delete(id):
     dba.delete_class(id)
     return redirect(url_for("veh_class"));
 
+###########
+### API ###
+###########
+
+@app.route("/api/console", methods=('GET', 'POST'))
+@require_config_set
+def console():
+    data = {
+        'is_running': psa.is_running(),
+        'text': psa.process_content()
+    }
+    return jsonify(data);
+
+@app.route("/api/console/start", methods=('GET', 'POST'))
+@require_config_set
+def console_start():
+    id = 2
+    server_cfg = util.render_servercfg(dba, id)
+    entry_list = util.render_entrylist(dba, id)
+    fsa.set_server_ini(server_cfg, entry_list)
+    psa.start_server(osa)
+    return console()
+
+@app.route("/api/console/stop", methods=('GET', 'POST'))
+@require_config_set
+def console_stop():
+    psa.stop_server()
+    return console()
+
+@app.route("/api/server_cfg.ini", methods=('GET',))
+@require_config_set
+def server_cfg():
+    id = request.args.get('id')
+    if id is None:
+        return "invalid id"
+    return util.render_servercfg(dba, id)
+
+@app.route("/api/entry_list.ini", methods=('GET',))
+@require_config_set
+def entry_list():
+    id = request.args.get('id')
+    if id is None:
+        return "invalid id"
+    return util.render_entrylist(dba, id)
 
 @app.route("/api/skin_img/<string:car>/<string:skin>.jpg")
+@require_config_set
 def skin_img(car, skin):
     return send_from_directory(fsa.get_skin(car, skin), "preview.jpg")
 
 @app.route("/api/track_preview/<string:key>.png")
 @app.route("/api/track_preview/<string:key>/<string:config>.png")
+@require_config_set
 def track_preview(key, config=None):
     return send_from_directory(fsa.get_track(key, config), "preview.png")
 
 @app.route("/api/track_outline/<string:key>.png")
 @app.route("/api/track_outline/<string:key>/<string:config>.png")
+@require_config_set
 def track_layout(key, config=None):
     return send_from_directory(fsa.get_track(key, config), "outline.png")
 
 @app.route("/api/get_vehicle/<string:id>")
+@require_config_set
 def get_vehicle(id): 
     car_data = dba.get_car(id)
 
@@ -291,27 +322,42 @@ def get_vehicle(id):
     return jsonify(json_data)
 
 @app.route("/api/get_difficulty/<int:id>")
+@require_config_set
 def get_difficulty(id):
     diff_data = dict(dba.get_difficulty(id))
     return jsonify(diff_data)
 
 @app.route("/api/get_event/<int:id>")
+@require_config_set
 def get_event(id):
     event_data = dict(dba.get_event(id))
     return jsonify(event_data)
 
 @app.route("/api/get_class/<int:id>")
+@require_config_set
 def get_class(id):
     class_data = dict(dba.get_class(id))
     class_data['entries'] = [dict(ix) for ix in dba.get_class_entries(id)] 
     return jsonify(class_data)
 
 @app.route("/api/get_time/<int:id>")
+@require_config_set
 def get_time(id):
     time_data = dict(dba.get_time(id))
     time_data['weathers'] = [dict(ix) for ix in dba.get_weather_names(id)] 
     return jsonify(time_data)
 
+
+
+
+
+
+
+
+
+
+
+# TODO depricate these
 
 @app.route("/api/update_carlist")
 def api_update_carlist():
@@ -319,15 +365,12 @@ def api_update_carlist():
     fsa.parse_tracks_folder(dba)
     return jsonify({'ok': 'OK'})
 
+@app.route("/api/test") 
+@require_config_set
+def api_test():
+    return jsonify({'test': "OK"})
 
-@app.route("/api/applyschema")
-def api_applyschema(): 
-    connection = sqlite3.connect('sqlite.db')
-    with open('schema.sql') as f:
-        connection.executescript(f.read())
-    connection.commit()
-    connection.close()
-    return jsonify({'ok': 'OK'})
+
 
 if __name__ == "__main__":
     app.run(debug=True)

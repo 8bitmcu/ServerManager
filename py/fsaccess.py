@@ -3,16 +3,29 @@ import os, json
 import json_repair
 
 class Fsaccess: 
-    def __init__(self, dba, osa):
+    def __init__(self, dba):
         # base root folder
         self.dba = dba
-        self.osa = osa
+        self.SM_DATA = os.environ.get('SM_DATA')
 
     def get_basepath(self):
         return self.dba.select_config()["install_path"]
 
-    def get_serverexe(self):
-        if self.osa.is_unix():
+
+    def get_datadir(self):
+        if self.SM_DATA is None:
+            sm_data = os.path.join(os.path.curdir, "smdata")
+            if not os.path.exists(sm_data):
+                os.mkdir(sm_data)
+            return sm_data
+        else:
+            return self.SM_DATA
+
+    def get_database(self, ):
+        return os.path.join(self.get_datadir(), "sm.db")
+
+    def get_serverexe(self, osa):
+        if osa.is_unix():
             return os.path.join(self.get_serverpath(), "acServer")
         else:
             return os.path.join(self.get_serverpath(), "acServer.exe")
@@ -28,6 +41,17 @@ class Fsaccess:
             return os.path.join(self.get_basepath(), "content", "tracks", track, "ui")
         else:
             return os.path.join(self.get_basepath(), "content", "tracks", track, "ui", config)
+
+    def set_server_ini(self, server_cfg, entry_list):
+        server_cfg_ini = os.path.join(self.get_serverpath(), "cfg", "server_cfg.ini")
+        f = open(server_cfg_ini, "w")
+        f.write(server_cfg)
+        f.close()
+        
+        entry_list_ini = os.path.join(self.get_serverpath(), "cfg", "entry_list.ini")
+        f = open(entry_list_ini, "w")
+        f.write(entry_list)
+        f.close()
 
 
     def parse_cars_folder(self, dba):

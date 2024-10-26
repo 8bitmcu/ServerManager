@@ -1,6 +1,21 @@
 {% extends 'base.htm' %}
 {% block title %}Server Configuration{% endblock %}
 {% block content %}
+
+{% if data['welcome'] %}
+<div class="font-regular relative block w-full max-w-screen-md rounded-lg bg-green-500 px-4 py-4 text-base text-white my-6">
+  <div class="ml-8 mr-12">
+    <h5 class="block font-sans text-xl font-semibold leading-snug tracking-normal text-white antialiased">
+      Welcome!
+    </h5>
+    <p class="mt-2 block font-sans text-base font-normal leading-relaxed text-white antialiased">
+      Welcome to Server Manager. Please take the time to fill in these informations before continuing. <br />
+    </p>
+  </div>
+</div>
+{% endif %}
+
+
 <h1 class="text-3xl text-black pb-6">Server Configuration</h1>
 <form class="flex flex-wrap" method="POST">
   <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2">
@@ -18,7 +33,7 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="name" name="name" type="text" required=""
-          placeholder="Server Name" aria-label="Name" value="{{data['name']}}" />
+          placeholder="Server Name" aria-label="Name" value="{{data.form['name']}}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="password">
@@ -30,20 +45,21 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="password" name="password" type="password"
-          required="" placeholder="Server Password" aria-label="Password" value="{{ data['password'] }}" />
+          required="" placeholder="Server Password" aria-label="Password" value="{{ data.form['password'] }}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="admin_password">
           Admin Password
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              Chat -&gt; /admin your_password to become server admin or use it to join the server. Use /help to see the command list
+              Chat -&gt; /admin your_password to become server admin or use it to join the server. Use /help to see the
+              command list
             </div>
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="admin_password" name="admin_password"
           type="password" required="" placeholder="Admin Password" aria-label="Admin Password"
-          value="{{ data['admin_password'] }}" />
+          value="{{ data.form['admin_password'] }}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="register_to_lobby">
@@ -56,7 +72,7 @@
         </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="register_to_lobby" id="register_to_lobby" value="1" {% if
-            data['register_to_lobby']==1 %} checked {% endif %}
+            data.form['register_to_lobby']==1 %} checked {% endif %}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="register_to_lobby"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -74,7 +90,7 @@
         </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="pickup_mode_enabled" id="pickup_mode_enabled" value="1" {% if
-            data['pickup_mode_enabled']==1 %} checked {% endif %}
+            data.form['pickup_mode_enabled']==1 %} checked {% endif %}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="pickup_mode_enabled"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -83,7 +99,7 @@
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="locked_entry_list">
-         Pickup Locked Entry List 
+          Pickup Locked Entry List
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Flag it if you want to limit the server to the entrylist GUID player and ignore password
@@ -92,7 +108,7 @@
         </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
           <input type="checkbox" name="locked_entry_list" id="locked_entry_list" value="1" {% if
-            data['locked_entry_list']==1 %} checked {% endif %}
+            data.form['locked_entry_list']==1 %} checked {% endif %}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="locked_entry_list"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -101,7 +117,7 @@
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="result_screen_time">
-         Result Screen Time 
+          Result Screen Time
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Seconds what the server is going to wait for players to end the race
@@ -110,7 +126,20 @@
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="result_screen_time"
           name="result_screen_time" type="number" required="" placeholder="Result Screen Time" min="10"
-          aria-label="Result Screen Time" value="{{ data['result_screen_time'] }}" />
+          aria-label="Result Screen Time" value="{{ data.form['result_screen_time'] }}" />
+      </div>
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600 group relative" for="max_clients">
+          Maximum Players
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              Minimum between maximum players, pitboxes or vehicles in classes will be used
+            </div>
+          </div>
+        </label>
+        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_clients" name="max_clients"
+          type="number" required="" placeholder="Maximum Players" min="2" aria-label="Maximum Players"
+          value="{{ data.form['max_clients'] }}" />
       </div>
     </div>
   </div>
@@ -122,7 +151,7 @@
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
         <label class="block text-sm text-gray-600 group relative" for="udp_port">
-         UDP Port
+          UDP Port
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Remember to open this port on your firewall
@@ -130,11 +159,12 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="udp_port" name="udp_port" type="number"
-          required="" placeholder="UDP Port" aria-label="UDP Port" value="{{ data['udp_port'] }}" min="1" max="65535" />
+          required="" placeholder="UDP Port" aria-label="UDP Port" value="{{ data.form['udp_port'] }}" min="1"
+          max="65535" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="tcp_port">
-         TCP Port
+          TCP Port
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Remember to open this port on your firewall
@@ -142,11 +172,12 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tcp_port" name="tcp_port" type="number"
-          required="" placeholder="TCP Port" aria-label="TCP Port" value="{{ data['tcp_port'] }}" min="1" max="65535" />
+          required="" placeholder="TCP Port" aria-label="TCP Port" value="{{ data.form['tcp_port'] }}" min="1"
+          max="65535" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="http_port">
-         HTTP Port
+          HTTP Port
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               HTTP is TCP. Remember to open this port on your firewall
@@ -154,12 +185,12 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="http_port" name="http_port" type="number"
-          required="" placeholder="HTTP Port" aria-label="HTTP Port" value="{{ data['http_port'] }}" min="1"
+          required="" placeholder="HTTP Port" aria-label="HTTP Port" value="{{ data.form['http_port'] }}" min="1"
           max="65535" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="client_send_interval">
-         Packet HZ
+          Packet HZ
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Higher value gives better MP quality, but requires a more powerful connection
@@ -168,11 +199,11 @@
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="client_send_interval" min="10" max="35"
           name="client_send_interval" type="number" required="" placeholder="Packet HZ" aria-label="Packet HZ"
-          value="{{ data['client_send_interval'] }}" />
+          value="{{ data.form['client_send_interval'] }}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="num_threads">
-         Threads
+          Threads
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               # TODO: caption
@@ -181,7 +212,7 @@
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="num_threads" name="num_threads" min="2"
           max="8" type="number" required="" placeholder="Threads" aria-label="Threads"
-          value="{{ data['num_threads'] }}" />
+          value="{{ data.form['num_threads'] }}" />
       </div>
     </div>
   </div>
@@ -193,7 +224,7 @@
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
         <label class="block text-sm text-gray-600 group relative" for="measurement_unit">
-         Measurement Units
+          Measurement Units
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Measurement units to be used in the web ui
@@ -202,13 +233,13 @@
         </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit"
           name="measurement_unit">
-          <option value="0" {% if data['measurement_unit']==0 %} selected {% endif %}>KM, KM/h</option>
-          <option value="1" {% if data['measurement_unit']==1 %} selected {% endif %}>Miles, MPH</option>
+          <option value="0" {% if data.form['measurement_unit']==0 %} selected {% endif %}>KM, KM/h</option>
+          <option value="1" {% if data.form['measurement_unit']==1 %} selected {% endif %}>Miles, MPH</option>
         </select>
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="temp_unit">
-         Temperature Units
+          Temperature Units
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Temperature units to be used in the web ui
@@ -216,8 +247,8 @@
           </div>
         </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="temp_unit" name="temp_unit">
-          <option value="0" {% if data['temp_unit']==0 %} selected {% endif %}>Celcius</option>
-          <option value="1" {% if data['temp_unit']==1 %} selected {% endif %}>Fahrenheit</option>
+          <option value="0" {% if data.form['temp_unit']==0 %} selected {% endif %}>Celcius</option>
+          <option value="1" {% if data.form['temp_unit']==1 %} selected {% endif %}>Fahrenheit</option>
         </select>
       </div>
     </div>
@@ -230,7 +261,7 @@
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
         <label class="block text-sm text-gray-600 group relative" for="install_path">
-         Installation Path
+          Installation Path
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Root folder of your Assetto Corsa installation path
@@ -239,7 +270,7 @@
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="install_path" name="install_path"
           type="text" required="" placeholder="Installation Path" aria-label="Installation Path"
-          value="{{ data['install_path'] }}" />
+          value="{{ data.form['install_path'] }}" />
       </div>
     </div>
   </div>
