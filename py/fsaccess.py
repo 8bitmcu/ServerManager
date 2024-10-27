@@ -1,5 +1,4 @@
-
-import os, json
+import os, json, re
 import json_repair
 
 class Fsaccess: 
@@ -47,12 +46,14 @@ class Fsaccess:
         f = open(server_cfg_ini, "w")
         f.write(server_cfg)
         f.close()
-        
+
         entry_list_ini = os.path.join(self.get_serverpath(), "cfg", "entry_list.ini")
         f = open(entry_list_ini, "w")
         f.write(entry_list)
         f.close()
 
+    def validate_installpath(self, server_path):
+        return os.path.exists(os.path.join(server_path, "acs.exe"))
 
     def parse_cars_folder(self, dba):
         db_data = []
@@ -79,10 +80,15 @@ class Fsaccess:
 
             skins = []
             for skin in os.listdir(skins_path):
-                skin_json = os.path.join(skins_path, skin, "ui_skin.json")
-                skin_data = json_repair.from_file(skin_json)
 
-                skin_name = skin_data.get("skinname")
+                try:
+                    skin_json = os.path.join(skins_path, skin, "ui_skin.json")
+                    skin_data = json_repair.from_file(skin_json)
+
+                    skin_name = skin_data.get("skinname")
+                except:
+                    skin_name = ""
+
                 if skin_name == "":
                     skin_name = skin
                 skins.append({"skin_id": skin, "skin_name": skin_name})
@@ -101,6 +107,7 @@ class Fsaccess:
                     json.dumps(skins)
                 ])
         dba.update_vehicles(db_data)
+        return len(db_data)
 
     def parse_tracks_folder(self, dba):
         db_data = []
@@ -170,3 +177,33 @@ class Fsaccess:
                     ])
 
         dba.update_tracks(db_data)
+        return len(db_data)
+
+
+    def parse_weathers_folder(self, dba):
+        db_data = []
+        weather_path = os.path.join(self.get_basepath(), "content", "weather")
+
+        for key in os.listdir(weather_path):
+            if not os.path.isdir(os.path.join(weather_path, key)):
+                continue
+
+            try:
+                ini_path = os.path.join(weather_path, key, "weather.ini")
+                with open(ini_path, 'rb') as f:
+                    name = None
+                    while name is None:
+                        line = f.readline().decode('utf-8')
+                        if re.search("^NAME", line):
+                            name = re.findall("^NAME=(.*)\r", line)
+                            name = re.sub("; .*", "", name[0])
+
+                db_data.append([
+                    key,
+                    name
+                ])
+            except Exception as e:
+                print(e)
+
+        dba.update_weathers(db_data)
+        return len(db_data)

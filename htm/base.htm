@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,13 +9,14 @@
   <meta name="description" content="" />
 
   <!-- Tailwindcss -->
-  <link href="/static/css/main.css" rel="stylesheet">
+  <link href="/static/css/main.css" rel="stylesheet" />
 
   <!-- AlpineJS -->
   <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
 
   <!-- Font Awesome -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"
+    crossorigin="anonymous"></script>
 
   <!-- ChartJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" crossorigin="anonymous"></script>
@@ -34,6 +36,21 @@
       @apply: bg-red-400;
       background-color: #e3342f;
     }
+
+    @keyframes loader-rotate {
+      0% {
+        transform: rotate(0);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loader {
+      border-right-color: transparent;
+      animation: loader-rotate 1s linear infinite;
+    }
   </style>
 </head>
 
@@ -52,8 +69,7 @@
         </div>
         <div class="mt-2">
           <span>Server IP: &nbsp;</span>
-          <input type="textbox" class="text-gray-700 bg-gray-200 rounded text-center"
-            x-data="" @click="$el.select()"
+          <input type="textbox" class="text-gray-700 bg-gray-200 rounded text-center" x-data="" @click="$el.select()"
             value="174.118.36.72" style="width: 100px; font-weight: lighter" />
         </div>
       </div>
@@ -64,10 +80,10 @@
         <i class="fas fa-tachometer-alt mr-3"></i>
         Server Dashboard
       </a>
-      <a href="{{ url_for('session') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path == url_for('session') %}bg-red-900{% endif %}">
-        <i class="fas fa-tasks mr-3"></i>
-        Session
+      <a href="{{ url_for('event') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path == url_for('event') %}bg-red-900{% endif %}">
+        <i class="fas fa-flag-checkered mr-3"></i>
+        Event
       </a>
       <a href="{{ url_for('veh_class') }}"
         class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('veh_class')) %}bg-red-900{% endif %}">
@@ -79,20 +95,25 @@
         <i class="fas fa-cloud-moon-rain mr-3"></i>
         Time and Weather Presets
       </a>
-      <a href="{{ url_for('event') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('event')) %}bg-red-900{% endif %}">
+      <a href="{{ url_for('session') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('session')) %}bg-red-900{% endif %}">
         <i class="fas fa-calendar-check mr-3"></i>
-        Event Presets
+        Session Presets
       </a>
       <a href="{{ url_for('difficulty') }}"
         class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('difficulty')) %}bg-red-900{% endif %}">
-        <i class="fas fa-signal mr-3"></i>
+        <i class="fas fa-road mr-3"></i>
         Difficulty Presets
       </a>
       <a href="{{ url_for('config') }}"
         class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('config')) %}bg-red-900{% endif %}">
         <i class="fas fa-server mr-3"></i>
         Server Configuration
+      </a>
+      <a href="{{ url_for('content') }}"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('content')) %}bg-red-900{% endif %}">
+        <i class="fas fa-cog mr-3"></i>
+        Content and Mods
       </a>
     </nav>
     <div class="absolute w-full bottom-0 flex items-center justify-center py-4">
@@ -179,7 +200,6 @@
       </footer>
     </div>
   </div>
-
 </body>
 
 </html>

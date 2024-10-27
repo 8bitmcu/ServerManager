@@ -1,469 +1,670 @@
-{% extends 'base.htm' %}
-{% block title %}Events{% endblock %}
-{% block content %}
-<h1 class="text-3xl text-black pb-6">Event Presets</h1>
-<div class="flex flex-wrap">
-  <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
-    <p class="text-xl pb-6 flex items-center"></p>
-    <div class="bg-white">
-      <nav class="flex flex-col sm:flex-row">
-        {% for d in data['list'] %}
-        <a href="{{ url_for('event', id=d['id']) }}"
-          class="py-4 px-6 block hover:text-red-500 focus:outline-none text-gray-500 border-b-2 font-medium {% if d['id'] == data['id'] %} text-red-500 border-red-500 {% endif %}">
-          <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
-        </a>
-        {% endfor %}
+{% extends 'base.htm' %} {% block title %}Dashboard{% endblock %} {% block
+content %}
 
-        <form x-data="{ showModal: false, email: '' }" method="POST">
-          <a href="#" @click="showModal = true"
-            class="py-4 px-6 block hover:text-red-500 focus:outline-none font-medium">
-            <i class="fas fa-plus mr-3"></i> Add new Event
-          </a>
-          <!-- Background overlay -->
-          <div x-show="showModal" class="fixed inset-0 transition-opacity" aria-hidden="true"
-            @click="showModal = false">
-            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-          </div>
-          <!-- Modal -->
-          <div x-show="showModal" x-transition:enter="transition ease-out duration-300 transform"
-            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave="transition ease-in duration-200 transform"
-            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <!-- Modal panel -->
-              <div
-                class="w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                role="dialog" aria-modal="true" aria-labelledby="modal-headline">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <!-- Modal content -->
-                  <div class="sm:flex sm:items-start">
-                    <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                      <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                        Add a new Event
-                      </h3>
-                      <div class="mt-2">
-                        <p class="text-sm text-gray-500">
-                          Enter the name of the event
-                        </p>
-                        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="event_name"
-                          name="event_name" type="text" required="" placeholder="Event Name" aria-label="Event Name" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex">
-                  <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
-                    Save
-                  </button>
-                  <button @click="showModal = false"
-                    class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-      </nav>
+<script>
+  function sort_str(a, b) {
+    let x = a.toLowerCase();
+    let y = b.toLowerCase();
+    if (x < y) return -1;
+    if (x > y) return 1;
+    return 0;
+  }
 
-      {% if data['form'] is defined %}
-      <script>
-        function events() {
-          return {
-            booking_enabled: {{ 'true' if data.form['booking_enabled'] == 1 else 'false' }},
-            booking_time: "{{ data.form['booking_time'] }}",
-
-            practice_enabled: {{ 'true' if data.form['practice_enabled'] == 1 else 'false' }},
-            practice_time: "{{ data.form['practice_time'] }}",
-            practice_is_open: {{ 'true' if data.form['practice_is_open'] == 1 else 'false' }},
-
-            qualify_enabled: {{ 'true' if data.form['qualify_enabled'] == 1 else 'false' }},
-            qualify_time: "{{ data.form['qualify_time'] }}",
-            qualify_is_open:  {{ 'true' if data.form['qualify_is_open'] == 1 else 'false' }},
-            qualify_max_wait_perc:  "{{ data.form['qualify_max_wait_perc'] }}",
-
-            race_enabled: {{ 'true' if data.form['race_enabled'] == 1 else 'false' }},
-            race_time: "{{ data.form['race_time'] }}",
-            race_extra_lap: {{ 'true' if data.form['race_extra_lap'] == 1 else 'false' }},
-            race_over_time: "{{ data.form['race_over_time'] }}",
-            race_wait_time: "{{ data.form['race_wait_time'] }}",
-            race_is_open: "{{ data.form['race_is_open'] }}",
-            reversed_grid_positions: "{{ data.form['reversed_grid_positions'] }}",
-            race_pit_window_start: "{{ data.form['race_pit_window_start'] }}",
-            race_pit_window_end: "{{ data.form['race_pit_window_end'] }}",
+  function sort_num(a, b) {
+    return a - b;
+  }
+  function format_distance(len) {
+    return Math.round(Number(len) / 10) / 100 + " km";
+  }
 
 
-            booking_changed: function(val) {
-              this.booking_enabled = val;
-              if (!val) {
-                this.booking_time = "";
-              }
-            },
-            practice_changed: function(val) {
-              this.practice_enabled = val;
-              if (!val) {
-                this.practice_time = "";
-                this.practice_is_open = "";
-              }
-            },
-            qualify_changed: function(val) {
-              this.qualify_enabled = val;
-              if (!val) {
-                this.qualify_time = "";
-                this.qualify_is_open = "";
-                this.qualify_max_wait_perc = "";
-              }
-            },
-            race_changed: function(val) {
-              this.race_enabled = val;
-              if (!val) {
-                this.race_time = "";
-                this.race_extra_lap = "";
-                this.race_over_time = "";
-                this.race_wait_time = "";
-                this.race_is_open = "";
-                this.reversed_grid_positions = "";
-                this.race_pit_window_start = "";
-                this.race_pit_window_end = "";
-              }
+  function reload_content() {
+    return {
+      content_total: {{ data["track_data"] | length }},
+      content_loaded: false,
+      loading: false,
+
+      load_content: function () {
+        this.loading = true;
+        this.content_loaded = false;
+        fetch("/api/recache_tracks")
+          .then((response) => response.json())
+          .then((json) => {
+            this.loading = false;
+            if (json.result == 'ok') {
+              this.content_loaded = true;
             }
+            this.content_total = json.value;
+          });
+      }
+    }
+  }
+
+  function session() {
+    return {
+      tracks_data: JSON.parse('{{ data.track_data | tojson }}'),
+      class_data: JSON.parse('{{ data.classes | tojson }}'),
+      time_data: JSON.parse('{{ data.times | tojson }}'),
+
+
+      selection_track: "{{ data.form['cache_track_id'] }}",
+      selection_difficulty: "{{ data.form['difficulty_id'] }}",
+      selection_session: "{{ data.form['session_id'] }}",
+      selection_class: "{{ data.form['class_id'] }}",
+      selection_time: "{{ data.form['time_id'] }}",
+
+      get_trackdata: function(id) {
+        if (id == "")
+          return { tags: []}
+        return this.tracks_data.find(x => x.id == id);
+      },
+
+      loaded_difficulty: {},
+      loaded_session: {},
+      loaded_class: { entries: []},
+      loaded_time: { weathers: [], time: ''},
+
+      get_difficulty: function() {
+        if (this.selection_difficulty == "")
+          this.loaded_difficulty = {}
+        else
+          fetch('/api/get_difficulty/' + this.selection_difficulty)
+            .then((response) => response.json())
+            .then((json) => this.loaded_difficulty = json);
+      },
+      get_session: function() {
+        if(this.selection_session == "")
+          this.loaded_session = {}
+        else
+          fetch('/api/get_session/' + this.selection_session)
+            .then((response) => response.json())
+            .then((json) => this.loaded_session = json);
+      },
+      get_class: function() {
+        if(this.selection_class == "")
+          this.loaded_class = { entries: []}
+        else
+          fetch('/api/get_class/' + this.selection_class)
+            .then((response) => response.json())
+            .then((json) => this.loaded_class = json);
+      },
+      get_time: function() {
+        if(this.selection_time == "")
+          this.loaded_time = { weathers: [], time: ''}
+        else
+          fetch('/api/get_time/' + this.selection_time)
+            .then((response) => response.json())
+            .then((json) => this.loaded_time = json);
+      },
+
+      random_track: function() {
+        let rand = Math.floor(Math.random()*this.tracks_data.length);
+        this.selection_track = this.tracks_data[rand].id;
+      },
+      random_class: function() {
+        let rand = Math.floor(Math.random()*this.class_data.length);
+        this.selection_class = this.class_data[rand].id;
+        this.get_class();
+      },
+      random_time: function() {
+        let rand = Math.floor(Math.random()*this.time_data.length);
+        this.selection_time = this.time_data[rand].id;
+        this.get_time();
+      },
+
+
+      search_open: false,
+      search_toggle: function () {
+        this.search_open = !this.search_open;
+        if (this.search_open) this.trackpicker_open = false;
+      },
+      search_name: "",
+      search_tag: "",
+      search_sortby: "name",
+      search_sortor: "asc",
+      search_track: {},
+      search_getresults: function () {
+        let sn = this.search_name;
+        let name_results = this.tracks_data.filter(function (x) {
+          return x.name.match(new RegExp(sn, "ig"));
+        });
+
+        let tag_results = [];
+        let st = this.search_tag;
+        name_results.forEach(function (track) {
+          if (track.tags.find((x) => x.match(new RegExp(st, "ig")))) {
+            tag_results.push(track);
           }
-        }
-      </script>
+        });
 
-      <form class="flex flex-wrap" method="POST" x-data="events()">
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Booking
-          </p>
-          <div class="p-10 leading-loose">
-            <div>
-              <label class="block text-sm text-gray-600 group relative" for="booking_enabled">
-                Booking
-                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                    Flag it to run a Booking session
-                  </div>
-                </div>
-              </label>
-              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
-                  data.form['booking_enabled']==1 %} checked {% endif %}
-                  @click="booking_changed($event.target.checked)"
-                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-                <label for="booking_enabled"
-                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                <input type='hidden' value='0' name='booking_enabled'>
-              </div>
+        let sortby = this.search_sortby;
+        let sortor = this.search_sortor;
+        let sorted_results = tag_results.sort(function (a, b) {
+          if (sortby == "name" && sortor == "asc")
+            return sort_str(a.name, b.name);
+          else if (sortby == "name" && sortor == "desc")
+            return sort_str(b.name, a.name);
+          else if (sortby == "country" && sortor == "asc")
+            return sort_str(a.country, b.country);
+          else if (sortby == "country" && sortor == "desc")
+            return sort_str(b.country, a.country);
+          else if (sortby == "city" && sortor == "asc")
+            return sort_str(a.city, b.city);
+          else if (sortby == "city" && sortor == "desc")
+            return sort_str(b.city, a.city);
+          else if (sortby == "length" && sortor == "asc")
+            return sort_num(a.length, b.length);
+          else if (sortby == "length" && sortor == "desc")
+            return sort_num(b.length, a.length);
+          else if (sortby == "width" && sortor == "asc")
+            return sort_num(a.width, b.width);
+          else if (sortby == "width" && sortor == "desc")
+            return sort_num(b.width, a.width);
+          else if (sortby == "pitboxes" && sortor == "asc")
+            return sort_num(a.pitboxes, b.pitboxes);
+          else if (sortby == "pitboxes" && sortor == "desc")
+            return sort_num(b.pitboxes, a.pitboxes);
+        });
+
+        return sorted_results;
+      },
+
+      track_preview: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track_preview/" + key + ".png";
+        else return "/api/track_preview/" + key + "/" + config + ".png";
+      },
+      track_outline: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track_outline/" + key + ".png";
+        else return "/api/track_outline/" + key + "/" + config + ".png";
+      },
+
+      trackpicker_open: false,
+      trackpicker_toggle: function () {
+        this.trackpicker_open = !this.trackpicker_open;
+        if (this.trackpicker_open) this.search_open = false;
+      },
+    };
+  }
+</script>
+
+<h1 class="text-3xl text-black">Event</h1>
+<div class="flex flex-row bp-6" x-data="reload_content()">
+  <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> tracks loaded</p>
+  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()">
+    <span class="pr-2">Reload Content</span>
+    <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
+    <i class="fas fa-check" x-show="content_loaded == true"></i>
+  </button>
+</div>
+<div class="w-full mt-6" x-data="session()">
+  <p class="text-xl pb-3 flex items-center">
+    <i class="fas fa-list mr-3"></i>Current Event
+  </p>
+  <div class="overflow-auto">
+
+    <table class="min-w-full bg-white">
+      <thead class="bg-gray-800 text-white">
+        <tr>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Track
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Difficulty
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Session
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Class
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Time and Weather
+          </th>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+            Action
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700">
+        {% for event in data['events'] %}
+        <tr class="{{ loop.cycle('bg-gray-100', 'bg-white') }}">
+          <td class="text-left py-3 px-4">
+            <span>{{ event.track_name }}</span>
+            <div class="py-2 text-xs">
+              <i class="fas fa-route"></i>
+              <span class="pr-2" x-html="format_distance({{ event.track_length }})"></span>
+              {% if event.race_laps %}
+              <span class="pr-2">{{ event.race_laps }} laps</span>
+              {% endif %}
+              <span>{{ event.pitboxes }} pitboxes</span>
             </div>
-            <div x-show="booking_enabled">
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="booking_time">
-                  Booking Time
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Minutes for this session
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="booking_time" name="booking_time"
-                  type="number" :required="booking_enabled" placeholder="Booking Time" aria-label="Booking Time" min="1"
-                  x-model="booking_time" />
-              </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ event.difficulty_name }}</span>
+            <div class="py-2 text-xs flex flex-row">
+              <span :class="{{ event.abs_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">ABS</span>
+              </span>
+              <span :class="{{ event.tc_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">TC</span>
+              </span>
+              <span :class="{{ event.stability_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Stability</span>
+              </span>
+              <span :class="{{ event.autoclutch_allowed }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Clutch</span>
+              </span>
             </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ event.session_name }}</span>
+            <div class="px4 py-2 text-xs">
+              <span :class="{{ event.booking_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if event.booking_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Booking</span>
+              </span>
+              <span :class="{{ event.practice_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if event.practice_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Practice</span>
+              </span>
+              <span :class="{{ event.qualify_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if event.qualify_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Qualifying</span>
+              </span>
+              <span :class="{{ event.race_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                <i class="fas {% if event.race_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Race</span>
+              </span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ event.class_name }}</span>
+            <div class="px4 py-2 text-xs">
+              <span><i class="fas fa-warehouse"></i>
+              {% if event.entries > event.pitboxes %}
+              {% if event.strategy == 1 %}first{% endif %} {{ event.pitboxes }} entries {% if event.strategy == 2 %}randomly{% endif %}
+              {% else %}
+              all {{ event.entries }} entries
+              {% endif %}
+              </span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <span>{{ event.time_name }}</span>
+            <div class="px4 py-2 text-xs">
+              <span class="mr-4"><i class="fas fa-stopwatch"></i> {{ event.time }} </span>
+              <span><i class="fas fa-cloud-moon-rain"></i> {{ event.graphics }}</span>
+            </div>
+          </td>
+          <td class="text-left py-3 px-4">
+            <a href="/event/{{ event.id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
+                Edit</button></a><a href="/event_delete/{{ event.id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
+              Remove
+              </button></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <form class="w-full mt-6 rounded-lg flex bg-white flex-row flex-wrap" action="{{ url_for('event') }}" method="POST">
+
+      <div class="w-full flex px-6 py-6" x-show="trackpicker_open">
+        <div class="w-full rounded-lg bg-gray-100">
+          <h2 class="px-6 py-4 text-xl">Track Picker</h2>
+          <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
+            <template x-for="track in tracks_data">
+              <div class="relative mx-auto pb-2 my-4 hover:border-red-300 border-2 rounded cursor-pointer"
+                :class="selection_track == track.id ? 'border-red-500':''" @click="selection_track = track.id">
+                <img style="height: 140px" x-bind:src="track_preview(track.key, track.config)" />
+                <img class="absolute" style="height: 140px; top: 0"
+                  x-bind:src="track_outline(track.key, track.config)" />
+                <p class="text-xs" x-text="track.name + ', ' + format_distance(track.length)"></p>
+              </div>
+            </template>
           </div>
         </div>
+      </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Practice
-          </p>
-          <div class="p-10 leading-loose">
-            <div>
-              <label class="block text-sm text-gray-600 group relative" for="practice_enabled">
-                Practice
-                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                    Flag it to run a Practice session
-                  </div>
-                </div>
-              </label>
-              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="practice_enabled" id="practice_enabled" value="1" {% if
-                  data.form['practice_enabled']==1 %} checked {% endif %}
-                  @click="practice_changed($event.target.checked)"
-                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-                <label for="practice_enabled"
-                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                <input type='hidden' value='0' name='practice_enabled'>
-              </div>
-            </div>
-            <div x-show="practice_enabled">
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="practice_time">
-                  Practice Time
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Minutes for this session
+      <div class="bg-white w-full flex px-6 py-6" x-show="search_open">
+        <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
+          <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-100" style="position: sticky; top: 0">
+              <tr>
+                <th colspan="2"
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  <label class="block text-sm text-gray-600">Name</label>
+                  <div class="flex flex-row">
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                      x-model="search_name" placeholder="Name" aria-label="Name" />
+                    <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                      <i class="fas fa-search"></i>
                     </div>
                   </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="practice_time" min="1"
-                  name="practice_time" type="number" :required="practice_enabled" placeholder="Practice Time" aria-label="Practice Time"
-                  x-model="practice_time" />
-              </div>
-              <div>
-                <label class="block text-sm text-gray-600 group relative" for="practice_is_open">
-                  Can Join
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Flag it to allow the joining of new clients
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
+                  colspan="2">
+                  <label class="block text-sm text-gray-600">Tag</label>
+                  <div class="flex flex-row">
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                      x-model="search_tag" placeholder="Tag" aria-label="Tag" />
+                    <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                      <i class="fas fa-search"></i>
                     </div>
                   </div>
-                </label>
-                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                  <input type="checkbox" name="practice_is_open" id="practice_is_open" value="1" x-model="practice_is_open"
-                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-                  <label for="practice_is_open"
-                    class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                  <input type='hidden' value='0' name='practice_is_open'>
-                </div>
-              </div>
+                </th>
+                <th colspan="2"></th>
+              </tr>
+              <tr>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Name
+                  <button @click="search_sortby='name'; search_sortor='desc'"
+                    :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='name'; search_sortor='asc'"
+                    :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Country
+                  <button @click="search_sortby='country'; search_sortor='desc'"
+                    :class="(search_sortby == 'country' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='country'; search_sortor='asc'"
+                    :class="(search_sortby == 'country' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  City
+                  <button @click="search_sortby='city'; search_sortor='desc'"
+                    :class="(search_sortby == 'city' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='city'; search_sortor='asc'"
+                    :class="(search_sortby == 'city' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Length
+                  <button @click="search_sortby='length'; search_sortor='desc'"
+                    :class="(search_sortby == 'length' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='length'; search_sortor='asc'"
+                    :class="(search_sortby == 'length' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Width
+                  <button @click="search_sortby='width'; search_sortor='desc'"
+                    :class="(search_sortby == 'width' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='width'; search_sortor='asc'"
+                    :class="(search_sortby == 'width' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+                <th
+                  class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                  Pitboxes
+                  <button @click="search_sortby='pitboxes'; search_sortor='desc'"
+                    :class="(search_sortby == 'pitboxes' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                  <button @click="search_sortby='pitboxes'; search_sortor='asc'"
+                    :class="(search_sortby == 'pitboxes' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(result, r_index) in search_getresults()">
+                <tr :class="selection_track == result.id ? 'text-red-500':''">
+                  <td class="px-6 border-b border-grey-light">
+                    <a href="#" @click="selection_track = result.id" x-text="result.name"></a>
+                  </td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.country"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.city"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="format_distance(result.length)"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.width"></td>
+                  <td class="px-6 border-b border-grey-light" x-text="result.pitboxes"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+      <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+        <p class="text-xl px-6 pb-6 flex items-center">
+        <i class="fas fa-list mr-3"></i> {% if data.form %}Edit{% else %}Add to{% endif %} event
+        </p>
+        <div class="p-10 leading-loose">
+          <div class="">
+            <label class="block text-sm text-gray-600" for="track">Track</label>
+            <div class="flex flex-row">
+              <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="track" x-model="selection_track"
+                required>
+                <option value="">Select ...</option>
+                {% for d in data['track_data'] %}
+                <option value="{{ d['id'] }}">
+                  {{ d['name'] }}
+                </option>
+                {% endfor %}
+              </select>
+              <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_track()">
+                <i class="fas fa-random"></i>
+              </button>
+              <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="search_toggle()"
+                :class="search_open ? 'text-red-500' : ''">
+                <i class="fas fa-search"></i>
+              </button>
+              <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md" type="button"
+                @click="trackpicker_toggle()" :class="trackpicker_open ? 'text-red-500' : ''">
+                <i class="fas fa-grip-horizontal"></i>
+              </button>
             </div>
           </div>
-        </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Qualify
-          </p>
-          <div class="p-10 leading-loose">
-            <div>
-              <label class="block text-sm text-gray-600 group relative" for="qualify_enabled">
-                Qualify
-                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                    Flag it to run a Qualifying session
-                  </div>
-                </div>
-              </label>
-              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="qualify_enabled" id="qualify_enabled" value="1" {% if
-                  data.form['qualify_enabled']==1 %} checked {% endif %}
-                  @click="qualify_changed($event.target.checked)"
-                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-                <label for="qualify_enabled"
-                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                <input type='hidden' value='0' name='qualify_enabled'>
-              </div>
-            </div>
-            <div x-show="qualify_enabled">
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="qualify_time">
-                  Qualify Time
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Minutes for this session
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_time" name="qualify_time"
-                  type="number" :required="qualify_enabled" placeholder="Qualify Time" aria-label="Qualify Time" min="1"
-                  x-model="qualify_time" />
-              </div>
-              <div>
-                <label class="block text-sm text-gray-600 group relative" for="qualify_is_open">
-                  Can Join
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Flag it to allow the joining of new clients
-                    </div>
-                  </div>
-                </label>
-                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                  <input type="checkbox" name="qualify_is_open" id="qualify_is_open" value="1" x-model="qualify_is_open"
-                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-                  <label for="qualify_is_open"
-                    class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                  <input type='hidden' value='0' name='qualify_is_open'>
-                </div>
-              </div>
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="qualify_max_wait_perc">
-                  Qualify limit Perc.
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Define the available time to finish a lap if qualify has ended. Percentage of fastest lap of session.
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_max_wait_perc"
-                  name="qualify_max_wait_perc" type="number" :required="qualify_enabled" placeholder="Qualify limit Perc." min="0"
-                  aria-label="Qualify limit Perc." x-model="qualify_max_wait_perc" />
-              </div>
+          <div class="mt-2">
+            <label class="block text-sm text-gray-600" for="difficulty">Difficulty</label>
+            <div class="flex flex-row">
+              <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="difficulty" x-model="selection_difficulty"
+                @change="get_difficulty()" required>
+                <option value="">Select ...</option>
+                {% for d in data['difficulties'] %}
+                <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+              </select>
             </div>
           </div>
-        </div>
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Race
-          </p>
-          <div class="p-10 leading-loose">
-            <div>
-              <label class="block text-sm text-gray-600 group relative" for="race_enabled">
-                Race
-                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                    Flag it to run a Race session
-                  </div>
-                </div>
-              </label>
-              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="race_enabled" id="race_enabled" value="1" {% if
-                  data.form['race_enabled']==1 %} checked {% endif %} @click="race_changed($event.target.checked)"
-                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-                <label for="race_enabled"
-                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                <input type='hidden' value='0' name='race_enabled'>
-              </div>
+
+          <div class="w-full mt-2 flex">
+            <div class="w-3/4">
+              <label class="block text-sm text-gray-600" for="session">Session</label>
+              <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="session" required x-model="selection_session"
+                @change="get_session()">
+                <option value="">Select ...</option>
+                {% for d in data['sessions'] %}
+                <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+              </select>
             </div>
-            <div x-show="race_enabled">
+            <div class="w-1/4 ml-5">
+              <label class="block text-sm text-gray-600" for="race_laps">Laps</label>
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="race_laps" placeholder="Laps"
+                 aria-label="Laps" value="{{data.form['race_laps']}}"/>
+            </div>
+          </div>
+
+          <div class="w-full mt-2 flex">
+            <div class="w-3/4">
+              <label class="block text-sm text-gray-600" for="class">Class</label>
               <div class="flex flex-row">
-                <div class="w-1/2 mt-2 mr-4">
-                  <label class="block text-sm text-gray-600 group relative" for="race_time">
-                    Race Minutes
-                    <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                      <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                        Minutes for this session
-                      </div>
-                    </div>
-                  </label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_time" name="race_time"
-                    type="number" :required="race_enabled" placeholder="Race Minutes" aria-label="Race Minutes"
-                    x-model="race_time" />
-                </div>
-                <div class="w-1/2 mt-2">
-                  <label class="block text-sm text-gray-600 group relative" for="race_extra_lap">
-                    Extra
-                    <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                      <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                        Flag it to activate Extra Lap at the end of Time
-                      </div>
-                    </div>
-                  </label>
-                  <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                    <input type="checkbox" name="race_extra_lap" id="race_extra_lap" value="1" x-model="race_extra_lap"
-                      class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-                    <label for="race_extra_lap"
-                      class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                    <input type='hidden' value='0' name='race_extra_lap'>
-                  </div>
-                </div>
-
-              </div>
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="race_over_time">
-                  Race Overtime
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Seconds what the server is going to wait for players to end the race
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_over_time" min="30" x-model="race_over_time"
-                  name="race_over_time" type="number" :required="race_enabled" placeholder="Race Overtime" aria-label="Race Overtime" />
-              </div>
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="race_wait_time">
-                  Race Wait Time
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Seconds to wait before the start of this session
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_wait_time" min="20"
-                  name="race_wait_time" type="number" :required="race_enabled" placeholder="Race Wait Time" aria-label="Race Wait Time"
-                  x-model="race_wait_time" />
-              </div>
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="race_is_open">
-                  Join Type
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Flag it to allow the joining of new clients
-                    </div>
-                  </div>
-                </label>
-                <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="race_is_open"
-                  name="race_is_open" :required="race_enabled" x-model="race_is_open">
+                <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="class" required x-model="selection_class"
+                  @change="get_class()">
                   <option value="">Select ...</option>
-                  <option value="0">Close</option>
-                  <option value="1">Open</option>
-                  <option value="2">Close at Start</option>
+                  {% for d in data['classes'] %}
+                  <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                  {% endfor %}
                 </select>
+                <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_class()">
+                  <i class="fas fa-random"></i>
+                </button>
               </div>
-              <div class="mt-2">
-                <label class="block text-sm text-gray-600 group relative" for="reversed_grid_positions">
-                  Reversed Grid
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Repeat Race with reverse grid; top X position or -1 for all valid positions
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="reversed_grid_positions"
-                  name="reversed_grid_positions" type="number" :required="race_enabled" placeholder="Reversed Grid" min="0"
-                  aria-label="Reversed Grid" x-model="reversed_grid_positions" />
-              </div>
-              <div class="inline-block mt-2 w-1/2 pr-1">
-                <label class="block text-sm text-gray-600 group relative" for="race_pit_window_start">
-                  Mandatory Pit (Start)
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Pit Open: Minute or Lap
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_start"
-                  name="race_pit_window_start" type="number" :required="race_enabled" placeholder="Mandatory Pit" min="0"
-                  aria-label="Mandatory Pit" x-model="race_pit_window_start" />
-              </div>
-              <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
-                <label class="block text-sm text-gray-600 group relative" for="race_pit_window_end">
-                  Mandatory Pit (End)
-                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                      Pit Close: Minute or Lap
-                    </div>
-                  </div>
-                </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_end"
-                  name="race_pit_window_end" type="number" :required="race_enabled" placeholder="Mandatory Pit" min="0"
-                  aria-label="Mandatory Pit" x-model="race_pit_window_end" />
-              </div>
+            </div>
+            <div class="w-1/4 ml-5">
+              <label class="block text-sm text-gray-600" for="strategy">Strategy</label>
+              <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="strategy" required>
+                <option value="">Select ...</option>
+                <option {% if data.form['strategy']==1 %} selected {% endif %} value="1">First</option>
+                <option {% if data.form['strategy']==2 %} selected {% endif %} value="2">Random</option>
+              </select>
+            </div>
+          </div>
+
+
+          <div class="mt-2">
+            <label class="block text-sm text-gray-600" for="time">Time and Weather</label>
+            <div class="flex flex-row">
+              <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="time" required x-model="selection_time"
+                @change="get_time()">
+                <option value="">Select ...</option>
+                {% for d in data['times'] %}
+                <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+                {% endfor %}
+              </select>
+              <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_time()">
+                <i class="fas fa-random"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+        <p class="text-xl px-6 pb-6 flex items-center">
+          <i class="fas fa-list mr-3"></i> Event Preview
+        </p>
+        <div class="pl-10 pt-10 leading-loose" x-show="selection_track">
+          <h2 class="py-4 text-xl">Track</h2>
+          <div class="flex flex-row text-gray-700">
+            <div class="w-1/2 relative">
+              <img x-bind:src="track_preview(get_trackdata(selection_track).key, get_trackdata(selection_track).config)" />
+              <img class="absolute" style="top: 0"
+                x-bind:src="track_outline(get_trackdata(selection_track).key, get_trackdata(selection_track).config)" />
+            </div>
+            <div class="w-1/2 pl-4">
+              <p> Track: <span x-html="get_trackdata(selection_track).name"></span> </p>
+              <p> Length: <span x-html="format_distance(get_trackdata(selection_track).length)"></span></p>
+              <p> Location: <span x-html="get_trackdata(selection_track).city + ', ' + get_trackdata(selection_track).country"></span></p>
+              <p> Pitboxes: <span x-html="get_trackdata(selection_track).pitboxes"></span></p>
+              <p> Width: <span x-html="get_trackdata(selection_track).width"></span></p>
+              <p> Run: <span x-html="get_trackdata(selection_track).run"></span></p>
+            </div>
+          </div>
+          <div class="w-full">
+            <div>
+              <template x-for="tag in get_trackdata(selection_track).tags">
+                <div
+                  class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+                  <div class="mt-px" x-html="tag"></div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <div class="pl-10 leading-loose flex flex-row">
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Difficulty</h2>
+            <p class="flex flex-row text-normal text-gray-700">
+              <span :class="loaded_difficulty.abs_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">ABS</span>
+              </span>
+              <span :class="loaded_difficulty.tc_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">TC</span>
+              </span>
+              <span :class="loaded_difficulty.stability_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Stability</span>
+              </span>
+              <span :class="loaded_difficulty.autoclutch_allowed ? 'text-red-500' : ''">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="pr-4">Clutch</span>
+              </span>
+            </p>
+          </div>
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Session</h2>
+            <p class="flex flex-row text-normal text-gray-700">
+              <span :class="loaded_session.booking_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_session.booking_enabled"></i> <i class="fas fa-times" x-show="!loaded_session.booking_enabled"></i> <span class="pr-4">Booking</span>
+              </span>
+              <span :class="loaded_session.practice_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_session.practice_enabled"></i> <i class="fas fa-times" x-show="!loaded_session.practice_enabled"></i> <span class="pr-4">Practice</span>
+              </span>
+              <span :class="loaded_session.qualifying_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_session.qualify_enabled"></i> <i class="fas fa-times" x-show="!loaded_session.qualify_enabled"></i> <span class="pr-4">Qualifying</span>
+              </span>
+              <span :class="loaded_session.race_enabled ? 'text-red-500' : ''">
+                <i class="fas fa-check" x-show="loaded_session.race_enabled"></i> <i class="fas fa-times" x-show="!loaded_session.race_enabled"></i> <span class="pr-4">Race</span>
+              </span>
+            </p>
+          </div>
+        </div>
+        <div class="pl-10 leading-loose flex flex-row">
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Class</h2>
+            <div class="flex flex-row text-normal text-gray-700">
+              <span><i class="fas fa-warehouse"></i> <span x-html="loaded_class.entries.length"></span> entries</span>
+
+            </div>
+          </div>
+          <div class="w-1/2">
+            <h2 class="py-4 text-xl">Time and Weather</h2>
+            <div class="flex flex-row text-normal text-gray-700">
+              <span class="mr-4"><i class="fas fa-stopwatch"></i><span x-html="loaded_time.time"></span></span>
+              <span><i class="fas fa-cloud-moon-rain"></i>
+                <template x-for="w, i in loaded_time.weathers">
+                  <span x-html="w.name + (i == loaded_time.weathers.length-1 ? '' : ',')">
+                </template>
+              </span>
             </div>
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl pb-6 flex items-center">
-            <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
-              Save
-            </button>
-            <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button"
-              @click="document.getElementById('frmDelete').submit()">
-              Delete
-            </button>
-          </p>
-        </div>
-    </div>
+      </div>
+
+
+      <div class="w-full mt-6 pl-0 lg:pl-2">
+        <p class="text-xl pb-6 flex items-center">
+          <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="submit">
+            Save
+          </button>
+        </p>
+      </div>
+    <input type="hidden" name="id" value="{{ data['form'].id }}"></input>
     </form>
-    <form id="frmDelete" action="{{ url_for('event_delete', id=data['id']) }}" method="POST"></form>
-    {% endif %}
   </div>
 </div>
 

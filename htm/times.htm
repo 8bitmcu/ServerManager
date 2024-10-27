@@ -1,7 +1,38 @@
 {% extends 'base.htm' %}
 {% block title %}Time and Weather{% endblock %}
 {% block content %}
-<h1 class="text-3xl text-black pb-6">Time and Weather Presets</h1>
+<script>
+  function reload_content() {
+    return {
+      content_total: {{ data["weatherlist"] | length }},
+      content_loaded: false,
+      loading: false,
+
+      load_content: function () {
+        this.loading = true;
+        this.content_loaded = false;
+        fetch("/api/recache_weathers")
+          .then((response) => response.json())
+          .then((json) => {
+            this.loading = false;
+            if (json.result == 'ok') {
+              this.content_loaded = true;
+            }
+            this.content_total = json.value;
+          });
+      }
+    }
+  }
+</script>
+<h1 class="text-3xl text-black">Time and Weather</h1>
+<div class="flex flex-row bp-6" x-data="reload_content()">
+  <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> weathers loaded</p>
+  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()">
+    <span class="pr-2">Reload Content</span>
+    <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
+    <i class="fas fa-check" x-show="content_loaded == true"></i>
+  </button>
+</div>
 <div class="flex flex-wrap">
   <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
@@ -146,13 +177,9 @@
                   <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8"
                     x-model="time.graphics" required>
                     <option value="">Select...</option>
-                    <option value="3_clear">Clear</option>
-                    <option value="7_heavy_clouds">Heavy Clouds</option>
-                    <option value="1_heavy_fog">Heavy Fog</option>
-                    <option value="5_light_clouds">Light Clouds</option>
-                    <option value="2_light_fog">Light Fog</option>
-                    <option value="4_mid_clear">Mid Clear</option>
-                    <option value="6_mid_clouds">Mid Clouds</option>
+                    {% for d in data['weatherlist'] %}
+                    <option value="{{ d['key'] }}">{{ d['name'] }}</option>
+                    {% endfor %}
                   </select>
                 </div>
                 <div class="inline-block mt-2 w-1/2 pr-1">

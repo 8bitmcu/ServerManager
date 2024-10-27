@@ -64,7 +64,7 @@ class Dbaccess:
         conn.close()
 
 
-    def get_sessions(self):
+    def get_events(self):
         conn = self.get_db_connection()
         data = conn.execute("""
             SELECT
@@ -79,7 +79,7 @@ class Dbaccess:
                 d.tc_allowed as tc_allowed,
                 d.stability_allowed as stability_allowed,
                 d.autoclutch_allowed as autoclutch_allowed,
-                e.name as event_name,
+                e.name as session_name,
                 e.booking_enabled as booking_enabled,
                 e.practice_enabled as practice_enabled,
                 e.qualify_enabled as qualify_enabled,
@@ -94,13 +94,13 @@ class Dbaccess:
                 JOIN cache_weather b
                     on a.graphics = b.key
                 WHERE user_time_id = tw.id) as graphics
-            FROM user_session s
+            FROM user_event s
             JOIN cache_track t
                 on s.cache_track_id = t.id
             JOIN user_difficulty d
                 on s.difficulty_id = d.id
-            JOIN user_event e
-                on s.event_id = e.id
+            JOIN user_session e
+                on s.session_id = e.id
             JOIN user_class c
                 on s.class_id = c.id
             JOIN user_class_entry ce
@@ -112,36 +112,36 @@ class Dbaccess:
         conn.close()
         return data
 
-    def get_session(self, id):
+    def get_event(self, id):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT * FROM user_session WHERE id = ? LIMIT 1", (id, )).fetchone()
+        data = conn.execute("SELECT * FROM user_event WHERE id = ? LIMIT 1", (id, )).fetchone()
         conn.close()
         return data
 
-    def insert_session(self, form):
+    def insert_event(self, form):
         conn = self.get_db_connection()
 
         values = [
             form["track"],
             form["difficulty"],
-            form["event"],
+            form["session"],
             form["class"],
             form["time"],
             form["race_laps"],
             form["strategy"]
         ]
 
-        conn.execute("INSERT INTO user_session (cache_track_id, difficulty_id, event_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?)", values)
+        conn.execute("INSERT INTO user_event (cache_track_id, difficulty_id, session_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?)", values)
         conn.commit()
         conn.close()
 
-    def update_session(self, form):
+    def update_event(self, form):
         conn = self.get_db_connection()
 
         values = [
             form["track"],
             form["difficulty"],
-            form["event"],
+            form["session"],
             form["class"],
             form["time"],
             form["race_laps"],
@@ -149,13 +149,13 @@ class Dbaccess:
             form["id"]
         ]
 
-        conn.execute("UPDATE user_session SET cache_track_id = ?, difficulty_id = ?, event_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ? WHERE id = ?", values)
+        conn.execute("UPDATE user_event SET cache_track_id = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ? WHERE id = ?", values)
         conn.commit()
         conn.close()
 
-    def delete_session(self, id):
+    def delete_event(self, id):
         conn = self.get_db_connection()
-        conn.execute("DELETE FROM user_session WHERE id = ?", (id, ))
+        conn.execute("DELETE FROM user_event WHERE id = ?", (id, ))
         conn.commit()
         conn.close()
 
@@ -226,36 +226,36 @@ class Dbaccess:
 
 
 
-    def get_event(self, id):
+    def get_session(self, id):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT * from user_event WHERE id = ? LIMIT 1", (id, )).fetchone()
+        data = conn.execute("SELECT * from user_session WHERE id = ? LIMIT 1", (id, )).fetchone()
         conn.close()
         return data
 
-    def get_event_list(self, filled=False):
+    def get_session_list(self, filled=False):
         conn = self.get_db_connection()
         where = ""
         if filled:
             where = "WHERE filled = 1"
-        data = conn.execute("SELECT id, name from user_event " + where).fetchall()
+        data = conn.execute("SELECT id, name from user_session " + where).fetchall()
         conn.close()
         return data
 
-    def insert_event(self, name):
+    def insert_session(self, name):
         conn = self.get_db_connection()
         cur = conn.cursor();
-        cur.execute("INSERT INTO user_event (name) VALUES (?)", (name, ))
+        cur.execute("INSERT INTO user_session (name) VALUES (?)", (name, ))
         conn.commit()
         conn.close()
         return cur.lastrowid;
 
-    def delete_event(self, id):
+    def delete_session(self, id):
         conn = self.get_db_connection()
-        conn.execute("DELETE FROM user_event WHERE id = ?", (id, ))
+        conn.execute("DELETE FROM user_session WHERE id = ?", (id, ))
         conn.commit()
         conn.close()
 
-    def update_event(self, id, form):
+    def update_session(self, id, form):
         conn = self.get_db_connection()
         values = [
             form["booking_enabled"],
@@ -279,7 +279,7 @@ class Dbaccess:
             id
         ]
 
-        conn.execute("UPDATE user_event SET booking_enabled = ?, booking_time = ?, practice_enabled = ?, practice_time = ?, practice_is_open = ?, qualify_enabled = ?, qualify_time = ?, qualify_is_open = ?, qualify_max_wait_perc = ?, race_enabled = ?, race_time = ?, race_extra_lap = ?, race_over_time = ?, race_wait_time = ?, race_is_open = ?, reversed_grid_positions = ?, race_pit_window_start = ?, race_pit_window_end = ?, filled = 1 WHERE id = ?", values)
+        conn.execute("UPDATE user_session SET booking_enabled = ?, booking_time = ?, practice_enabled = ?, practice_time = ?, practice_is_open = ?, qualify_enabled = ?, qualify_time = ?, qualify_is_open = ?, qualify_max_wait_perc = ?, race_enabled = ?, race_time = ?, race_extra_lap = ?, race_over_time = ?, race_wait_time = ?, race_is_open = ?, reversed_grid_positions = ?, race_pit_window_start = ?, race_pit_window_end = ?, filled = 1 WHERE id = ?", values)
 
         conn.commit()
         conn.close()
@@ -295,13 +295,13 @@ class Dbaccess:
         conn.close()
         return data
 
-    def get_weather(self, id):
+    def get_time_weather(self, id):
         conn = self.get_db_connection()
         data = conn.execute("SELECT * from user_time_weather WHERE user_time_id = ?", (id, )).fetchall()
         conn.close()
         return data
 
-    def get_weather_names(self, id):
+    def get_time_weather_names(self, id):
         conn = self.get_db_connection()
         data = conn.execute("SELECT * from user_time_weather a JOIN cache_weather b on a.graphics = b.key WHERE user_time_id = ?", (id, )).fetchall()
         conn.close()
@@ -464,7 +464,30 @@ class Dbaccess:
 
     def get_tracklist(self):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT * FROM cache_track ORDER BY Name ASC").fetchall()
+        data = conn.execute("SELECT * FROM cache_track ORDER BY name ASC").fetchall()
 
         conn.close()
         return data
+
+    def update_weathers(self, data):
+        conn = self.get_db_connection()
+        conn.execute("DELETE FROM cache_weather")
+        conn.executemany("INSERT INTO cache_weather (key, name) VALUES (?, ?)", data)
+
+        conn.commit()
+        conn.close()
+
+    def get_weatherlist(self, ):
+        conn = self.get_db_connection()
+        data = conn.execute("SELECT * FROM cache_weather ORDER BY name ASC").fetchall()
+
+        conn.close()
+        return data
+
+    def get_weather(self, weather_id):
+        conn = self.get_db_connection()
+        data = conn.execute("SELECT * FROM cache_weather WHERE id = ? LIMIT 1", (weather_id, )).fetchone()
+
+        conn.close()
+        return data
+
