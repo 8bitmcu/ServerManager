@@ -12,9 +12,16 @@ CREATE TABLE user_config (
   http_port INTEGER,
   client_send_interval INTEGER,
   num_threads INTEGER,
+
   measurement_unit INTEGER,
   temp_unit INTEGER,
-  install_path TEXT
+  install_path TEXT,
+
+  csp_required INTEGER,
+  csp_phycars INTEGER,
+  csp_phytracks INTEGER,
+  csp_hidepit INTEGER,
+  csp_version INTEGER
 );
 
 CREATE TABLE user_difficulty (
@@ -106,14 +113,15 @@ CREATE TABLE user_class (
 CREATE TABLE user_class_entry (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_class_id INTEGER NOT NULL,
-  cache_vehicle_id INTEGER NOT NULL,
-  skin_id TEXT NOT NULL,
+  cache_vehicle_key TEXT NOT NULL,
+  skin_key TEXT NOT NULL,
   ballast INTEGER
 );
 
 CREATE TABLE user_event (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  cache_track_id INTEGER NOT NULL,
+  cache_track_key TEXT NOT NULL,
+  cache_track_config TEXT NOT NULL,
   difficulty_id INTEGER NOT NULL,
   session_id INTEGER NOT NULL,
   class_id INTEGER NOT NULL,
@@ -160,3 +168,17 @@ CREATE TABLE cache_weather (
   key TEXT NOT NULL,
   name TEXT NOT NULL
 );
+
+
+CREATE UNIQUE INDEX idx_cache_track_key_config
+ON cache_track (key, config);
+
+CREATE UNIQUE INDEX idx_cache_vehicle_key
+ON cache_vehicle (key);
+
+CREATE UNIQUE INDEX idx_cache_weather_key
+ON cache_weather (key);
+
+
+
+INSERT INTO user_config () VALUES ();

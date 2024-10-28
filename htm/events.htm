@@ -47,16 +47,25 @@ content %}
       time_data: JSON.parse('{{ data.times | tojson }}'),
 
 
-      selection_track: "{{ data.form['cache_track_id'] }}",
+      selection_track_key: "{{ data.form['cache_track_key'] }}",
+      selection_track_config: "{{ data.form['cache_track_config'] }}",
       selection_difficulty: "{{ data.form['difficulty_id'] }}",
       selection_session: "{{ data.form['session_id'] }}",
       selection_class: "{{ data.form['class_id'] }}",
       selection_time: "{{ data.form['time_id'] }}",
 
-      get_trackdata: function(id) {
-        if (id == "")
+      get_trackdata: function(key, config) {
+        if (key == "")
           return { tags: []}
-        return this.tracks_data.find(x => x.id == id);
+        if (config == "")
+          return this.tracks_data.find(x => x.key == key);
+        return this.tracks_data.find(x => x.key == key && x.config == config)
+      },
+
+      track_changed: function(val) {
+        let split = val.split(':');
+        this.selection_track_key = split[0];
+        this.selection_track_config = split[1];
       },
 
       loaded_difficulty: {},
@@ -99,7 +108,8 @@ content %}
 
       random_track: function() {
         let rand = Math.floor(Math.random()*this.tracks_data.length);
-        this.selection_track = this.tracks_data[rand].id;
+        this.selection_track_key = this.tracks_data[rand].key;
+        this.selection_track_config = this.tracks_data[rand].config;
       },
       random_class: function() {
         let rand = Math.floor(Math.random()*this.class_data.length);
@@ -310,6 +320,8 @@ content %}
     </table>
 
     <form class="w-full mt-6 rounded-lg flex bg-white flex-row flex-wrap" action="{{ url_for('event') }}" method="POST">
+      <input type="hidden" name="track_key" :value="selection_track_key"></input>
+      <input type="hidden" name="track_config" :value="selection_track_config"></input>
 
       <div class="w-full flex px-6 py-6" x-show="trackpicker_open">
         <div class="w-full rounded-lg bg-gray-100">
@@ -317,7 +329,7 @@ content %}
           <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
             <template x-for="track in tracks_data">
               <div class="relative mx-auto pb-2 my-4 hover:border-red-300 border-2 rounded cursor-pointer"
-                :class="selection_track == track.id ? 'border-red-500':''" @click="selection_track = track.id">
+                :class="selection_track_key == track.key && selection_track_config == track.config ? 'border-red-500':''" @click="selection_track_key = track.key; selection_track_config = track.config;">
                 <img style="height: 140px" x-bind:src="track_preview(track.key, track.config)" />
                 <img class="absolute" style="height: 140px; top: 0"
                   x-bind:src="track_outline(track.key, track.config)" />
@@ -436,9 +448,9 @@ content %}
             </thead>
             <tbody>
               <template x-for="(result, r_index) in search_getresults()">
-                <tr :class="selection_track == result.id ? 'text-red-500':''">
+                <tr :class="selection_track_key == result.key && selection_track_config == result.config ? 'text-red-500':''">
                   <td class="px-6 border-b border-grey-light">
-                    <a href="#" @click="selection_track = result.id" x-text="result.name"></a>
+                    <a href="#" @click="selection_track_key = result.key; selection_track_config = result.config" x-text="result.name"></a>
                   </td>
                   <td class="px-6 border-b border-grey-light" x-text="result.country"></td>
                   <td class="px-6 border-b border-grey-light" x-text="result.city"></td>
@@ -462,11 +474,12 @@ content %}
           <div class="">
             <label class="block text-sm text-gray-600" for="track">Track</label>
             <div class="flex flex-row">
-              <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="track" x-model="selection_track"
+              <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="track"
+                @change="track_changed($event.target.value)"
                 required>
                 <option value="">Select ...</option>
                 {% for d in data['track_data'] %}
-                <option value="{{ d['id'] }}">
+                <option value="{{ d['key'] + ':' + d['config'] }}">
                   {{ d['name'] }}
                 </option>
                 {% endfor %}
@@ -564,26 +577,26 @@ content %}
         <p class="text-xl px-6 pb-6 flex items-center">
           <i class="fas fa-list mr-3"></i> Event Preview
         </p>
-        <div class="pl-10 pt-10 leading-loose" x-show="selection_track">
+        <div class="pl-10 pt-10 leading-loose" x-show="selection_track_key">
           <h2 class="py-4 text-xl">Track</h2>
           <div class="flex flex-row text-gray-700">
             <div class="w-1/2 relative">
-              <img x-bind:src="track_preview(get_trackdata(selection_track).key, get_trackdata(selection_track).config)" />
-              <img class="absolute" style="top: 0"
-                x-bind:src="track_outline(get_trackdata(selection_track).key, get_trackdata(selection_track).config)" />
+              <img x-bind:src="track_preview(selection_track_key, selection_track_config)" />
+              <img class="absolute" style="top: 0; max-height: 100%"
+                x-bind:src="track_outline(selection_track_key, selection_track_config)" />
             </div>
             <div class="w-1/2 pl-4">
-              <p> Track: <span x-html="get_trackdata(selection_track).name"></span> </p>
-              <p> Length: <span x-html="format_distance(get_trackdata(selection_track).length)"></span></p>
-              <p> Location: <span x-html="get_trackdata(selection_track).city + ', ' + get_trackdata(selection_track).country"></span></p>
-              <p> Pitboxes: <span x-html="get_trackdata(selection_track).pitboxes"></span></p>
-              <p> Width: <span x-html="get_trackdata(selection_track).width"></span></p>
-              <p> Run: <span x-html="get_trackdata(selection_track).run"></span></p>
+              <p> Track: <span x-html="get_trackdata(selection_track_key, selection_track_config).name"></span> </p>
+              <p> Length: <span x-html="format_distance(get_trackdata(selection_track_key, selection_track_config).length)"></span></p>
+              <p> Location: <span x-html="get_trackdata(selection_track_key, selection_track_config).city + ', ' + get_trackdata(selection_track_key, selection_track_config).country"></span></p>
+              <p> Pitboxes: <span x-html="get_trackdata(selection_track_key, selection_track_config).pitboxes"></span></p>
+              <p> Width: <span x-html="get_trackdata(selection_track_key, selection_track_config).width"></span></p>
+              <p> Run: <span x-html="get_trackdata(selection_track_key, selection_track_config).run"></span></p>
             </div>
           </div>
           <div class="w-full">
             <div>
-              <template x-for="tag in get_trackdata(selection_track).tags">
+              <template x-for="tag in get_trackdata(selection_track_key, selection_track_config).tags">
                 <div
                   class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
                   <div class="mt-px" x-html="tag"></div>

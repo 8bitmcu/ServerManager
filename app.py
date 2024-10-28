@@ -43,7 +43,7 @@ def index():
     data['is_running'] = psa.is_running()
     return render_template("index.htm", data=data)
 
-# Session
+# Event
 @app.route("/event", methods=('GET', 'POST'))
 @app.route("/event/<int:id>", methods=('GET', 'POST'))
 @require_config_set
@@ -77,13 +77,13 @@ def event(id=None):
 @require_config_set
 def event_delete(id):
     dba.delete_event(id)
-    return redirect(url_for("index"));
+    return redirect(url_for("event"))
 
 # Configuration
 @app.route("/config", methods=('GET', 'POST'))
 def config():
     if request.method == 'POST':
-        dba.insertupdate_config(request.form)
+        dba.update_config(request.form)
 
     # TODO: when install_path changes, refresh content
 
@@ -95,8 +95,10 @@ def config():
 # Content and Mods
 @app.route("/content", methods=('GET', 'POST'))
 def content():
+    if request.method == 'POST':
+        dba.update_content(request.form)
     data = {}
-    data['form'] = {}
+    data['form'] = util.clean_dbdata(dba.select_config())
     return render_template("content.htm", data=data)
 
 # Difficulties
@@ -127,7 +129,7 @@ def difficulty_delete(id):
     dba.delete_difficulty(id)
     return redirect(url_for("difficulty"));
 
-# Events
+# Sessions
 @app.route("/session", methods=('GET', 'POST'))
 @app.route("/session/<int:id>", methods=('GET', 'POST'))
 @require_config_set
@@ -300,10 +302,10 @@ def track_preview(key, config=None):
 def track_layout(key, config=None):
     return send_from_directory(fsa.get_track(key, config), "outline.png")
 
-@app.route("/api/get_vehicle/<string:id>")
+@app.route("/api/get_vehicle/<string:key>")
 @require_config_set
-def get_vehicle(id): 
-    car_data = dba.get_car(id)
+def get_vehicle(key): 
+    car_data = dba.get_car(key)
 
     raw_power = json.loads(car_data['power'])
 
@@ -320,7 +322,7 @@ def get_vehicle(id):
         labels.append(int(p[0]))
 
     json_data = {
-        'id': id,
+        'key': key,
         'desc': car_data['desc'],
         'power': power,
         'torque': torque,

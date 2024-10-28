@@ -2,23 +2,84 @@
 {% block title %}Mods{% endblock %}
 {% block content %}
 
+<script>
+  function csp() {
+    return {
+      csp_required: {{ 'true' if data.form['csp_required'] == 1 else 'false' }},
+      csp_version: '{{ data.form["csp_version"] }}',
+      csp_phycars: {{ 'true' if data.form['csp_phycars'] == 1 else 'false' }},
+      csp_phytracks: {{ 'true' if data.form['csp_phytracks'] == 1 else 'false' }},
+      csp_hidepit: {{ 'true' if data.form['csp_hidepit'] == 1 else 'false' }},
+
+      csp_required_changed: function(val) {
+        if(!val) {
+          this.csp_version = '';
+          this.csp_phycars = false;
+          this.csp_phytracks = false;
+          this.csp_hidepit = false;
+        }
+      }
+    }
+  }
+</script>
 <h1 class="text-3xl text-black pb-6">Mods</h1>
-<div class="flex flex-wrap">
+<form class="flex flex-wrap" method="POST" action="{{ url_for('content') }}">
   <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Content Cache
     </p>
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
 
+      <div class="w-full flex flex-row px-2">
+        <div class="flex-1 flex flex-col mt-2">
+          <h2 class="text-xl">Vehicles</h2>
+          <p>128 Vehicles loaded</p>
+        </div>
+        <button class="h-12 px-4 my-4 text-white font-light tracking-wider bg-gray-900 rounded" type="button">
+          Reload Content
+        </button>
+      </div>
+      <hr />
+      <div class="w-full flex flex-row px-2">
+        <div class="flex-1 flex flex-col mt-2">
+          <h2 class="text-xl">Tracks</h2>
+          <p>128 Vehicles loaded</p>
+        </div>
+        <button class="h-12 px-4 my-4 text-white font-light tracking-wider bg-gray-900 rounded" type="button">
+          Reload Content
+        </button>
+      </div>
+      <hr />
+      <div class="w-full flex flex-row px-2">
+        <div class="flex-1 flex flex-col mt-2">
+          <h2 class="text-xl">Weathers</h2>
+          <p>128 Vehicles loaded</p>
+        </div>
+        <button class="h-12 px-4 my-4 text-white font-light tracking-wider bg-gray-900 rounded" type="button">
+          Reload Content
+        </button>
+      </div>
+      <hr />
+      <div class="w-full flex flex-row px-2">
+        <div class="flex-1 flex flex-col mt-2">
+          <h2 class="text-xl">All Content</h2>
+          <p>128 Vehicles loaded</p>
+        </div>
+        <div>
+          <button class="h-12 px-4 my-4 text-white font-light tracking-wider bg-red-500 rounded" type="button">
+            Reload All Content
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2">
+  <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2" x-data="csp()">
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Custom Shaders Pack
     </p>
     <div class="p-10 bg-white rounded shadow-xl leading-loose">
       <div>
-        <label class="block text-sm text-gray-600 group relative" for="booking_enabled">
+        <label class="block text-sm text-gray-600 group relative" for="csp_required">
           Required to join
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
@@ -27,82 +88,78 @@
           </div>
         </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
-            data.form['booking_enabled']==1 %} checked {% endif %}
-            @click="booking_changed($event.target.checked)"
+          <input type="checkbox" name="csp_required" id="csp_required" value="1" x-model="csp_required"
+            @click="csp_required_changed($event.target.checked)"
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-          <label for="booking_enabled"
+          <label for="csp_required"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-          <input type='hidden' value='0' name='booking_enabled'>
+          <input type='hidden' value='0' name='csp_required'>
         </div>
       </div>
-      <div class="mt-2">
-        <label class="block text-sm text-gray-600 group relative" for="name">
-          Minimum version
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              Minimum version of CSP required to join the game
+
+      <div x-show="csp_required">
+        <div class="mt-2">
+          <label class="block text-sm text-gray-600 group relative" for="csp_version">
+            Minimum version
+            <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                Minimum version of CSP required to join the game
+              </div>
             </div>
-          </div>
-        </label>
-        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="name" name="name" type="text" required=""
-          placeholder="Minimum Version" aria-label="Name" value="{{data.form['name']}}" />
-      </div>
-      <div class="mt-2">
-        <label class="block text-sm text-gray-600 group relative" for="booking_enabled">
-          Use extended physics for cars
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              # TODO: tootip
-            </div>
-          </div>
-        </label>
-        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
-            data.form['booking_enabled']==1 %} checked {% endif %}
-            @click="booking_changed($event.target.checked)"
-            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-          <label for="booking_enabled"
-            class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-          <input type='hidden' value='0' name='booking_enabled'>
+          </label>
+          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="csp_version" name="csp_version" type="text" :required="csp_version" x-model="csp_version"
+            placeholder="Minimum Version" aria-label="Minimum Version" x-model="csp_version" />
         </div>
-      </div>
-      <div class="mt-2">
-        <label class="block text-sm text-gray-600 group relative" for="booking_enabled">
-          Use extended physics for tracks
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              # TODO: tootip
+        <div class="mt-2">
+          <label class="block text-sm text-gray-600 group relative" for="csp_phycars">
+            Use extended physics for cars
+            <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                # TODO: tootip
+              </div>
             </div>
+          </label>
+          <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+            <input type="checkbox" name="csp_phycars" id="csp_phycars" value="1" x-model="csp_phycars"
+              class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+            <label for="csp_phycars"
+              class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+            <input type='hidden' value='0' name='csp_phycars'>
           </div>
-        </label>
-        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
-            data.form['booking_enabled']==1 %} checked {% endif %}
-            @click="booking_changed($event.target.checked)"
-            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-          <label for="booking_enabled"
-            class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-          <input type='hidden' value='0' name='booking_enabled'>
         </div>
-      </div>
-      <div class="mt-2">
-        <label class="block text-sm text-gray-600 group relative" for="booking_enabled">
-          Hide pit crew
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              # TODO: tootip
+        <div class="mt-2">
+          <label class="block text-sm text-gray-600 group relative" for="csp_phytracks">
+            Use extended physics for tracks
+            <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                # TODO: tootip
+              </div>
             </div>
+          </label>
+          <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+            <input type="checkbox" name="csp_phytracks" id="csp_phytracks" value="1" x-model="csp_phytracks"
+              class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+            <label for="csp_phytracks"
+              class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+            <input type='hidden' value='0' name='csp_phytracks'>
           </div>
-        </label>
-        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
-            data.form['booking_enabled']==1 %} checked {% endif %}
-            @click="booking_changed($event.target.checked)"
-            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-          <label for="booking_enabled"
-            class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-          <input type='hidden' value='0' name='booking_enabled'>
+        </div>
+        <div class="mt-2">
+          <label class="block text-sm text-gray-600 group relative" for="csp_hidepit">
+            Hide pit crew
+            <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                Results in faster load times
+              </div>
+            </div>
+          </label>
+          <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+            <input type="checkbox" name="csp_hidepit" id="csp_hidepit" value="1" x-model="csp_hidepit"
+              class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+            <label for="csp_hidepit"
+              class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+            <input type='hidden' value='0' name='csp_hidepit'>
+          </div>
         </div>
       </div>
 
@@ -118,6 +175,6 @@
       </button>
     </p>
   </div>
-</div>
+</form>
 
 {% endblock %}

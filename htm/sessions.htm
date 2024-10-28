@@ -5,18 +5,18 @@
 <div class="flex flex-wrap">
   <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
-    <div class="bg-white">
+    <div class="bg-gray-800 text-white">
       <nav class="flex flex-col sm:flex-row">
         {% for d in data['list'] %}
         <a href="{{ url_for('session', id=d['id']) }}"
-          class="py-4 px-6 block hover:text-red-500 focus:outline-none text-gray-500 border-b-2 font-medium {% if d['id'] == data['id'] %} text-red-500 border-red-500 {% endif %}">
+          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">
           <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
         </a>
         {% endfor %}
 
         <form x-data="{ showModal: false, email: '' }" method="POST">
           <a href="#" @click="showModal = true"
-            class="py-4 px-6 block hover:text-red-500 focus:outline-none font-medium">
+            class="py-4 px-6 block focus:outline-none font-medium">
             <i class="fas fa-plus mr-3"></i> Add new Session
           </a>
           <!-- Background overlay -->
@@ -134,7 +134,7 @@
         }
       </script>
 
-      <form class="flex flex-wrap" method="POST" x-data="sessions()">
+      <form class="flex flex-wrap text-black bg-white" method="POST" x-data="sessions()">
         <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
           <p class="text-xl px-6 pb-6 flex items-center">
             <i class="fas fa-list mr-3"></i> Booking

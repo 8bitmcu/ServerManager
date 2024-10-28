@@ -3,30 +3,33 @@
 <script>
   function reload_content() {
     return {
-      content_total: {{ data["car_data"] | length }},
+      content_total: {{data["car_data"] | length}},
       content_loaded: false,
-      loading: false,
+        loading: false,
 
-      load_content: function () {
-        this.loading = true;
-        this.content_loaded = false;
-        fetch("/api/recache_vehicles")
-          .then((response) => response.json())
-          .then((json) => {
-            this.loading = false;
-            if (json.result == 'ok') {
-              this.content_loaded = true;
-            }
-            this.content_total = json.value;
-          });
+          load_content: function () {
+            this.loading = true;
+            this.content_loaded = false;
+            fetch("/api/recache_vehicles")
+              .then((response) => response.json())
+              .then((json) => {
+                this.loading = false;
+                if (json.result == 'ok') {
+                  this.content_loaded = true;
+                }
+                this.content_total = json.value;
+              });
+          }
+        }
       }
-    }
-  }
 </script>
 <h1 class="text-3xl text-black">Vehicle Classes</h1>
 <div class="flex flex-row bp-6" x-data="reload_content()">
-  <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> cars loaded</p>
-  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()">
+  <p class="pr-4" style="align-self: center">
+    <span x-html="content_total"></span> cars loaded
+  </p>
+  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
+    @click="load_content()">
     <span class="pr-2">Reload Content</span>
     <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
     <i class="fas fa-check" x-show="content_loaded == true"></i>
@@ -35,18 +38,18 @@
 <div class="flex flex-wrap">
   <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
-    <div class="bg-white flex flex-wrap">
-      <nav class="flex flex-col sm:flex-col w-1/4 border-r-2">
+    <div class="flex flex-wrap">
+      <nav class="flex flex-col sm:flex-col w-1/4 border-r-2 bg-gray-800 text-white">
         {% for d in data['list'] %}
         <a href="{{ url_for('veh_class', id=d['id']) }}"
-          class="py-4 px-6 block hover:text-red-500 focus:outline-none text-gray-500 border-b-2 font-medium {% if d['id'] == data['id'] %} text-red-500 border-red-500 {% endif %}">
+          class="py-4 px-6 block text-gray-500 hover:text-white font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">
           <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
         </a>
         {% endfor %}
 
         <form id="frmAdd" x-data="{ showModal: false, email: '' }" method="POST">
           <a href="#" @click="showModal = true"
-            class="py-4 px-6 block hover:text-red-500 focus:outline-none font-medium">
+            class="py-4 px-6 block font-medium">
             <i class="fas fa-plus mr-3"></i> Add new Class
           </a>
           <!-- Background overlay -->
@@ -103,567 +106,561 @@
       {% if data['form'] is defined %}
 
       <script>
-          function move(arr, from, to) {
-            var items = arr;
-            if (to >= items.length) {
-              let k = to - items.length + 1;
-              while (k--) {
-                items.push(undefined);
-              }
+        function move(arr, from, to) {
+          var items = arr;
+          if (to >= items.length) {
+            let k = to - items.length + 1;
+            while (k--) {
+              items.push(undefined);
             }
-            items.splice(to, 0, items.splice(from, 1)[0]);
-            arr = items;
           }
-          function sort_str(a, b) {
-            let x = a.toLowerCase();
-            let y = b.toLowerCase();
-            if (x < y) return -1;
-            if (x > y) return 1;
-            return 0;
-          }
+          items.splice(to, 0, items.splice(from, 1)[0]);
+          arr = items;
+        }
+        function sort_str(a, b) {
+          let x = a.toLowerCase();
+          let y = b.toLowerCase();
+          if (x < y) return -1;
+          if (x > y) return 1;
+          return 0;
+        }
 
-          function sort_num(a, b) {
-            a = a.replace(/\D/g, "");
-            b = b.replace(/\D/g, "");
-            return a - b;
-          }
+        function sort_num(a, b) {
+          a = a.replace(/\D/g, "");
+          b = b.replace(/\D/g, "");
+          return a - b;
+        }
 
-          function class_data() {
-            return {
-              // data loaded for all the cars.
-              car_data: JSON.parse('{{ data.car_data | tojson }}'),
+        function class_data() {
+          return {
+            // data loaded for all the cars.
+            car_data: JSON.parse('{{ data.car_data | tojson }}'),
 
-              car_getdata: function (car_id) {
-                if (!car_id)
-                  return {
-                    tags: [],
-                    specs: {},
-                    skins: [],
-                  };
-                return this.car_data.find((x) => x.id == car_id);
-              },
-              skin_getdata: function (car_id, skin_id) {
-                if (!car_id || !skin_id) return {};
-                return this.car_data
-                  .find((x) => x.id == car_id)
-                  .skins.find((x) => x.skin_id == skin_id);
-              },
+            car_getdata: function (car_key) {
+              if (!car_key)
+                return {
+                  tags: [],
+                  specs: {},
+                  skins: [],
+                };
+              return this.car_data.find((x) => x.key == car_key);
+            },
+            skin_getdata: function (car_key, skin_key) {
+              if (!car_key || !skin_key) return {};
+              return this.car_data
+                .find((x) => x.key == car_key)
+                .skins.find((x) => x.skin_key == skin_key);
+            },
 
-              // Car class panel
-              // keys: key, id, skin, ballast
-              class_cars: [],
+            // Car class panel
+            // keys: key, id, skin, ballast
+            class_cars: [],
 
-              class_init: function () {
-                var init_data = JSON.parse('{{ data.entries | tojson }}');
+            class_init: function () {
+              var init_data = JSON.parse('{{ data.entries | tojson }}');
 
-                init_data.forEach((x) => {
-                  let car = {
-                    uid: Math.random().toString(16).slice(2),
-                    id: x["cache_vehicle_id"],
-                    key: this.car_getdata(x["cache_vehicle_id"]).key,
-                    skin: x["skin_id"],
-                  };
+              init_data.forEach((x) => {
+                let car = {
+                  uid: Math.random().toString(16).slice(2),
+                  key: x["cache_vehicle_key"],
+                  skin_key: x["skin_key"],
+                };
 
-                  this.class_cars.push(car);
-                });
-              },
+                this.class_cars.push(car);
+              });
+            },
 
-              car_add: function () {
-                var obj = {};
-                this.class_cars.push(obj);
-                this.car_changed(obj);
-              },
-              car_moveup: function (index) {
-                move(this.class_cars, index - 1, index);
-              },
-              car_movedown: function (index) {
-                move(this.class_cars, index + 1, index);
-              },
-              car_remove: function (car_index, uid) {
-                // remove details panel, skinpicker, search
-                if (this.details_car.uid == uid) {
-                  this.details_car = {};
-                }
-                if (this.search_car.uid == uid) {
-                  this.search_car = {};
-                }
-                if (this.skinpicker_car.uid == uid) {
+            car_add: function () {
+              var obj = {};
+              this.class_cars.push(obj);
+              this.car_changed(obj);
+            },
+            car_moveup: function (index) {
+              move(this.class_cars, index - 1, index);
+            },
+            car_movedown: function (index) {
+              move(this.class_cars, index + 1, index);
+            },
+            car_remove: function (car_index, uid) {
+              // remove details panel, skinpicker, search
+              if (this.details_car.uid == uid) {
+                this.details_car = {};
+              }
+              if (this.search_car.uid == uid) {
+                this.search_car = {};
+              }
+              if (this.skinpicker_car.uid == uid) {
+                this.skinpicker_car = {};
+              }
+
+              this.class_cars = this.class_cars.filter((item, idx) => {
+                return car_index !== idx;
+              });
+            },
+            car_changed(car) {
+              // remove details panel
+              if (this.details_car.uid == car.uid) {
+                this.details_car = {};
+              }
+              if (!car.uid) car.uid = Math.random().toString(16).slice(2);
+
+              car.skin_key = "";
+            },
+
+            // search panel
+            search_name: "",
+            search_tag: "",
+            search_sortby: "name",
+            search_sortor: "asc",
+            search_car: {},
+            search_show: function (car) {
+              if (this.search_car.uid == car.uid) {
+                this.search_car = {};
+              } else {
+                this.search_car = car;
+                if (this.skinpicker_car) {
                   this.skinpicker_car = {};
                 }
+              }
+            },
+            search_getresults: function () {
+              let sn = this.search_name;
+              let name_results = this.car_data.filter(function (x) {
+                return x.name.match(new RegExp(sn, "ig"));
+              });
 
-                this.class_cars = this.class_cars.filter((item, idx) => {
-                  return car_index !== idx;
-                });
-              },
-              car_changed(car) {
-                // remove details panel
-                if (this.details_car.uid == car.uid) {
-                  this.details_car = {};
+              let tag_results = [];
+              let st = this.search_tag;
+              name_results.forEach(function (car) {
+                if (car.tags.find((x) => x.match(new RegExp(st, "ig")))) {
+                  tag_results.push(car);
                 }
+              });
 
-                if (!car.id) car.id = this.car_data[0].id;
-
-                var cd = this.car_data.find((x) => x.id == car.id);
-
-                car.key = cd.key;
-
-                if (!car.uid) car.uid = Math.random().toString(16).slice(2);
-
-                car.skin = cd.skins[0].skin_id;
-              },
-
-              // search panel
-              search_name: "",
-              search_tag: "",
-              search_sortby: "name",
-              search_sortor: "asc",
-              search_car: {},
-              search_show: function (car) {
-                if (this.search_car.uid == car.uid) {
-                  this.search_car = {};
-                } else {
-                  this.search_car = car;
-                  if (this.skinpicker_car) {
-                    this.skinpicker_car = {};
-                  }
-                }
-              },
-              search_getresults: function () {
-                let sn = this.search_name;
-                let name_results = this.car_data.filter(function (x) {
-                  return x.name.match(new RegExp(sn, "ig"));
-                });
-
-                let tag_results = [];
-                let st = this.search_tag;
-                name_results.forEach(function (car) {
-                  if (car.tags.find((x) => x.match(new RegExp(st, "ig")))) {
-                    tag_results.push(car);
-                  }
-                });
-
-                let sortby = this.search_sortby;
-                let sortor = this.search_sortor;
-                let sorted_results = tag_results.sort(function (a, b) {
-                  if (sortby == "name" && sortor == "asc")
-                    return sort_str(a.name, b.name);
-                  else if (sortby == "name" && sortor == "desc")
-                    return sort_str(b.name, a.name);
-                  else if (sortby == "power" && sortor == "asc")
-                    return sort_num(a.specs.bhp, b.specs.bhp);
-                  else if (sortby == "power" && sortor == "desc")
-                    return sort_num(b.specs.bhp, a.specs.bhp);
-                  else if (sortby == "torque" && sortor == "asc")
-                    return sort_num(a.specs.torque, b.specs.torque);
-                  else if (sortby == "torque" && sortor == "desc")
-                    return sort_num(b.specs.torque, a.specs.torque);
-                  else if (sortby == "weight" && sortor == "asc")
-                    return sort_num(a.specs.weight, b.specs.weight);
-                  else if (sortby == "weight" && sortor == "desc")
-                    return sort_num(b.specs.weight, a.specs.weight);
-                  else if (sortby == "acceleration" && sortor == "asc")
-                    return sort_num(
-                      a.specs.acceleration.replace("0-100", ""),
-                      b.specs.acceleration.replace("0-100", ""),
-                    );
-                  else if (sortby == "acceleration" && sortor == "desc")
-                    return sort_num(
-                      b.specs.acceleration.replace("0-100", ""),
-                      a.specs.acceleration.replace("0-100", ""),
-                    );
-                  else if (sortby == "pwratio" && sortor == "asc")
-                    return sort_num(a.specs.pwratio, b.specs.pwratio);
-                  else if (sortby == "pwratio" && sortor == "desc")
-                    return sort_num(b.specs.pwratio, a.specs.pwratio);
-                });
-
-                return sorted_results;
-              },
-
-              // skin picker panel
-              skinpicker_car: {},
-              skinpicker_show: function (car) {
-                if (this.skinpicker_car.uid == car.uid) {
-                  this.skinpicker_car = {};
-                } else {
-                  this.skinpicker_car = car;
-                  if (this.search_car) {
-                    this.search_car = {};
-                  }
-                }
-              },
-              skin_getimg: function (car_key, skin_id) {
-                if (!car_key || !skin_id) return "";
-                return "/api/skin_img/" + car_key + "/" + skin_id + ".jpg";
-              },
-
-              // details panel shown at the bottom
-              details: {specs: {}, tags: []},
-              details_car: {},
-              details_chart: null,
-              details_fetch: function (car) {
-                if (this.details_car.uid == car.uid) {
-                  this.details_car = {};
-                  return;
-                }
-                if (this.details_chart == null) {
-                  this.details_chart = new Chart(
-                    document.getElementById("chartOne"),
-                    {
-                      type: "line",
-                      data: {
-                        labels: [],
-                        datasets: [
-                          {
-                            label: "Power",
-                            data: [],
-                            fill: false,
-                            borderColor: "#EF4444",
-                            tension: 0.1,
-                          },
-                          {
-                            label: "Torque",
-                            data: [],
-                            fill: false,
-                            borderColor: "#3B82F6",
-                            tension: 0.1,
-                          },
-                        ],
-                      },
-                    },
+              let sortby = this.search_sortby;
+              let sortor = this.search_sortor;
+              let sorted_results = tag_results.sort(function (a, b) {
+                if (sortby == "name" && sortor == "asc")
+                  return sort_str(a.name, b.name);
+                else if (sortby == "name" && sortor == "desc")
+                  return sort_str(b.name, a.name);
+                else if (sortby == "power" && sortor == "asc")
+                  return sort_num(a.specs.bhp, b.specs.bhp);
+                else if (sortby == "power" && sortor == "desc")
+                  return sort_num(b.specs.bhp, a.specs.bhp);
+                else if (sortby == "torque" && sortor == "asc")
+                  return sort_num(a.specs.torque, b.specs.torque);
+                else if (sortby == "torque" && sortor == "desc")
+                  return sort_num(b.specs.torque, a.specs.torque);
+                else if (sortby == "weight" && sortor == "asc")
+                  return sort_num(a.specs.weight, b.specs.weight);
+                else if (sortby == "weight" && sortor == "desc")
+                  return sort_num(b.specs.weight, a.specs.weight);
+                else if (sortby == "acceleration" && sortor == "asc")
+                  return sort_num(
+                    a.specs.acceleration.replace("0-100", ""),
+                    b.specs.acceleration.replace("0-100", ""),
                   );
-                } else {
-                  // clear all chart data
-                  while (this.details_chart.data.labels.length)
-                    this.details_chart.data.labels.pop();
-                  this.details_chart.data.datasets.forEach((dataset) => {
-                    while (dataset.data.length) dataset.data.pop();
-                  });
+                else if (sortby == "acceleration" && sortor == "desc")
+                  return sort_num(
+                    b.specs.acceleration.replace("0-100", ""),
+                    a.specs.acceleration.replace("0-100", ""),
+                  );
+                else if (sortby == "pwratio" && sortor == "asc")
+                  return sort_num(a.specs.pwratio, b.specs.pwratio);
+                else if (sortby == "pwratio" && sortor == "desc")
+                  return sort_num(b.specs.pwratio, a.specs.pwratio);
+              });
+
+              return sorted_results;
+            },
+
+            // skin picker panel
+            skinpicker_car: {},
+            skinpicker_show: function (car) {
+              if (this.skinpicker_car.uid == car.uid) {
+                this.skinpicker_car = {};
+              } else {
+                this.skinpicker_car = car;
+                if (this.search_car) {
+                  this.search_car = {};
                 }
-                fetch("/api/get_vehicle/" + car.key)
-                  .then((response) => response.json())
-                  .then((json) => {
-                    json.labels.forEach((x) => {
-                      this.details_chart.data.labels.push(x);
-                    });
+              }
+            },
+            skin_getimg: function (car_key, skin_key) {
+              if (!car_key || !skin_key) return "";
+              return "/api/skin_img/" + car_key + "/" + skin_key + ".jpg";
+            },
 
-                    json.power.forEach((x) => {
-                      this.details_chart.data.datasets[0].data.push(x);
-                    });
-
-                    json.torque.forEach((x) => {
-                      this.details_chart.data.datasets[1].data.push(x);
-                    });
-
-                    this.details = json;
-                    this.details_car = car;
-                    this.details_chart.update();
+            // details panel shown at the bottom
+            details: {specs: {}, tags: []},
+            details_car: {},
+            details_chart: null,
+            details_fetch: function (car) {
+              if (!car.key) return;
+              if (this.details_car.uid == car.uid) {
+                this.details_car = {};
+                return;
+              }
+              if (this.details_chart == null) {
+                this.details_chart = new Chart(
+                  document.getElementById("chartOne"),
+                  {
+                    type: "line",
+                    data: {
+                      labels: [],
+                      datasets: [
+                        {
+                          label: "Power",
+                          data: [],
+                          fill: false,
+                          borderColor: "#EF4444",
+                          tension: 0.1,
+                        },
+                        {
+                          label: "Torque",
+                          data: [],
+                          fill: false,
+                          borderColor: "#3B82F6",
+                          tension: 0.1,
+                        },
+                      ],
+                    },
+                  },
+                );
+              } else {
+                // clear all chart data
+                while (this.details_chart.data.labels.length)
+                  this.details_chart.data.labels.pop();
+                this.details_chart.data.datasets.forEach((dataset) => {
+                  while (dataset.data.length) dataset.data.pop();
+                });
+              }
+              fetch("/api/get_vehicle/" + car.key)
+                .then((response) => response.json())
+                .then((json) => {
+                  json.labels.forEach((x) => {
+                    this.details_chart.data.labels.push(x);
                   });
-              },
-            };
-          }
+
+                  json.power.forEach((x) => {
+                    this.details_chart.data.datasets[0].data.push(x);
+                  });
+
+                  json.torque.forEach((x) => {
+                    this.details_chart.data.datasets[1].data.push(x);
+                  });
+
+                  this.details = json;
+                  this.details_car = car;
+                  this.details_chart.update();
+                });
+            },
+          };
+        }
       </script>
-      <div class="w-3/4" x-data="class_data()" x-init="class_init()">
-        <form id="frmUpdate" method="POST" action="{{ url_for('veh_class', id=data['id']) }}">
+      <form id="frmUpdate" method="POST" action="{{ url_for('veh_class', id=data['id']) }}" class="w-3/4 flex flex-col bg-white text-black">
+        <div x-data="class_data()" x-init="class_init()">
           <input type="hidden" x-model="JSON.stringify(class_cars)" name="cars" />
-        </form>
-        <nav class="flex flex-col">
-          <div class="w-full flex px-6 py-6" x-show="skinpicker_car.uid">
-            <div class="w-full rounded-lg bg-gray-100">
-              <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
-              <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
-                <template x-for="skin in car_getdata(skinpicker_car.id).skins">
-                  <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
-                    x-bind:src="skin_getimg(skinpicker_car.key, skin.skin_id)"
-                    :class="skinpicker_car.skin == skin.skin_id ? 'border-red-500' : ''"
-                    @click="skinpicker_car.skin = skin.skin_id" />
-                </template>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-full flex px-6 py-6" x-show="search_car.uid">
-            <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
-              <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
-              <table class="w-full text-left border-collapse">
-                <thead class="bg-gray-100" style="position: sticky; top: 0">
-                  <tr>
-                    <th colspan="2"
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                      <label class="block text-sm text-gray-600">Name</label>
-                      <div class="flex flex-row">
-                        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
-                          type="text" x-model="search_name" placeholder="Name" aria-label="Name" />
-                        <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
-                          <i class="fas fa-search"></i>
-                        </div>
-                      </div>
-                    </th>
-                    <th
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
-                      colspan="2">
-                      <label class="block text-sm text-gray-600">Tag</label>
-                      <div class="flex flex-row">
-                        <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
-                          type="text" x-model="search_tag" placeholder="Tag" aria-label="Tag" />
-                        <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
-                          <i class="fas fa-search"></i>
-                        </div>
-                      </div>
-                    </th>
-                    <th colspan="2"></th>
-                  </tr>
-                  <tr>
-                    <th
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                      Name
-                      <button @click="search_sortby='name'; search_sortor='desc'"
-                        :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
-                      <button @click="search_sortby='name'; search_sortor='asc'"
-                        :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                    </th>
-                    <th
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                      Power
-                      <button @click="search_sortby='power'; search_sortor='desc'"
-                        :class="(search_sortby == 'power' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
-                      <button @click="search_sortby='power'; search_sortor='asc'"
-                        :class="(search_sortby == 'power' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                    </th>
-                    <th
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                      Torque
-                      <button @click="search_sortby='torque'; search_sortor='desc'"
-                        :class="(search_sortby == 'torque' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
-                      <button @click="search_sortby='torque'; search_sortor='asc'"
-                        :class="(search_sortby == 'torque' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                    </th>
-                    <th
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                      Weight
-                      <button @click="search_sortby='weight'; search_sortor='desc'"
-                        :class="(search_sortby == 'weight' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
-                      <button @click="search_sortby='weight'; search_sortor='asc'"
-                        :class="(search_sortby == 'weight' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                    </th>
-                    <th
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                      Accel
-                      <button @click="search_sortby='acceleration'; search_sortor='desc'"
-                        :class="(search_sortby == 'acceleration' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
-                      <button @click="search_sortby='acceleration'; search_sortor='asc'"
-                        :class="(search_sortby == 'acceleration' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                    </th>
-                    <th
-                      class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                      Power/Weight
-                      <button @click="search_sortby='pwratio'; search_sortor='desc'"
-                        :class="(search_sortby == 'pwratio' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
-                      <button @click="search_sortby='pwratio'; search_sortor='asc'"
-                        :class="(search_sortby == 'pwratio' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template x-for="(result, r_index) in search_getresults()">
-                    <tr :class="search_car.id == result.id ? 'text-red-500' : ''">
-                      <td class="px-6 border-b border-grey-light">
-                        <a href="#" @click="search_car.id = result.id; car_changed(search_car)"
-                          x-text="result.name"></a>
-                      </td>
-                      <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
-                      <td class="px-6 border-b border-grey-light" x-text="result.specs.torque"></td>
-                      <td class="px-6 border-b border-grey-light" x-text="result.specs.weight"></td>
-                      <td class="px-6 border-b border-grey-light" x-text="result.specs.acceleration"></td>
-                      <td class="px-6 border-b border-grey-light" x-text="result.specs.pwratio"></td>
-                    </tr>
+          <nav class="flex flex-col">
+            <div class="w-full flex px-6 py-6" x-show="skinpicker_car.uid">
+              <div class="w-full rounded-lg bg-gray-100">
+                <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
+                <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
+                  <template x-for="skin in car_getdata(skinpicker_car.key).skins">
+                    <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
+                      x-bind:src="skin_getimg(skinpicker_car.key, skin.skin_key)"
+                      :class="skinpicker_car.skin_key == skin.skin_key ? 'border-red-500' : ''"
+                      @click="skinpicker_car.skin_key = skin.skin_key" />
                   </template>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <template x-for="(car, car_index) in class_cars" :key="car.uid">
-            <div class="flex flex-col border-b-2">
-              <div class="py-6 focus:outline-none text-gray-500 font-medium flex flex-row"
-                :class="details_car.uid == car.uid ? 'bg-gray-100' : 'bg-white'">
-                <div class="w-1/10 px-6 relative">
-                  <span class="text-2xl text-white px-2 py-1 absolute"
-                    x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
-                  <img x-bind:src="skin_getimg(car.key, car.skin)" style="height: 80px" />
                 </div>
+              </div>
+            </div>
 
-                <div class="w-2/6 px-6">
-                  <label class="block text-sm text-gray-600">Vehicle</label>
-                  <div class="flex flex-row">
-                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.id" required
-                      @change="car_changed(car)">
-                      <option value="" disabled>Select ...</option>
-                      {% for d in data['vehicles'] %}
-                      <option value="{{ d['id'] }}">{{ d['name'] }}</option>
-                      {% endfor %}
-                    </select>
-                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
-                      :class="search_car.uid == car.uid ? 'text-red-500' : ''" type="button" @click="search_show(car)">
-                      <i class="fas fa-search"></i>
+            <div class="w-full flex px-6 py-6" x-show="search_car.uid">
+              <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
+                <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+                <table class="w-full text-left border-collapse">
+                  <thead class="bg-gray-100" style="position: sticky; top: 0">
+                    <tr>
+                      <th colspan="2"
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                        <label class="block text-sm text-gray-600">Name</label>
+                        <div class="flex flex-row">
+                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
+                            type="text" x-model="search_name" placeholder="Name" aria-label="Name" />
+                          <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                            <i class="fas fa-search"></i>
+                          </div>
+                        </div>
+                      </th>
+                      <th
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
+                        colspan="2">
+                        <label class="block text-sm text-gray-600">Tag</label>
+                        <div class="flex flex-row">
+                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
+                            type="text" x-model="search_tag" placeholder="Tag" aria-label="Tag" />
+                          <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                            <i class="fas fa-search"></i>
+                          </div>
+                        </div>
+                      </th>
+                      <th colspan="2"></th>
+                    </tr>
+                    <tr>
+                      <th
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                        Name
+                        <button @click="search_sortby='name'; search_sortor='desc'"
+                          :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button @click="search_sortby='name'; search_sortor='asc'"
+                          :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      </th>
+                      <th
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                        Power
+                        <button @click="search_sortby='power'; search_sortor='desc'"
+                          :class="(search_sortby == 'power' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button @click="search_sortby='power'; search_sortor='asc'"
+                          :class="(search_sortby == 'power' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      </th>
+                      <th
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                        Torque
+                        <button @click="search_sortby='torque'; search_sortor='desc'"
+                          :class="(search_sortby == 'torque' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button @click="search_sortby='torque'; search_sortor='asc'"
+                          :class="(search_sortby == 'torque' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      </th>
+                      <th
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                        Weight
+                        <button @click="search_sortby='weight'; search_sortor='desc'"
+                          :class="(search_sortby == 'weight' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button @click="search_sortby='weight'; search_sortor='asc'"
+                          :class="(search_sortby == 'weight' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      </th>
+                      <th
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                        Accel
+                        <button @click="search_sortby='acceleration'; search_sortor='desc'"
+                          :class="(search_sortby == 'acceleration' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button @click="search_sortby='acceleration'; search_sortor='asc'"
+                          :class="(search_sortby == 'acceleration' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      </th>
+                      <th
+                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                        Power/Weight
+                        <button @click="search_sortby='pwratio'; search_sortor='desc'"
+                          :class="(search_sortby == 'pwratio' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button @click="search_sortby='pwratio'; search_sortor='asc'"
+                          :class="(search_sortby == 'pwratio' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="(result, r_index) in search_getresults()">
+                      <tr :class="search_car.key == result.key ? 'text-red-500' : ''">
+                        <td class="px-6 border-b border-grey-light">
+                          <a href="#" @click="search_car.key = result.key; car_changed(search_car)"
+                            x-text="result.name"></a>
+                        </td>
+                        <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
+                        <td class="px-6 border-b border-grey-light" x-text="result.specs.torque"></td>
+                        <td class="px-6 border-b border-grey-light" x-text="result.specs.weight"></td>
+                        <td class="px-6 border-b border-grey-light" x-text="result.specs.acceleration"></td>
+                        <td class="px-6 border-b border-grey-light" x-text="result.specs.pwratio"></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <template x-for="(car, car_index) in class_cars" :key="car.uid">
+              <div class="flex flex-col border-b-2">
+                <div class="py-6 focus:outline-none text-gray-500 font-medium flex flex-row"
+                  :class="details_car.uid == car.uid ? 'bg-gray-100' : 'bg-white'">
+                  <div class="w-1/10 px-6 relative">
+                    <span class="text-2xl text-white px-2 py-1 absolute"
+                      x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
+                    <img x-bind:src="skin_getimg(car.key, car.skin_key)" style="height: 80px" />
+                  </div>
+
+                  <div class="w-2/6 px-6">
+                    <label class="block text-sm text-gray-600">Vehicle</label>
+                    <div class="flex flex-row">
+                      <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.key" required=""
+                        @change="car_changed(car)">
+                        <option value="">Select ...</option>
+                        {% for d in data['vehicles'] %}
+                        <option value="{{ d['key'] }}">{{ d['name'] }}</option>
+                        {% endfor %}
+                      </select>
+                      <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
+                        :class="search_car.uid == car.uid ? 'text-red-500' : ''" type="button"
+                        @click="search_show(car)">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="w-1/6 px-6">
+                    <label class="block text-sm text-gray-600">Skin</label>
+                    <div class="flex flex-row">
+                      <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin_key" required="">
+                        <option value="" :selected="car.skin_key == ''">
+                          Select ...
+                        </option>
+                        <template x-for="skin in car_getdata(car.key).skins">
+                          <option x-bind:value="skin.skin_key" x-text="skin.skin_name"
+                            :selected="car.skin_key == skin.skin_key"></option>
+                        </template>
+                      </select>
+                      <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
+                        :class="skinpicker_car.uid == car.uid ? 'text-red-500' : ''" type="button"
+                        @click="skinpicker_show(car)">
+                        <i class="fas fa-grip-horizontal"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="px-6 py-5 flex w-1/3 justify-end">
+                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button"
+                      @click="car_moveup(car_index)" x-bind:disabled="car_index == 0">
+                      Up
+                    </button>
+                    <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="car_movedown(car_index)"
+                      x-bind:disabled="car_index == class_cars.length-1">
+                      Down
+                    </button>
+                    <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="details_fetch(car)">
+                      More
+                    </button>
+                    <button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button"
+                      @click="car_remove(car_index, car.uid)">
+                      Remove
                     </button>
                   </div>
                 </div>
+              </div>
+            </template>
 
-                <div class="w-1/6 px-6">
-                  <label class="block text-sm text-gray-600">Skin</label>
-                  <div class="flex flex-row">
-                    <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin" required>
-                      <option value="" disabled>Select ...</option>
-                      <template x-for="skin in car_getdata(car.id).skins">
-                        <option x-bind:value="skin.skin_id" x-text="skin.skin_name"
-                          :selected="car.skin == skin.skin_id"></option>
-                      </template>
-                    </select>
-                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
-                      :class="skinpicker_car.uid == car.uid ? 'text-red-500' : ''" type="button"
-                      @click="skinpicker_show(car)">
-                      <i class="fas fa-grip-horizontal"></i>
-                    </button>
+            <a href="#" @click="car_add()" class="py-8 px-6 block hover:text-red-500 focus:outline-none font-medium">
+              <i class="fas fa-plus mr-3"></i> Add new entry
+            </a>
+          </nav>
+
+          <div class="w-full px-6 py-6" x-show="details_car.uid">
+            <div class="p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100 flex flex-row">
+              <div class="w-1/2 mx-6 flex flex-col">
+                <div>
+                  <div class="">
+                    <label class="block text-sm text-gray-600">GUID</label>
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                      placeholder="GUID" aria-label="GUID" />
+                  </div>
+                  <div class="mt-2">
+                    <label class="block text-sm text-gray-600" for="race_laps">Name</label>
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                      placeholder="Name" aria-label="Name" />
+                  </div>
+                  <div class="mt-2">
+                    <label class="block text-sm text-gray-600" for="race_laps">Team</label>
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                      placeholder="Team" aria-label="Team" />
+                  </div>
+                  <div class="mt-2">
+                    <label class="block text-sm text-gray-600" for="race_laps">Ballast</label>
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text" 
+                      placeholder="Ballast" aria-label="Ballast" />
+                  </div>
+                  <div class="mt-2">
+                    <label class="block text-sm text-gray-600" for="race_laps">Restrictor</label>
+                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                      placeholder="Restrictor" aria-label="Restrictor" />
                   </div>
                 </div>
-
-                <div class="px-6 py-5 flex w-1/3 justify-end">
-                  <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button"
-                    @click="car_moveup(car_index)" x-bind:disabled="car_index == 0">
-                    Up
-                  </button>
-                  <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="car_movedown(car_index)"
-                    x-bind:disabled="car_index == class_cars.length-1">
-                    Down
-                  </button>
-                  <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="details_fetch(car)">
-                    More
-                  </button>
-                  <button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button"
-                    @click="car_remove(car_index, car.uid)">
-                    Remove
-                  </button>
+                <div class="bg-white w-full py-4 px-4 my-6">
+                  <canvas id="chartOne" width="200" height="100"></canvas>
                 </div>
               </div>
-            </div>
-          </template>
+              <div class="w-1/2 mx-6">
+                <h2 class="text-lg"
+                  x-text="car_getdata(details_car.key).name + ' - ' + skin_getdata(details_car.key, details_car.skin_key).skin_name">
+                </h2>
+                <img x-bind:src="skin_getimg(details_car.key, details_car.skin_key)" class="py-4" />
 
-          <a href="#" @click="car_add()" class="py-8 px-6 block hover:text-red-500 focus:outline-none font-medium">
-            <i class="fas fa-plus mr-3"></i> Add new entry
-          </a>
-        </nav>
+                <div>
+                  <template x-for="tag in car_getdata(details_car.key).tags">
+                    <div
+                      class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+                      <div class="mt-px" x-html="tag"></div>
+                    </div>
+                  </template>
+                </div>
 
-        <div class="w-full px-6 py-6" x-show="details_car.uid">
-          <div class="p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100 flex flex-row">
-            <div class="w-1/2 mx-6 flex flex-col">
-              <div>
-                <div class="">
-                  <label class="block text-sm text-gray-600">GUID</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" required=""
-                    placeholder="GUID" aria-label="GUID" />
-                </div>
-                <div class="mt-2">
-                  <label class="block text-sm text-gray-600" for="race_laps">Name</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" required=""
-                    placeholder="Name" aria-label="Name" />
-                </div>
-                <div class="mt-2">
-                  <label class="block text-sm text-gray-600" for="race_laps">Team</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" required=""
-                    placeholder="Team" aria-label="Team" />
-                </div>
-                <div class="mt-2">
-                  <label class="block text-sm text-gray-600" for="race_laps">Ballast</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text" required=""
-                    placeholder="Ballast" aria-label="Ballast" />
-                </div>
-                <div class="mt-2">
-                  <label class="block text-sm text-gray-600" for="race_laps">Restrictor</label>
-                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" required=""
-                    placeholder="Restrictor" aria-label="Restrictor" />
-                </div>
+                <p class="py-4" style="
+                    float: left;
+                    margin-right: 1em;
+                    margin-bottom: 1em;
+                    line-height: 1.6;
+                  ">
+                  Power:
+                  <span x-text="car_getdata(details_car.key).specs.bhp"></span><br />
+                  Torque:
+                  <span x-text="car_getdata(details_car.key).specs.torque"></span><br />
+                  Weight:
+                  <span x-text="car_getdata(details_car.key).specs.weight"></span><br />
+                  Top Speed:
+                  <span x-text="car_getdata(details_car.key).specs.topspeed"></span>
+                  <br />
+                  Acceleration:
+                  <span x-text="car_getdata(details_car.key).specs.acceleration"></span>
+                </p>
+
+                <p class="text-xs text-justify py-4" x-html="details.desc"></p>
               </div>
-              <div class="bg-white w-full py-4 px-4 my-6">
-                <canvas id="chartOne" width="200" height="100"></canvas>
-              </div>
-            </div>
-            <div class="w-1/2 mx-6">
-              <h2 class="text-lg"
-                x-text="car_getdata(details_car.id).name + ' - ' + skin_getdata(details_car.id, details_car.skin).skin_name">
-              </h2>
-              <img x-bind:src="skin_getimg(details_car.key, details_car.skin)" class="py-4" />
-
-              <div>
-                <template x-for="tag in car_getdata(details_car.id).tags">
-                  <div
-                    class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
-                    <div class="mt-px" x-html="tag"></div>
-                  </div>
-                </template>
-              </div>
-
-              <p class="py-4" style="
-                  float: left;
-                  margin-right: 1em;
-                  margin-bottom: 1em;
-                  line-height: 1.6;
-                ">
-                Power:
-                <span x-text="car_getdata(details_car.id).specs.bhp"></span><br />
-                Torque:
-                <span x-text="car_getdata(details_car.id).specs.torque"></span><br />
-                Weight:
-                <span x-text="car_getdata(details_car.id).specs.weight"></span><br />
-                Top Speed:
-                <span x-text="car_getdata(details_car.id).specs.topspeed"></span>
-                <br />
-                Acceleration:
-                <span x-text="car_getdata(details_car.id).specs.acceleration"></span>
-              </p>
-
-              <p class="text-xs text-justify py-4" x-html="details.desc"></p>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="">
-        <p class="text-xl pb-6 flex items-center">
-          <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="button"
-            @click="document.getElementById('frmUpdate').submit()">
-            Save
-          </button>
-          <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button"
-            @click="document.getElementById('frmDelete').submit()">
-            Delete
-          </button>
-        </p>
-      </div>
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="">
+          <p class="text-xl pb-6 flex items-center">
+          <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
+              Save
+            </button>
+            <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button"
+              @click="document.getElementById('frmDelete').submit()">
+              Delete
+            </button>
+          </p>
+        </div>
+      </form>
     </div>
     <form id="frmDelete" action="{{ url_for('class_delete', id=data['id']) }}" method="POST"></form>
 

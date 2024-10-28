@@ -37,7 +37,7 @@ class Dbaccess:
         conn.close()
         return data
 
-    def insertupdate_config(self, form): 
+    def update_config(self, form): 
         conn = self.get_db_connection()
 
         values = [
@@ -57,11 +57,26 @@ class Dbaccess:
             form["temp_unit"],
             form["install_path"]
         ]
-        conn.execute("DELETE FROM user_config");
-        conn.execute("INSERT INTO user_config (name, password, admin_password, register_to_lobby, pickup_mode_enabled, locked_entry_list, result_screen_time, udp_port, tcp_port, http_port, client_send_interval, num_threads, measurement_unit, temp_unit, install_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+        conn.execute("UPDATE user_config SET name = ?, password = ?, admin_password = ?, register_to_lobby = ?, pickup_mode_enabled = ?, locked_entry_list = ?, result_screen_time = ?, udp_port = ?, tcp_port = ?, http_port = ?, client_send_interval = ?, num_threads = ?, measurement_unit = ?, temp_unit = ?, install_path = ?", values)
 
         conn.commit()
         conn.close()
+
+    def update_content(self, form):
+        conn = self.get_db_connection()
+
+        values = [
+            form["csp_required"],
+            form["csp_phycars"],
+            form["csp_phytracks"],
+            form["csp_hidepit"],
+            form["csp_version"]
+        ]
+        conn.execute("UPDATE user_config SET csp_required = ?, csp_phycars = ?, csp_phytracks = ?, csp_hidepit = ?, csp_version = ?", values)
+        conn.commit()
+        conn.close()
+
+
 
 
     def get_events(self):
@@ -96,7 +111,8 @@ class Dbaccess:
                 WHERE user_time_id = tw.id) as graphics
             FROM user_event s
             JOIN cache_track t
-                on s.cache_track_id = t.id
+                on s.cache_track_key = t.key
+                AND s.cache_track_config = t.config
             JOIN user_difficulty d
                 on s.difficulty_id = d.id
             JOIN user_session e
@@ -122,7 +138,8 @@ class Dbaccess:
         conn = self.get_db_connection()
 
         values = [
-            form["track"],
+            form["track_key"],
+            form["track_config"],
             form["difficulty"],
             form["session"],
             form["class"],
@@ -131,7 +148,7 @@ class Dbaccess:
             form["strategy"]
         ]
 
-        conn.execute("INSERT INTO user_event (cache_track_id, difficulty_id, session_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?)", values)
+        conn.execute("INSERT INTO user_event (cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", values)
         conn.commit()
         conn.close()
 
@@ -139,7 +156,8 @@ class Dbaccess:
         conn = self.get_db_connection()
 
         values = [
-            form["track"],
+            form["track_key"],
+            form["track_config"],
             form["difficulty"],
             form["session"],
             form["class"],
@@ -149,7 +167,7 @@ class Dbaccess:
             form["id"]
         ]
 
-        conn.execute("UPDATE user_event SET cache_track_id = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ? WHERE id = ?", values)
+        conn.execute("UPDATE user_event SET cache_track_key = ?, cache_track_config = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ? WHERE id = ?", values)
         conn.commit()
         conn.close()
 
@@ -374,7 +392,7 @@ class Dbaccess:
 
     def get_class_entries_cache(self, id):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT * from user_class_entry a JOIN cache_vehicle b on a.cache_vehicle_id = b.id WHERE a.user_class_id = ?", (id, )).fetchall()
+        data = conn.execute("SELECT * from user_class_entry a JOIN cache_vehicle b on a.cache_vehicle_key = b.key WHERE a.user_class_id = ?", (id, )).fetchall()
         conn.close()
         return data
 
@@ -410,12 +428,12 @@ class Dbaccess:
         for car in json.loads(form['cars']):
             values = [
                 id,
-                car['id'],
-                car['skin'],
+                car['key'],
+                car['skin_key'],
                 # TODO
                 #car['ballast']
             ]
-            conn.execute("INSERT INTO user_class_entry (user_class_id, cache_vehicle_id, skin_id) VALUES (?, ?, ?)", values)
+            conn.execute("INSERT INTO user_class_entry (user_class_id, cache_vehicle_key, skin_key) VALUES (?, ?, ?)", values)
 
         conn.commit()
         conn.close()
@@ -438,9 +456,9 @@ class Dbaccess:
         conn.close()
         return data
 
-    def get_car(self, car):
+    def get_car(self, car_key):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT * FROM cache_vehicle WHERE key = ?", (car, )).fetchone()
+        data = conn.execute("SELECT * FROM cache_vehicle WHERE key = ?", (car_key, )).fetchone()
 
         conn.close()
         return data
@@ -455,9 +473,13 @@ class Dbaccess:
         conn.commit()
         conn.close()
 
-    def get_track(self, id):
+    def get_track(self, key, config):
         conn = self.get_db_connection()
-        data = conn.execute("SELECT * FROM cache_track WHERE id = ? LIMIT 1", (id, )).fetchone()
+        
+        if (config != ""):
+            data = conn.execute("SELECT * FROM cache_track WHERE key = ? AND config = ? LIMIT 1", (key, config)).fetchone()
+        else:
+            data = conn.execute("SELECT * FROM cache_track WHERE key = ? LIMIT 1", (key, config)).fetchone()
 
         conn.close()
         return data

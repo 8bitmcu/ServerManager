@@ -32,8 +32,8 @@ class Fsaccess:
     def get_serverpath(self):
         return os.path.join(self.get_basepath(), "server")
 
-    def get_skin(self, car_id, skin_id):
-        return os.path.join(self.get_basepath(), "content", "cars", car_id, "skins", skin_id)
+    def get_skin(self, car_id, skin_key):
+        return os.path.join(self.get_basepath(), "content", "cars", car_id, "skins", skin_key)
 
     def get_track(self, track, config):
         if config == None:
@@ -91,7 +91,7 @@ class Fsaccess:
 
                 if skin_name == "":
                     skin_name = skin
-                skins.append({"skin_id": skin, "skin_name": skin_name})
+                skins.append({"skin_key": skin, "skin_name": skin_name})
 
             if data is not None:
                 db_data.append([
@@ -123,10 +123,7 @@ class Fsaccess:
                 json_path = os.path.join(tracks_path, key, "ui", "ui_track.json")
                 data = json_repair.from_file(json_path)
 
-                # EXCEPTION: for some reason laguna seca's length is a float instead of an int
-                length = float(data.get("length"))
-                if key == "ks_laguna_seca":
-                    length = length * 1000
+                length = float(re.sub("[^0-9]", "", data.get("length")))
 
                 db_data.append([
                     key,
@@ -162,6 +159,8 @@ class Fsaccess:
 
                         data = json_repair.loads(lines.decode('latin-1'))
 
+                    length = int(re.sub("[^0-9]", "", data.get("length")))
+
                     db_data.append([
                         key,
                         subtrack,
@@ -170,7 +169,7 @@ class Fsaccess:
                         json.dumps(data.get("tags")),
                         data.get("country"),
                         data.get("city"),
-                        data.get("length"),
+                        length,
                         data.get("width"),
                         data.get("pitboxes"),
                         data.get("run")
