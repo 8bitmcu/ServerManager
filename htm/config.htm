@@ -248,6 +248,28 @@
     </div>
   </div>
 
+
+  <div class="w-full mt-6 pl-0 lg:pl-2">
+    <p class="text-xl pb-6 flex items-center">
+      <i class="fas fa-list mr-3"></i> Welcome Message
+    </p>
+    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+      <div class="">
+        <label class="block text-sm text-gray-600 group relative" for="measurement_unit">
+          Welcome Message
+          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              #TODO: caption
+            </div>
+          </div>
+        </label>
+        <textarea class="w-full px-3 py-1 text-gray-700 bg-gray-200 rounded" 
+          aria-label="Welcome Message" rows="5" name="welcome_message" style="line-height: 1.3">{{ data.form['welcome_message'] }}</textarea>
+      </div>
+    </div>
+  </div>
+
+
   <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Preferences

@@ -81,7 +81,7 @@
         Server Dashboard
       </a>
       <a href="{{ url_for('event') }}"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path == url_for('event') %}bg-red-900{% endif %}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {%if request.path.startswith(url_for('event')) %}bg-red-900{% endif %}">
         <i class="fas fa-flag-checkered mr-3"></i>
         Event
       </a>

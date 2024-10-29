@@ -60,6 +60,7 @@ def event(id=None):
     data['sessions'] = [dict(ix) for ix in dba.get_session_list(filled=True)]
     data['times'] = [dict(ix) for ix in dba.get_time_list(filled=True)]
     data['classes'] = [dict(ix) for ix in dba.get_class_list(filled=True)]
+    data['max_clients'] = dba.select_config()['max_clients']
 
     data['events'] = dba.get_events()
 
@@ -94,6 +95,7 @@ def config():
 
 # Content and Mods
 @app.route("/content", methods=('GET', 'POST'))
+@require_config_set
 def content():
     if request.method == 'POST':
         dba.update_content(request.form)

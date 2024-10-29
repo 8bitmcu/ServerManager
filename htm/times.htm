@@ -34,10 +34,10 @@
   </button>
 </div>
 <div class="flex flex-wrap">
-  <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
+  <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
     <div class="bg-gray-800 text-white">
-      <nav class="flex flex-col sm:flex-row">
+      <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap">
         {% for d in data['list'] %}
         <a href="{{ url_for('time', id=d['id']) }}"
           class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">
@@ -107,8 +107,8 @@
           <p class="text-xl px-6 pb-6 flex items-center">
             <i class="fas fa-list mr-3"></i> Time
           </p>
-          <div class="p-10 leading-loose">
-            <div class="inline-block mt-2 w-1/4 pr-1">
+          <div class="p-10 leading-loose flex-row">
+            <div class="inline-block mt-2 pr-1 w-1/2">
               <label class="block text-sm text-gray-600 group relative" for="time">
                 Time of Day
                 <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
@@ -122,7 +122,7 @@
                   value="{{ data.form['time'] }}" required>
               </div>
             </div>
-            <div class="inline-block mt-2 -mx-1 pl-1 w-1/4">
+            <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
               <label class="block text-sm text-gray-600 group relative" for="time_of_day_multi">
                 Multiplier
                 <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
@@ -286,7 +286,7 @@
                     type="number" required="" placeholder="Wind Direction Variation" aria-label="Wind Direction Variation"
                     x-model="time.wind_variation_direction" />
                 </div>
-                <div class="inline-block mt-2 w-1/2 pr-1">
+                <div class="inline-block mt-2 w-full pr-1">
                   <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="button"
                     @click="remove_panel(index)" x-bind:disabled="items.length == 1">
                     Remove Weather Panel
@@ -296,7 +296,7 @@
             </div>
           </template>
 
-          <div class="w-full xl:w-1/3 lg:1/2 mt-6 pl-0 lg:pl-2 flex">
+          <div class="w-1/3 mt-6 pl-0 lg:pl-2 flex">
             <div class="w-full p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100 text-white flex">
               <div class="" style="align-self: flex-end;">
                 <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="button"

@@ -1,4 +1,5 @@
 from datetime import datetime
+from random import shuffle
 from flask import render_template
 
 class Utilities: 
@@ -40,6 +41,7 @@ class Utilities:
         data['class'] = dba.get_class_entries_cache(event['class_id'])
         data['track'] = dba.get_track(event['cache_track_key'], event['cache_track_config'])
 
+        # csp required? build a cspstr to be concat with the track name
         if data['config']['csp_required']:
             cars = data['config']['csp_phycars']
             tracks = data['config']['csp_phytracks']
@@ -64,6 +66,27 @@ class Utilities:
 
             data['cspstr'] = 'csp/' + str(version) + csp_letter + '/../'
 
+        # Maximum clients defined as the minimum between max_clients, pitboxes and vehicles in class
+        strat_needed = False
+        max_clients = data['config']['max_clients']
+        pitboxes = data['track']['pitboxes']
+        if pitboxes < max_clients:
+            max_clients = pitboxes
+            strat_needed = True
+        veh_class = len(data['class'])
+        if veh_class < max_clients:
+            max_clients = veh_class
+            strat_needed = True
+        data['max_clients'] = max_clients
+
+        # Strategy needed? re-order cars in the entry list
+        if strat_needed:
+            # random
+            if data['event']['strategy'] == 2:
+                shuffle(data['class'])
+
+            # Cut the list by the max number of max_clients
+            data['class'] = data['class'][:max_clients]
 
         return render_template("server_cfg.ini", data=data)
 

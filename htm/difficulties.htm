@@ -3,10 +3,10 @@
 {% block content %}
 <h1 class="text-3xl text-black pb-6">Difficulty Presets</h1>
 <div class="flex flex-wrap">
-  <div class="w-full lg:w-1/1 my-6 pr-0 lg:pr-2">
+  <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
     <div class="bg-gray-800 text-white">
-      <nav class="flex flex-col sm:flex-row">
+      <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap">
         {% for d in data['list'] %}
         <a href="{{ url_for('difficulty', id=d['id']) }}"
           class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">

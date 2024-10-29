@@ -39,7 +39,7 @@
   <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
     <div class="flex flex-wrap">
-      <nav class="flex flex-col sm:flex-col w-1/4 border-r-2 bg-gray-800 text-white">
+      <nav class="flex flex-row flex-wrap w-full border-r-2 bg-gray-800 text-white">
         {% for d in data['list'] %}
         <a href="{{ url_for('veh_class', id=d['id']) }}"
           class="py-4 px-6 block text-gray-500 hover:text-white font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">
@@ -359,7 +359,7 @@
           };
         }
       </script>
-      <form id="frmUpdate" method="POST" action="{{ url_for('veh_class', id=data['id']) }}" class="w-3/4 flex flex-col bg-white text-black">
+      <form id="frmUpdate" method="POST" action="{{ url_for('veh_class', id=data['id']) }}" class="w-full flex flex-col bg-white text-black">
         <div x-data="class_data()" x-init="class_init()">
           <input type="hidden" x-model="JSON.stringify(class_cars)" name="cars" />
           <nav class="flex flex-col">
@@ -412,11 +412,11 @@
                       <th
                         class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
                         Name
-                        <button @click="search_sortby='name'; search_sortor='desc'"
+                        <button @click="search_sortby='name'; search_sortor='desc'" type="button"
                           :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-down"></i>
                         </button>
-                        <button @click="search_sortby='name'; search_sortor='asc'"
+                        <button @click="search_sortby='name'; search_sortor='asc'" type="button"
                           :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-up"></i>
                         </button>
@@ -424,11 +424,11 @@
                       <th
                         class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
                         Power
-                        <button @click="search_sortby='power'; search_sortor='desc'"
+                        <button @click="search_sortby='power'; search_sortor='desc'" type="button"
                           :class="(search_sortby == 'power' && search_sortor == 'desc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-down"></i>
                         </button>
-                        <button @click="search_sortby='power'; search_sortor='asc'"
+                        <button @click="search_sortby='power'; search_sortor='asc'" type="button"
                           :class="(search_sortby == 'power' && search_sortor == 'asc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-up"></i>
                         </button>
@@ -436,11 +436,11 @@
                       <th
                         class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
                         Torque
-                        <button @click="search_sortby='torque'; search_sortor='desc'"
+                        <button @click="search_sortby='torque'; search_sortor='desc'" type="button"
                           :class="(search_sortby == 'torque' && search_sortor == 'desc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-down"></i>
                         </button>
-                        <button @click="search_sortby='torque'; search_sortor='asc'"
+                        <button @click="search_sortby='torque'; search_sortor='asc'" type="button"
                           :class="(search_sortby == 'torque' && search_sortor == 'asc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-up"></i>
                         </button>
@@ -448,11 +448,11 @@
                       <th
                         class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
                         Weight
-                        <button @click="search_sortby='weight'; search_sortor='desc'"
+                        <button @click="search_sortby='weight'; search_sortor='desc'" type="button"
                           :class="(search_sortby == 'weight' && search_sortor == 'desc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-down"></i>
                         </button>
-                        <button @click="search_sortby='weight'; search_sortor='asc'"
+                        <button @click="search_sortby='weight'; search_sortor='asc'" type="button"
                           :class="(search_sortby == 'weight' && search_sortor == 'asc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-up"></i>
                         </button>
@@ -460,11 +460,11 @@
                       <th
                         class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
                         Accel
-                        <button @click="search_sortby='acceleration'; search_sortor='desc'"
+                        <button @click="search_sortby='acceleration'; search_sortor='desc'" type="button"
                           :class="(search_sortby == 'acceleration' && search_sortor == 'desc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-down"></i>
                         </button>
-                        <button @click="search_sortby='acceleration'; search_sortor='asc'"
+                        <button @click="search_sortby='acceleration'; search_sortor='asc'" type="button"
                           :class="(search_sortby == 'acceleration' && search_sortor == 'asc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-up"></i>
                         </button>
@@ -472,11 +472,11 @@
                       <th
                         class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
                         Power/Weight
-                        <button @click="search_sortby='pwratio'; search_sortor='desc'"
+                        <button @click="search_sortby='pwratio'; search_sortor='desc'" type="button"
                           :class="(search_sortby == 'pwratio' && search_sortor == 'desc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-down"></i>
                         </button>
-                        <button @click="search_sortby='pwratio'; search_sortor='asc'"
+                        <button @click="search_sortby='pwratio'; search_sortor='asc'" type="button"
                           :class="(search_sortby == 'pwratio' && search_sortor == 'asc') ? 'text-red-500' : ''">
                           <i class="fas fa-arrow-up"></i>
                         </button>
@@ -502,17 +502,15 @@
               </div>
             </div>
 
-            <template x-for="(car, car_index) in class_cars" :key="car.uid">
-              <div class="flex flex-col border-b-2">
-                <div class="py-6 focus:outline-none text-gray-500 font-medium flex flex-row"
-                  :class="details_car.uid == car.uid ? 'bg-gray-100' : 'bg-white'">
-                  <div class="w-1/10 px-6 relative">
+            <table>
+              <template x-for="(car, car_index) in class_cars" :key="car.uid">
+                <tr class="even:bg-gray-100">
+                  <td class="relative max-w-64" style="padding: 0">
                     <span class="text-2xl text-white px-2 py-1 absolute"
                       x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
-                    <img x-bind:src="skin_getimg(car.key, car.skin_key)" style="height: 80px" />
-                  </div>
-
-                  <div class="w-2/6 px-6">
+                    <img x-bind:src="skin_getimg(car.key, car.skin_key)" class="w-64"/>
+                  </td>
+                  <td class="pl-4 pr-4">
                     <label class="block text-sm text-gray-600">Vehicle</label>
                     <div class="flex flex-row">
                       <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.key" required=""
@@ -528,9 +526,6 @@
                         <i class="fas fa-search"></i>
                       </button>
                     </div>
-                  </div>
-
-                  <div class="w-1/6 px-6">
                     <label class="block text-sm text-gray-600">Skin</label>
                     <div class="flex flex-row">
                       <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin_key" required="">
@@ -548,28 +543,27 @@
                         <i class="fas fa-grip-horizontal"></i>
                       </button>
                     </div>
-                  </div>
+                  </td>
 
-                  <div class="px-6 py-5 flex w-1/3 justify-end">
-                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button"
-                      @click="car_moveup(car_index)" x-bind:disabled="car_index == 0">
-                      Up
-                    </button>
-                    <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="car_movedown(car_index)"
-                      x-bind:disabled="car_index == class_cars.length-1">
-                      Down
-                    </button>
-                    <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="details_fetch(car)">
-                      More
-                    </button>
-                    <button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button"
-                      @click="car_remove(car_index, car.uid)">
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </template>
+                  <td class="table-cell align-middle">
+                    <div class="flex justify-center">
+                      <button class="px-2 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button"
+                        @click="car_moveup(car_index)" x-bind:disabled="car_index == 0">
+                        Up
+                      </button><button class="px-2 py-1 tracking-wider bg-gray-200" type="button" @click="car_movedown(car_index)"
+                        x-bind:disabled="car_index == class_cars.length-1">
+                        Down
+                      </button><button class="px-2 py-1 tracking-wider bg-gray-200" type="button" @click="details_fetch(car)">
+                        More
+                      </button><button class="text-white px-2 py-1 tracking-wider bg-red-900 rounded-r-md" type="button"
+                        @click="car_remove(car_index, car.uid)">
+                        Remove
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </table>
 
             <a href="#" @click="car_add()" class="py-8 px-6 block hover:text-red-500 focus:outline-none font-medium">
               <i class="fas fa-plus mr-3"></i> Add new entry

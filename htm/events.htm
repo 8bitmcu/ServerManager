@@ -240,20 +240,17 @@ content %}
       <tbody class="text-gray-700">
         {% for event in data['events'] %}
         <tr class="{{ loop.cycle('bg-gray-100', 'bg-white') }}">
-          <td class="text-left py-3 px-4">
+          <td class="text-left whitespace-nowrap align-baseline">
             <span>{{ event.track_name }}</span>
-            <div class="py-2 text-xs">
+            <div class="text-xs">
               <i class="fas fa-route"></i>
               <span class="pr-2" x-html="format_distance({{ event.track_length }})"></span>
-              {% if event.race_laps %}
-              <span class="pr-2">{{ event.race_laps }} laps</span>
-              {% endif %}
               <span>{{ event.pitboxes }} pitboxes</span>
             </div>
           </td>
-          <td class="text-left py-3 px-4">
+          <td class="text-left whitespace-nowrap align-baseline">
             <span>{{ event.difficulty_name }}</span>
-            <div class="py-2 text-xs flex flex-row">
+            <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row">
               <span :class="{{ event.abs_allowed }} ? 'text-red-500' : 'text-gray-500'">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="pr-4">ABS</span>
@@ -272,43 +269,71 @@ content %}
               </span>
             </div>
           </td>
-          <td class="text-left py-3 px-4">
+          <td class="text-left whitespace-nowrap align-baseline py-3">
             <span>{{ event.session_name }}</span>
-            <div class="px4 py-2 text-xs">
-              <span :class="{{ event.booking_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                <i class="fas {% if event.booking_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Booking</span>
-              </span>
-              <span :class="{{ event.practice_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                <i class="fas {% if event.practice_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Practice</span>
-              </span>
-              <span :class="{{ event.qualify_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                <i class="fas {% if event.qualify_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Qualifying</span>
-              </span>
-              <span :class="{{ event.race_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                <i class="fas {% if event.race_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Race</span>
-              </span>
+            <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row whitespace-nowrap">
+              <div class="flex flex-col">
+                <span :class="{{ event.booking_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {% if event.booking_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Booking</span>
+                </span>
+              </div>
+                {% if event.booking_enabled %}
+                <span class="pr-2">{{ event.booking_time }} minutes</span>
+                {% endif %}
+              <div class="flex flex-col">
+                <span :class="{{ event.practice_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {% if event.practice_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Practice</span>
+                </span>
+                {% if event.practice_enabled %}
+                <span class="pr-2">{{ event.practice_time }} minutes</span>
+                {% endif %}
+              </div>
+              <div class="flex flex-col">
+                <span :class="{{ event.qualify_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {% if event.qualify_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Qualifying</span>
+                </span>
+                {% if event.qualify_enabled %}
+                <span class="pr-2">{{ event.qualify_time }} minutes</span>
+                {% endif %}
+              </div>
+              <div class="flex flex-col">
+                <span :class="{{ event.race_enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {% if event.race_enabled %}fa-check{% else %}fa-times{% endif %}"></i> <span class="pr-4">Race</span>
+                </span>
+                {% if event.race_laps and event.race_enabled %}
+                <span class="pr-2">{{ event.race_laps }} laps</span>
+                {% elif event.race_enabled %}
+                <span class="pr-2">{{ event.race_time }} minutes</span>
+                {% endif %}
+              </div>
             </div>
           </td>
-          <td class="text-left py-3 px-4">
+          <td class="text-left whitespace-nowrap align-baseline">
             <span>{{ event.class_name }}</span>
-            <div class="px4 py-2 text-xs">
+            <div class="text-xs">
               <span><i class="fas fa-warehouse"></i>
-              {% if event.entries > event.pitboxes %}
-              {% if event.strategy == 1 %}first{% endif %} {{ event.pitboxes }} entries {% if event.strategy == 2 %}randomly{% endif %}
+              {% if data['max_clients'] < event.pitboxes and data['max_clients'] < event.entries %}
+                {{ data['max_clients'] }} 
+                {% if event.strategy == 1 %}first{% endif %}
+                {% if event.strategy == 2 %}random{% endif %}
+                entries of {{ event.entries }}
+              {% elif event.pitboxes < event.entries %}
+                {{ event.pitboxes }}
+                {% if event.strategy == 1 %}first{% endif %}
+                {% if event.strategy == 2 %}random{% endif %}
+                entries of {{ event.entries }}
               {% else %}
               all {{ event.entries }} entries
               {% endif %}
               </span>
             </div>
           </td>
-          <td class="text-left py-3 px-4">
+          <td class="text-left whitespace-nowrap flex flex-col align-baseline">
             <span>{{ event.time_name }}</span>
-            <div class="px4 py-2 text-xs">
-              <span class="mr-4"><i class="fas fa-stopwatch"></i> {{ event.time }} </span>
-              <span><i class="fas fa-cloud-moon-rain"></i> {{ event.graphics }}</span>
-            </div>
+            <span class="text-xs mr-4"><i class="fas fa-stopwatch"></i> {{ event.time }} </span>
+            <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> {{ event.graphics }}</span>
           </td>
-          <td class="text-left py-3 px-4">
+          <td class="text-left whitespace-nowrap">
             <a href="/event/{{ event.id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
                 Edit</button></a><a href="/event_delete/{{ event.id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
               Remove
@@ -523,7 +548,14 @@ content %}
               </select>
             </div>
             <div class="w-1/4 ml-5">
-              <label class="block text-sm text-gray-600" for="race_laps">Laps</label>
+              <label class="block text-sm text-gray-600 group relative" for="race_laps">
+                Laps
+                <div class="absolute mx-2 invisible group-hover:visible whitespace-nowrap" style="top: -2rem; left: -1rem; z-index: 2">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Optional. When laps is not set, race time will be used instead
+                  </div>
+                </div>
+              </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="race_laps" placeholder="Laps"
                  aria-label="Laps" value="{{data.form['race_laps']}}"/>
             </div>
@@ -546,7 +578,14 @@ content %}
               </div>
             </div>
             <div class="w-1/4 ml-5">
-              <label class="block text-sm text-gray-600" for="strategy">Strategy</label>
+              <label class="block text-sm text-gray-600 group relative" for="strategy">
+                Strategy
+                <div class="absolute mx-2 invisible group-hover:visible whitespace-nowrap" style="top: -2rem; left: -1rem; z-index: 2">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Stategy used when Maximum Players or Track pitboxes are lower than the number of vehicles in this class
+                  </div>
+                </div>
+              </label>
               <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="strategy" required>
                 <option value="">Select ...</option>
                 <option {% if data.form['strategy']==1 %} selected {% endif %} value="1">First</option>
@@ -579,22 +618,12 @@ content %}
         </p>
         <div class="pl-10 pt-10 leading-loose" x-show="selection_track_key">
           <h2 class="py-4 text-xl">Track</h2>
-          <div class="flex flex-row text-gray-700">
-            <div class="w-1/2 relative">
+          <div class="flex flex-col text-gray-700">
+            <div class="relative">
               <img x-bind:src="track_preview(selection_track_key, selection_track_config)" />
               <img class="absolute" style="top: 0; max-height: 100%"
                 x-bind:src="track_outline(selection_track_key, selection_track_config)" />
             </div>
-            <div class="w-1/2 pl-4">
-              <p> Track: <span x-html="get_trackdata(selection_track_key, selection_track_config).name"></span> </p>
-              <p> Length: <span x-html="format_distance(get_trackdata(selection_track_key, selection_track_config).length)"></span></p>
-              <p> Location: <span x-html="get_trackdata(selection_track_key, selection_track_config).city + ', ' + get_trackdata(selection_track_key, selection_track_config).country"></span></p>
-              <p> Pitboxes: <span x-html="get_trackdata(selection_track_key, selection_track_config).pitboxes"></span></p>
-              <p> Width: <span x-html="get_trackdata(selection_track_key, selection_track_config).width"></span></p>
-              <p> Run: <span x-html="get_trackdata(selection_track_key, selection_track_config).run"></span></p>
-            </div>
-          </div>
-          <div class="w-full">
             <div>
               <template x-for="tag in get_trackdata(selection_track_key, selection_track_config).tags">
                 <div
@@ -603,12 +632,20 @@ content %}
                 </div>
               </template>
             </div>
+            <div class="" style="line-height: 1.3">
+              <span> Track: <span x-html="get_trackdata(selection_track_key, selection_track_config).name"></span> </span><br />
+              <span> Length: <span x-html="format_distance(get_trackdata(selection_track_key, selection_track_config).length)"></span></span><br />
+              <span> Location: <span x-html="get_trackdata(selection_track_key, selection_track_config).city + ', ' + get_trackdata(selection_track_key, selection_track_config).country"></span></span><br />
+              <span> Pitboxes: <span x-html="get_trackdata(selection_track_key, selection_track_config).pitboxes"></span></span><br />
+              <span> Width: <span x-html="get_trackdata(selection_track_key, selection_track_config).width"></span></span><br />
+              <span> Run: <span x-html="get_trackdata(selection_track_key, selection_track_config).run"></span></span>
+            </div>
           </div>
         </div>
         <div class="pl-10 leading-loose flex flex-row">
           <div class="w-1/2">
             <h2 class="py-4 text-xl">Difficulty</h2>
-            <p class="flex flex-row text-normal text-gray-700">
+            <p class="flex flex-col text-normal text-gray-700">
               <span :class="loaded_difficulty.abs_allowed ? 'text-red-500' : ''">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="pr-4">ABS</span>
@@ -629,7 +666,7 @@ content %}
           </div>
           <div class="w-1/2">
             <h2 class="py-4 text-xl">Session</h2>
-            <p class="flex flex-row text-normal text-gray-700">
+            <p class="flex flex-col text-normal text-gray-700">
               <span :class="loaded_session.booking_enabled ? 'text-red-500' : ''">
                 <i class="fas fa-check" x-show="loaded_session.booking_enabled"></i> <i class="fas fa-times" x-show="!loaded_session.booking_enabled"></i> <span class="pr-4">Booking</span>
               </span>

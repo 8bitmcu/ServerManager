@@ -12,6 +12,8 @@ CREATE TABLE user_config (
   http_port INTEGER,
   client_send_interval INTEGER,
   num_threads INTEGER,
+  max_clients INTEGER,
+  welcome_message TEXT,
 
   measurement_unit INTEGER,
   temp_unit INTEGER,
@@ -181,4 +183,4 @@ ON cache_weather (key);
 
 
 
-INSERT INTO user_config () VALUES ();
+INSERT INTO user_config (name, udp_port, tcp_port, http_port, client_send_interval, num_threads) VALUES ('AC Server', 9600, 9600, 8081, 18, 2);

@@ -55,9 +55,11 @@ class Dbaccess:
             form["num_threads"],
             form["measurement_unit"],
             form["temp_unit"],
-            form["install_path"]
+            form["install_path"],
+            form["max_clients"],
+            form["welcome_message"]
         ]
-        conn.execute("UPDATE user_config SET name = ?, password = ?, admin_password = ?, register_to_lobby = ?, pickup_mode_enabled = ?, locked_entry_list = ?, result_screen_time = ?, udp_port = ?, tcp_port = ?, http_port = ?, client_send_interval = ?, num_threads = ?, measurement_unit = ?, temp_unit = ?, install_path = ?", values)
+        conn.execute("UPDATE user_config SET name = ?, password = ?, admin_password = ?, register_to_lobby = ?, pickup_mode_enabled = ?, locked_entry_list = ?, result_screen_time = ?, udp_port = ?, tcp_port = ?, http_port = ?, client_send_interval = ?, num_threads = ?, measurement_unit = ?, temp_unit = ?, install_path = ?, max_clients = ?, welcome_message = ?", values)
 
         conn.commit()
         conn.close()
@@ -96,9 +98,13 @@ class Dbaccess:
                 d.autoclutch_allowed as autoclutch_allowed,
                 e.name as session_name,
                 e.booking_enabled as booking_enabled,
+                e.booking_time as booking_time,
                 e.practice_enabled as practice_enabled,
+                e.practice_time as practice_time,
                 e.qualify_enabled as qualify_enabled,
+                e.qualify_time as qualify_time,
                 e.race_enabled as race_enabled,
+                e.race_time as race_time,
                 c.name as class_name,
                 COUNT(ce.id) as entries,
                 tw.name as time_name,
@@ -479,7 +485,7 @@ class Dbaccess:
         if (config != ""):
             data = conn.execute("SELECT * FROM cache_track WHERE key = ? AND config = ? LIMIT 1", (key, config)).fetchone()
         else:
-            data = conn.execute("SELECT * FROM cache_track WHERE key = ? LIMIT 1", (key, config)).fetchone()
+            data = conn.execute("SELECT * FROM cache_track WHERE key = ? LIMIT 1", (key, )).fetchone()
 
         conn.close()
         return data
