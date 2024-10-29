@@ -115,7 +115,7 @@ CREATE TABLE user_class (
 CREATE TABLE user_class_entry (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_class_id INTEGER NOT NULL,
-  cache_vehicle_key TEXT NOT NULL,
+  cache_car_key TEXT NOT NULL,
   skin_key TEXT NOT NULL,
   ballast INTEGER
 );
@@ -151,7 +151,7 @@ CREATE TABLE cache_track (
   run TEXT
 );
 
-CREATE TABLE cache_vehicle (
+CREATE TABLE cache_car (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -175,8 +175,8 @@ CREATE TABLE cache_weather (
 CREATE UNIQUE INDEX idx_cache_track_key_config
 ON cache_track (key, config);
 
-CREATE UNIQUE INDEX idx_cache_vehicle_key
-ON cache_vehicle (key);
+CREATE UNIQUE INDEX idx_cache_car_key
+ON cache_cars (key);
 
 CREATE UNIQUE INDEX idx_cache_weather_key
 ON cache_weather (key);

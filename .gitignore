@@ -6,3 +6,5 @@ __pycache__/*
 py/__pycache__/*
 static/css/main.css
 *.db
+main
+go.sum

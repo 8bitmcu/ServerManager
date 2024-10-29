@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ServerManager {{ .title }}</title>
+  <meta name="author" content="8bitmcu" />
+  <meta name="description" content="" />
+
+  <!-- Tailwindcss -->
+  <link href="/static/css/main.css" rel="stylesheet" />
+
+  <!-- AlpineJS -->
+  <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+
+  <!-- Font Awesome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"
+    crossorigin="anonymous"></script>
+
+  <!-- ChartJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    .nav-item:hover {
+      background: #621b18;
+    }
+
+    .toggle-checkbox:checked {
+      @apply: right-0 border-red-400;
+      right: 0;
+      border-color: #e3342f;
+    }
+
+    .toggle-checkbox:checked+.toggle-label {
+      @apply: bg-red-400;
+      background-color: #e3342f;
+    }
+
+    @keyframes loader-rotate {
+      0% {
+        transform: rotate(0);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loader {
+      border-right-color: transparent;
+      animation: loader-rotate 1s linear infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 flex">
+  <aside class="relative bg-red-500 h-screen w-96 hidden sm:block shadow-xl">
+    <div class="p-6">
+      <span class="text-white text-3xl font-semibold uppercase">ServerManager</span>
+      <div
+        class="w-full bg-white font-semibold py-2 mt-5 rounded-br-lg rounded-bl-lg rounded-tr-lg shadow-lg flex items-center justify-center flex-col">
+        <div>
+          <span>Server status: &nbsp;</span>
+          <div
+            class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-green-500 py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
+            <div class="mt-px">online</div>
+          </div>
+        </div>
+        <div class="mt-2">
+          <span>Server IP: &nbsp;</span>
+          <input type="textbox" class="text-gray-700 bg-gray-200 rounded text-center" x-data="" @click="$el.select()"
+            value="174.118.36.72" style="width: 100px; font-weight: lighter" />
+        </div>
+      </div>
+    </div>
+    <nav class="text-white text-base font-semibold pt-3">
+      <a href="/"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "index") }}bg-red-900{{ end }}">
+        <i class="fas fa-tachometer-alt mr-3"></i>
+        Server Dashboard
+      </a>
+      <a href="/event"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "event") }}bg-red-900{{ end }}">
+        <i class="fas fa-flag-checkered mr-3"></i>
+        Event
+      </a>
+      <a href="/veh_class"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "veh_class") }}bg-red-900{{ end }}">
+        <i class="fas fa-car mr-3"></i>
+        Vehicle Classes
+      </a>
+      <a href="/time"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "time") }}bg-red-900{{ end }}">
+        <i class="fas fa-cloud-moon-rain mr-3"></i>
+        Time and Weather Presets
+      </a>
+      <a href="/session"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "session") }}bg-red-900{{ end }}">
+        <i class="fas fa-calendar-check mr-3"></i>
+        Session Presets
+      </a>
+      <a href="/difficulty"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "difficulty") }}bg-red-900{{ end }}">
+        <i class="fas fa-road mr-3"></i>
+        Difficulty Presets
+      </a>
+      <a href="/config"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "config") }}bg-red-900{{ end }}">
+        <i class="fas fa-server mr-3"></i>
+        Server Configuration
+      </a>
+      <a href="/content"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "content") }}bg-red-900{{ end }}">
+        <i class="fas fa-cog mr-3"></i>
+        Content and Mods
+      </a>
+    </nav>
+    <div class="absolute w-full bottom-0 flex items-center justify-center py-4">
+      <img src="/static/img/corsa_logo.png" style="margin: auto; width: 80%" />
+    </div>
+  </aside>
+
+  <div class="w-full flex flex-col h-screen overflow-y-hidden">
+    <!-- Desktop Header -->
+    <header class="w-full items-center bg-white py-2 px-6 hidden sm:flex">
+      <div class="w-1/2"></div>
+      <div x-data="{ isOpen: false }" class="relative w-1/2 flex justify-end">
+        <button @click="isOpen = !isOpen"
+          class="realtive z-10 w-12 h-12 rounded-full overflow-hidden border-4 border-gray-400 hover:border-gray-300 focus:border-gray-300 focus:outline-none">
+          <img src="https://source.unsplash.com/uJ8LNVCBjFQ/400x400" />
+        </button>
+        <button x-show="isOpen" @click="isOpen = false" class="h-full w-full fixed inset-0 cursor-default"></button>
+        <div x-show="isOpen" class="absolute w-32 bg-white rounded-lg shadow-lg py-2 mt-16">
+          <a href="#" class="block px-4 py-2 hover:text-white">Account</a>
+          <a href="#" class="block px-4 py-2 hover:text-white">Support</a>
+          <a href="#" class="block px-4 py-2 hover:text-white">Sign Out</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile Header & Nav -->
+    <header x-data="{ isOpen: false }" class="w-full bg-sidebar py-5 px-6 sm:hidden">
+      <div class="flex items-center justify-between">
+        <a href="index.html" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">Admin</a>
+        <button @click="isOpen = !isOpen" class="text-white text-3xl focus:outline-none">
+          <i x-show="!isOpen" class="fas fa-bars"></i>
+          <i x-show="isOpen" class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Dropdown Nav -->
+      <nav :class="isOpen ? 'flex': 'hidden'" class="flex flex-col pt-4">
+        <a href="index.html" class="flex items-center active-nav-link text-white py-2 pl-4 nav-item">
+          <i class="fas fa-tachometer-alt mr-3"></i>
+          Dashboard
+        </a>
+        <a href="blank.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-sticky-note mr-3"></i>
+          Blank Page
+        </a>
+        <a href="tables.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-table mr-3"></i>
+          Tables
+        </a>
+        <a href="forms.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-align-left mr-3"></i>
+          Forms
+        </a>
+        <a href="tabs.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-tablet-alt mr-3"></i>
+          Tabbed Content
+        </a>
+        <a href="calendar.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-calendar mr-3"></i>
+          Calendar
+        </a>
+        <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-cogs mr-3"></i>
+          Support
+        </a>
+        <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-user mr-3"></i>
+          My Account
+        </a>
+        <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-sign-out-alt mr-3"></i>
+          Sign Out
+        </a>
+      </nav>
+    </header>
+
+    <div class="w-full h-screen overflow-x-hidden border-t flex flex-col">
+      <main class="mb-auto w-full flex-grow p-6">

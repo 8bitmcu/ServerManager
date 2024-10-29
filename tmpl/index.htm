@@ -1,4 +1,5 @@
-{{template "header.htm" . }}
+{% extends 'base.htm' %} {% block title %}Server Dashboard{% endblock %} {%
+block content %}
 
 <script>
   function console() {
@@ -60,5 +61,4 @@
     </div>
   </main>
 </div>
-
-{{template "footer.htm"}}
+{% endblock %}
