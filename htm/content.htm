@@ -1,18 +1,16 @@
-{% extends 'base.htm' %}
-{% block title %}Mods{% endblock %}
-{% block content %}
+{{ template "header.htm" . }}
 
 <script>
   function csp() {
     return {
-      csp_required: {{ 'true' if data.form['csp_required'] == 1 else 'false' }},
-      csp_version: '{{ data.form["csp_version"] }}',
-      csp_phycars: {{ 'true' if data.form['csp_phycars'] == 1 else 'false' }},
-      csp_phytracks: {{ 'true' if data.form['csp_phytracks'] == 1 else 'false' }},
-      csp_hidepit: {{ 'true' if data.form['csp_hidepit'] == 1 else 'false' }},
+      csp_required: {{ .form.Csp_Required | toJsBool }},
+      csp_version: {{ .form.Csp_Version }},
+      csp_phycars: {{ .form.Csp_Phycars | toJsBool }},
+      csp_phytracks: {{ .form.Csp_Phytracks | toJsBool }},
+      csp_hidepit: {{ .form.Csp_Hidepit | toJsBool }},
 
       csp_required_changed: function(val) {
-        if(!val) {
+        if(val) {
           this.csp_version = '';
           this.csp_phycars = false;
           this.csp_phytracks = false;
@@ -23,7 +21,7 @@
   }
 </script>
 <h1 class="text-3xl text-black pb-6">Mods</h1>
-<form class="flex flex-wrap" method="POST" action="{{ url_for('content') }}">
+<form class="flex flex-wrap" method="POST" action="/content">
   <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Content Cache
@@ -107,7 +105,7 @@
               </div>
             </div>
           </label>
-          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="csp_version" name="csp_version" type="text" :required="csp_version" x-model="csp_version"
+          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="csp_version" name="csp_version" type="text" :required="csp_required" x-model="csp_version"
             placeholder="Minimum Version" aria-label="Minimum Version" x-model="csp_version" />
         </div>
         <div class="mt-2">
@@ -177,4 +175,5 @@
   </div>
 </form>
 
-{% endblock %}
+{{ template "footer.htm" }}
+

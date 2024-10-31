@@ -1,9 +1,9 @@
-{{template "header.htm" . }}
+{{ template "header.htm" . }}
 
 <script>
   function install_path() {
     return {
-      install_path: '{{ .form.Install_Path }}',
+      install_path: '{{ .form.Install_Path | derefStr }}',
       path_valid: null,
       loading: false,
 
@@ -49,7 +49,7 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="name" name="name" type="text" required=""
-          placeholder="Server Name" aria-label="Name" value="{{.form.Name }}" />
+          placeholder="Server Name" aria-label="Name" value="{{.form.Name | derefStr }}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="password">
@@ -61,7 +61,7 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="password" name="password" type="password"
-          required="" placeholder="Server Password" aria-label="Password" value="{{ .form.Password }}" />
+          required="" placeholder="Server Password" aria-label="Password" value="{{ .form.Password | derefStr }}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="admin_password">
@@ -75,7 +75,7 @@
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="admin_password" name="admin_password"
           type="password" required="" placeholder="Admin Password" aria-label="Admin Password"
-          value="{{ .form.Admin_Password }}" />
+          value="{{ .form.Admin_Password | derefStr }}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="register_to_lobby">
@@ -172,7 +172,7 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="udp_port" name="udp_port" type="number"
-          required="" placeholder="UDP Port" aria-label="UDP Port" value="{{ (printf "%*s" .form.Udp_Port) }}" min="1"
+          required="" placeholder="UDP Port" aria-label="UDP Port" value="{{ .form.Udp_Port }}" min="1"
           max="65535" />
       </div>
       <div class="mt-2">
@@ -246,7 +246,7 @@
           </div>
         </label>
         <textarea class="w-full px-3 py-1 text-gray-700 bg-gray-200 rounded" 
-          aria-label="Welcome Message" rows="5" name="welcome_message" style="line-height: 1.3">{{ .form.Welcome_Message }}</textarea>
+          aria-label="Welcome Message" rows="5" name="welcome_message" style="line-height: 1.3">{{ .form.Welcome_Message | derefStr }}</textarea>
       </div>
     </div>
   </div>
@@ -328,5 +328,4 @@
   </div>
 </form>
 
-
-{{template "footer.htm"}}
+{{ template "footer.htm" }}

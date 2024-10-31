@@ -1,9 +1,9 @@
-{% extends 'base.htm' %} {% block title %}Classes{% endblock %} {% block content
-%}
+{{ template "header.htm" . }}
+
 <script>
   function reload_content() {
     return {
-      content_total: {{data["car_data"] | length}},
+      content_total: {{ .car_data | len }},
       content_loaded: false,
         loading: false,
 
@@ -40,12 +40,12 @@
     <p class="text-xl pb-6 flex items-center"></p>
     <div class="flex flex-wrap">
       <nav class="flex flex-row flex-wrap w-full border-r-2 bg-gray-800 text-white">
-        {% for d in data['list'] %}
-        <a href="{{ url_for('veh_class', id=d['id']) }}"
-          class="py-4 px-6 block text-gray-500 hover:text-white font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">
-          <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
+        {{range $val := .list }}
+        <a href="/class/{{ $val.id }}"
+          class="py-4 px-6 block text-gray-500 hover:text-white font-medium {{ if (eq $val.id .form.id) }} text-white {{ end }}">
+          <i class="fas fa-edit mr-3"></i{{ $val.name }}>
         </a>
-        {% endfor %}
+        {{ end }}
 
         <form id="frmAdd" x-data="{ showModal: false, email: '' }" method="POST">
           <a href="#" @click="showModal = true"
@@ -103,7 +103,7 @@
         </form>
       </nav>
 
-      {% if data['form'] is defined %}
+      {{ if .form }}
 
       <script>
         function move(arr, from, to) {
@@ -134,7 +134,7 @@
         function class_data() {
           return {
             // data loaded for all the cars.
-            car_data: JSON.parse('{{ data.car_data | tojson }}'),
+            car_data: JSON.parse('{{ .car_data }}'),
 
             car_getdata: function (car_key) {
               if (!car_key)
@@ -157,7 +157,7 @@
             class_cars: [],
 
             class_init: function () {
-              var init_data = JSON.parse('{{ data.entries | tojson }}');
+              var init_data = JSON.parse('{{ .entries }}');
 
               init_data.forEach((x) => {
                 let car = {
@@ -359,7 +359,7 @@
           };
         }
       </script>
-      <form id="frmUpdate" method="POST" action="{{ url_for('veh_class', id=data['id']) }}" class="w-full flex flex-col bg-white text-black">
+      <form id="frmUpdate" method="POST" action="/class/{{ .form.id }}" class="w-full flex flex-col bg-white text-black">
         <div x-data="class_data()" x-init="class_init()">
           <input type="hidden" x-model="JSON.stringify(class_cars)" name="cars" />
           <nav class="flex flex-col">
@@ -516,9 +516,9 @@
                       <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.key" required=""
                         @change="car_changed(car)">
                         <option value="">Select ...</option>
-                        {% for d in data['vehicles'] %}
-                        <option value="{{ d['key'] }}">{{ d['name'] }}</option>
-                        {% endfor %}
+                        {{range $val := .cars }}
+                        <option value="{{  $val.key }}">{{ $val.name }}</option>
+                        {{ end }}
                       </select>
                       <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
                         :class="search_car.uid == car.uid ? 'text-red-500' : ''" type="button"
@@ -656,10 +656,10 @@
         </div>
       </form>
     </div>
-    <form id="frmDelete" action="{{ url_for('class_delete', id=data['id']) }}" method="POST"></form>
+    <form id="frmDelete" action="/class_delete/{{ .form.id }}" method="POST"></form>
 
-    {% endif %}
+    {{ end }}
   </div>
 </div>
 
-{% endblock %}
+{{ template "footer.htm" }}

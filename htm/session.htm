@@ -1,18 +1,18 @@
-{% extends 'base.htm' %}
-{% block title %}Sessions{% endblock %}
-{% block content %}
+{{ template "header.htm" . }}
+
 <h1 class="text-3xl text-black pb-6">Session Presets</h1>
 <div class="flex flex-wrap">
   <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
     <div class="bg-gray-800 text-white">
       <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap">
-        {% for d in data['list'] %}
-        <a href="{{ url_for('session', id=d['id']) }}"
-          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">
-          <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
+        {{ $g := . }}
+        {{range $val := .list }}
+        <a href="/session/{{ $val.Id }}"
+          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {{ if (eq (derefInt $val.Id) (derefInt $g.form.Id)) }} text-white {{ end }}">
+          <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
         </a>
-        {% endfor %}
+        {{ end }}
 
         <form x-data="{ showModal: false, email: '' }" method="POST">
           <a href="#" @click="showModal = true"
@@ -69,57 +69,53 @@
         </form>
       </nav>
 
-      {% if data['form'] is defined %}
+      {{ if .form.Id }}
       <script>
         function sessions() {
           return {
-            booking_enabled: {{ 'true' if data.form['booking_enabled'] == 1 else 'false' }},
-            booking_time: "{{ data.form['booking_time'] }}",
+            booking_enabled: {{ .form.Booking_Enabled | toJsBool }},
+            booking_time: {{ .form.Booking_Time }},
 
-            practice_enabled: {{ 'true' if data.form['practice_enabled'] == 1 else 'false' }},
-            practice_time: "{{ data.form['practice_time'] }}",
-            practice_is_open: {{ 'true' if data.form['practice_is_open'] == 1 else 'false' }},
+            practice_enabled: {{ .form.Practice_Enabled | toJsBool }},
+            practice_time: {{ .form.Practice_Time }},
+            practice_is_open: {{ .form.Practice_Is_Open }},
 
-            qualify_enabled: {{ 'true' if data.form['qualify_enabled'] == 1 else 'false' }},
-            qualify_time: "{{ data.form['qualify_time'] }}",
-            qualify_is_open:  {{ 'true' if data.form['qualify_is_open'] == 1 else 'false' }},
-            qualify_max_wait_perc:  "{{ data.form['qualify_max_wait_perc'] }}",
+            qualify_enabled: {{ .form.Qualify_Enabled | toJsBool }},
+            qualify_time: {{ .form.Qualify_Time }},
+            qualify_is_open:  {{ .form.Qualify_Is_Open }},
+            qualify_max_wait_perc:  {{ .form.Qualify_Max_Wait_Perc }},
 
-            race_enabled: {{ 'true' if data.form['race_enabled'] == 1 else 'false' }},
-            race_time: "{{ data.form['race_time'] }}",
-            race_extra_lap: {{ 'true' if data.form['race_extra_lap'] == 1 else 'false' }},
-            race_over_time: "{{ data.form['race_over_time'] }}",
-            race_wait_time: "{{ data.form['race_wait_time'] }}",
-            race_is_open: "{{ data.form['race_is_open'] }}",
-            reversed_grid_positions: "{{ data.form['reversed_grid_positions'] }}",
-            race_pit_window_start: "{{ data.form['race_pit_window_start'] }}",
-            race_pit_window_end: "{{ data.form['race_pit_window_end'] }}",
+            race_enabled: {{ .form.Race_Enabled | toJsBool }},
+            race_time: {{ .form.Race_Time }},
+            race_extra_lap: {{ .form.Race_Extra_Lap }},
+            race_over_time: {{ .form.Race_Over_Time }},
+            race_wait_time: {{ .form.Race_Wait_Time }},
+            race_is_open: {{ .form.Race_Is_Open }},
+            reversed_grid_positions: {{ .form.Reversed_Grid_Positions }},
+            race_pit_window_start: {{ .form.Race_Pit_Window_Start }},
+            race_pit_window_end: {{ .form.Race_Pit_Window_End }},
 
 
             booking_changed: function(val) {
-              this.booking_enabled = val;
-              if (!val) {
+              if (val) {
                 this.booking_time = "";
               }
             },
             practice_changed: function(val) {
-              this.practice_enabled = val;
-              if (!val) {
+              if (val) {
                 this.practice_time = "";
                 this.practice_is_open = "";
               }
             },
             qualify_changed: function(val) {
-              this.qualify_enabled = val;
-              if (!val) {
+              if (val) {
                 this.qualify_time = "";
                 this.qualify_is_open = "";
                 this.qualify_max_wait_perc = "";
               }
             },
             race_changed: function(val) {
-              this.race_enabled = val;
-              if (!val) {
+              if (val) {
                 this.race_time = "";
                 this.race_extra_lap = "";
                 this.race_over_time = "";
@@ -150,9 +146,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1" {% if
-                  data.form['booking_enabled']==1 %} checked {% endif %}
-                  @click="booking_changed($event.target.checked)"
+                <input type="checkbox" name="booking_enabled" id="booking_enabled" value="1"
+                  @click="booking_changed($event.target.checked)" x-model="booking_enabled"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="booking_enabled"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -192,8 +187,7 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="practice_enabled" id="practice_enabled" value="1" {% if
-                  data.form['practice_enabled']==1 %} checked {% endif %}
+                <input type="checkbox" name="practice_enabled" id="practice_enabled" value="1" x-model="practice_enabled"
                   @click="practice_changed($event.target.checked)"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="practice_enabled"
@@ -251,9 +245,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="qualify_enabled" id="qualify_enabled" value="1" {% if
-                  data.form['qualify_enabled']==1 %} checked {% endif %}
-                  @click="qualify_changed($event.target.checked)"
+                <input type="checkbox" name="qualify_enabled" id="qualify_enabled" value="1"
+                  @click="qualify_changed($event.target.checked)" x-model="qualify_enabled"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="qualify_enabled"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -322,8 +315,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="race_enabled" id="race_enabled" value="1" {% if
-                  data.form['race_enabled']==1 %} checked {% endif %} @click="race_changed($event.target.checked)"
+                <input type="checkbox" name="race_enabled" id="race_enabled" value="1"
+                  x-model="race_enabled" @click="race_changed($event.target.checked)"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="race_enabled"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -462,9 +455,10 @@
         </div>
     </div>
     </form>
-    <form id="frmDelete" action="{{ url_for('session_delete', id=data['id']) }}" method="POST"></form>
-    {% endif %}
+    <form id="frmDelete" action="/session_delete/{{ .form.Id }}" method="POST"></form>
+    {{ end }}
   </div>
 </div>
 
-{% endblock %}
+{{ template "footer.htm" }}
+

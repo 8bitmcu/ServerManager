@@ -1,22 +1,21 @@
-{% extends 'base.htm' %}
-{% block title %}Difficulties{% endblock %}
-{% block content %}
+{{ template "header.htm" . }}
+
 <h1 class="text-3xl text-black pb-6">Difficulty Presets</h1>
 <div class="flex flex-wrap">
   <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
     <div class="bg-gray-800 text-white">
       <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap">
-        {% for d in data['list'] %}
-        <a href="{{ url_for('difficulty', id=d['id']) }}"
-          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {% if d['id'] == data['id'] %} text-white {% endif %}">
-          <i class="fas fa-edit mr-3"></i>{{ d['name'] }}
+        {{ $g := . }}
+        {{range $val := .list }}
+        <a href="/difficulty/{{ $val.Id }}"
+          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {{ if (eq (derefInt $val.Id) (derefInt $g.form.Id)) }} text-white {{ end }}">
+          <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
         </a>
-        {% endfor %}
+        {{ end }}
 
         <form x-data="{ showModal: false, email: '' }" method="POST">
-          <a href="#" @click="showModal = true"
-            class="py-4 px-6 block focus:outline-none font-medium">
+          <a href="#" @click="showModal = true" class="py-4 px-6 block focus:outline-none font-medium">
             <i class="fas fa-plus mr-3"></i> Add new Difficulty
           </a>
           <!-- Background overlay -->
@@ -70,20 +69,20 @@
         </form>
       </nav>
 
-      {% if data['form'] is defined %}
+      {{ if .form.Id }}
       <script>
         function dynamic_track() {
           return {
-            open: {{ 'true' if data.form['dynamic_track'] == 1 else 'false' }},
-            dynamic_track_preset: "{{data.form['dynamic_track_preset']}}",
-            session_start: "{{data.form['session_start']}}",
-            randomness: "{{data.form['randomness']}}",
-            session_transfer: "{{data.form['session_transfer']}}",
-            lap_gain: "{{data.form['lap_gain']}}",
+            open: {{ .form.Dynamic_Track }},
+            dynamic_track_preset: {{ .form.Dynamic_Track_Preset }},
+            session_start: {{ .form.Session_Start }},
+            randomness: {{ .form.Randomness }},
+            session_transfer: {{ .form.Session_Transfer }},
+            lap_gain: {{ .form.Lap_Gain }},
 
-            set_open: function(val) {
+            set_open: function (val) {
               this.open = val;
-              if (!val) {
+              if (val) {
                 this.dynamic_track_preset = '';
                 this.session_start = '';
                 this.randomness = '';
@@ -91,8 +90,7 @@
                 this.lap_gain = '';
               }
             },
-
-            preset_changed: function() {
+            preset_changed: function () {
               if (this.dynamic_track_preset == 1) {
                 this.session_start = 86;
                 this.randomness = 1;
@@ -145,9 +143,9 @@
               </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="abs_allowed"
                 name="abs_allowed">
-                <option value="0" {% if data.form['abs_allowed']==0 %} selected {% endif %}>Denied</option>
-                <option value="1" {% if data.form['abs_allowed']==1 %} selected {% endif %}>Factory</option>
-                <option value="2" {% if data.form['abs_allowed']==2 %} selected {% endif %}>Force</option>
+                <option value="0" {{ if (eq (derefInt .form.Abs_Allowed) "0") }} selected {{ end }}>Denied</option>
+                <option value="1" {{ if (eq (derefInt .form.Abs_Allowed) "1") }} selected {{ end }}>Factory</option>
+                <option value="2" {{ if (eq (derefInt .form.Abs_Allowed) "2") }} selected {{ end }}>Force</option>
               </select>
             </div>
             <div class="mt-2">
@@ -160,9 +158,9 @@
                 </div>
               </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="tc_allowed" name="tc_allowed">
-                <option value="0" {% if data.form['tc_allowed']==0 %} selected {% endif %}>Denied</option>
-                <option value="1" {% if data.form['tc_allowed']==1 %} selected {% endif %}>Factory</option>
-                <option value="2" {% if data.form['tc_allowed']==2 %} selected {% endif %}>Force</option>
+                <option value="0" {{ if (eq (derefInt .form.Tc_Allowed) "0") }} selected {{ end }}>Denied</option>
+                <option value="1" {{ if (eq (derefInt .form.Tc_Allowed) "1") }} selected {{ end }}>Factory</option>
+                <option value="2" {{ if (eq (derefInt .form.Tc_Allowed) "2") }} selected {{ end }}>Force</option>
               </select>
             </div>
             <div class="mt-2">
@@ -175,8 +173,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="stability_allowed" id="stability_allowed" value="1" {% if
-                  data.form['stability_allowed']==1 %} checked {% endif %}
+                <input type="checkbox" name="stability_allowed" id="stability_allowed" value="1" {{ if (eq (derefInt
+                  .form.Stability_Allowed) "1") }} checked {{ end }}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="stability_allowed"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -193,8 +191,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="autoclutch_allowed" id="autoclutch_allowed" value="1" {% if
-                  data.form['autoclutch_allowed']==1 %} checked {% endif %}
+                <input type="checkbox" name="autoclutch_allowed" id="autoclutch_allowed" value="1" {{ if (eq (derefInt
+                  .form.Autoclutch_Allowed) "1") }} checked {{ end }}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="autoclutch_allowed"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -211,8 +209,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="tyre_blankets_allowed" id="tyre_blankets_allowed" value="1" {% if
-                  data.form['tyre_blankets_allowed']==1 %} checked {% endif %}
+                <input type="checkbox" name="tyre_blankets_allowed" id="tyre_blankets_allowed" value="1" {{ if (eq
+                  (derefInt .form.Tyre_Blankets_Allowed) "1") }} checked {{ end }}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="tyre_blankets_allowed"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -229,8 +227,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="force_virtual_mirror" id="force_virtual_mirror" value="1" {% if
-                  data.form['force_virtual_mirror']==1 %} checked {% endif %}
+                <input type="checkbox" name="force_virtual_mirror" id="force_virtual_mirror" value="1" {{ if (eq
+                  (derefInt .form.Force_Virtual_Mirror) "1") }} checked {{ end }}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="force_virtual_mirror"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -254,9 +252,9 @@
                   </div>
                 </div>
               </label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="fuel_rate" name="fuel_rate" min="0" max="500"
-                type="number" required="" placeholder="Fuel Rate" aria-label="Fuel Rate"
-                value="{{ data.form['fuel_rate'] }}" />
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="fuel_rate" name="fuel_rate" min="0"
+                max="500" type="number" required="" placeholder="Fuel Rate" aria-label="Fuel Rate"
+                value="{{ .form.Fuel_Rate }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600 group relative" for="damage_multiplier">
@@ -269,7 +267,7 @@
               </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="damage_multiplier" min="0" max="400"
                 name="damage_multiplier" type="number" required="" placeholder="Damage Rate" aria-label="Damage Rate"
-                value="{{ data.form['damage_multiplier'] }}" />
+                value="{{ .form.Damage_Multiplier }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600 group relative" for="tyre_wear_rate">
@@ -282,7 +280,7 @@
               </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="tyre_wear_rate" min="0" max="500"
                 name="tyre_wear_rate" type="number" required="" placeholder="Tyre Wear" aria-label="Tyre Wear"
-                value="{{ data.form['tyre_wear_rate'] }}" />
+                value="{{ .form.Tyre_Wear_Rate }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600 group relative" for="allowed_tyres_out">
@@ -295,11 +293,11 @@
               </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="allowed_tyres_out"
                 name="allowed_tyres_out">
-                <option value="0" {% if data.form['allowed_tyres_out']==0 %} selected {% endif %}>0</option>
-                <option value="1" {% if data.form['allowed_tyres_out']==1 %} selected {% endif %}>1</option>
-                <option value="2" {% if data.form['allowed_tyres_out']==2 %} selected {% endif %}>2</option>
-                <option value="3" {% if data.form['allowed_tyres_out']==3 %} selected {% endif %}>3</option>
-                <option value="4" {% if data.form['allowed_tyres_out']==4 %} selected {% endif %}>4</option>
+                <option value="0" {{ if (eq (derefInt .form.Allowed_Tyres_Out) "0") }} selected {{ end }}>0</option>
+                <option value="1" {{ if (eq (derefInt .form.Allowed_Tyres_Out) "1") }} selected {{ end }}>1</option>
+                <option value="2" {{ if (eq (derefInt .form.Allowed_Tyres_Out) "2") }} selected {{ end }}>2</option>
+                <option value="3" {{ if (eq (derefInt .form.Allowed_Tyres_Out) "3") }} selected {{ end }}>3</option>
+                <option value="4" {{ if (eq (derefInt .form.Allowed_Tyres_Out) "4") }} selected {{ end }}>4</option>
               </select>
             </div>
             <div class="mt-2">
@@ -313,7 +311,7 @@
               </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_ballast_kg" min="0" max="300"
                 name="max_ballast_kg" type="number" required="" placeholder="Max Balast (KG)"
-                aria-label="Max Ballast (KG)" value="{{ data.form['max_ballast_kg'] }}" />
+                aria-label="Max Ballast (KG)" value="{{ .form.Max_Ballast_Kg }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600 group relative" for="start_rule">
@@ -325,9 +323,10 @@
                 </div>
               </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="start_rule" name="start_rule">
-                <option value="0" {% if data.form['start_rule']==0 %} selected {% endif %}>Car Locked</option>
-                <option value="1" {% if data.form['start_rule']==1 %} selected {% endif %}>Teleport To Pit</option>
-                <option value="2" {% if data.form['start_rule']==2 %} selected {% endif %}>DriveThrough</option>
+                <option value="0" {{ if (eq (derefInt .form.Start_Rule) "0") }} selected {{ end }}>Car Locked</option>
+                <option value="1" {{ if (eq (derefInt .form.Start_Rule) "1") }} selected {{ end }}>Teleport To Pit
+                </option>
+                <option value="2" {{ if (eq (derefInt .form.Start_Rule) "2") }} selected {{ end }}>DriveThrough</option>
               </select>
             </div>
             <div class="mt-2">
@@ -340,8 +339,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="race_gas_penality_disabled" id="race_gas_penality_disabled" value="1" {% if
-                  data.form['race_gas_penality_disabled']==1 %} checked {% endif %}
+                <input type="checkbox" name="race_gas_penality_disabled" id="race_gas_penality_disabled" value="1" {{ if
+                  (eq (derefInt .form.Race_Gas_Penality_Disabled) "1") }} checked {{ end }}
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="race_gas_penality_disabled"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -351,8 +350,7 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2"
-          x-data="dynamic_track()">
+        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="dynamic_track()">
           <p class="text-xl px-6 pb-6 flex items-center">
             <i class="fas fa-list mr-3"></i> Dynamic Track
           </p>
@@ -367,8 +365,8 @@
                 </div>
               </label>
               <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" name="dynamic_track" id="dynamic_track" value="1" {% if
-                  data.form['dynamic_track']==1 %} checked {% endif %} @click="set_open($event.target.checked)"
+                <input type="checkbox" name="dynamic_track" id="dynamic_track" value="1" {{ if (eq (derefInt
+                  .form.Dynamic_Track) "1") }} checked {{ end }} @click="set_open($event.target.checked)"
                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
                 <label for="dynamic_track"
                   class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -387,14 +385,22 @@
                   </div>
                 </label>
                 <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="dynamic_track_preset"
-                  :required="open" name="dynamic_track_preset" x-model="dynamic_track_preset" @change="preset_changed()">
-                  <option value="0" {% if data.form['dynamic_track_preset']==0 %} selected {% endif %}>Custom</option>
-                  <option value="1" {% if data.form['dynamic_track_preset']==1 %} selected {% endif %}>Dusty</option>
-                  <option value="2" {% if data.form['dynamic_track_preset']==2 %} selected {% endif %}>Old</option>
-                  <option value="3" {% if data.form['dynamic_track_preset']==3 %} selected {% endif %}>Slow</option>
-                  <option value="4" {% if data.form['dynamic_track_preset']==4 %} selected {% endif %}>Green</option>
-                  <option value="5" {% if data.form['dynamic_track_preset']==5 %} selected {% endif %}>Fast</option>
-                  <option value="6" {% if data.form['dynamic_track_preset']==6 %} selected {% endif %}>Optimum</option>
+                  :required="open" name="dynamic_track_preset" x-model="dynamic_track_preset"
+                  @change="preset_changed()">
+                  <option value="0" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "0") }} selected {{ end }}>Custom
+                  </option>
+                  <option value="1" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "1") }} selected {{ end }}>Dusty
+                  </option>
+                  <option value="2" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "2") }} selected {{ end }}>Old
+                  </option>
+                  <option value="3" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "3") }} selected {{ end }}>Slow
+                  </option>
+                  <option value="4" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "4") }} selected {{ end }}>Green
+                  </option>
+                  <option value="5" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "5") }} selected {{ end }}>Fast
+                  </option>
+                  <option value="6" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "6") }} selected {{ end }}>Optimum
+                  </option>
                 </select>
               </div>
               <div class="mt-2">
@@ -406,8 +412,9 @@
                     </div>
                   </div>
                 </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_start" x-model="session_start" min="80" max="100"
-                  name="session_start" type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Start Value" aria-label="Start Value" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_start"
+                  x-model="session_start" min="80" max="100" name="session_start" type="number" :required="open"
+                  :disabled="dynamic_track_preset != 0" placeholder="Start Value" aria-label="Start Value" />
                 <input type="hidden" name="session_start" x-model="session_start" />
               </div>
               <div class="mt-2">
@@ -419,8 +426,9 @@
                     </div>
                   </div>
                 </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="randomness" name="randomness" min="0" max="10"
-                  type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Randomness" aria-label="Randomness" x-model="randomness" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="randomness" name="randomness"
+                  min="0" max="10" type="number" :required="open" :disabled="dynamic_track_preset != 0"
+                  placeholder="Randomness" aria-label="Randomness" x-model="randomness" />
                 <input type="hidden" name="randomness" x-model="randomness" />
               </div>
               <div class="mt-2">
@@ -432,8 +440,9 @@
                     </div>
                   </div>
                 </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_transfer" x-model="session_transfer" min="0" max="100"
-                  name="session_transfer" type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Transfer Grip" aria-label="Transfer Grip" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_transfer"
+                  x-model="session_transfer" min="0" max="100" name="session_transfer" type="number" :required="open"
+                  :disabled="dynamic_track_preset != 0" placeholder="Transfer Grip" aria-label="Transfer Grip" />
                 <input type="hidden" name="session_transfer" x-model="session_transfer" />
               </div>
               <div class="mt-2">
@@ -445,8 +454,10 @@
                     </div>
                   </div>
                 </label>
-                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="lap_gain" name="lap_gain" x-model="lap_gain" min="0" max="1000"
-                  type="number" :required="open" :disabled="dynamic_track_preset != 0" placeholder="Laps to Improve Grip" aria-label="Laps to Improve Grip" />
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="lap_gain" name="lap_gain"
+                  x-model="lap_gain" min="0" max="1000" type="number" :required="open"
+                  :disabled="dynamic_track_preset != 0" placeholder="Laps to Improve Grip"
+                  aria-label="Laps to Improve Grip" />
                 <input type="hidden" name="lap_gain" x-model="lap_gain" />
               </div>
             </div>
@@ -469,9 +480,9 @@
                   </div>
                 </div>
               </label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="kick_quorum" name="kick_quorum" min="0" max="101"
-                type="number" required="" placeholder="Kick Vote Quorum" aria-label="Kick Vote Quorum"
-                value="{{ data.form['kick_quorum'] }}" />
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="kick_quorum" name="kick_quorum"
+                min="0" max="101" type="number" required="" placeholder="Kick Vote Quorum" aria-label="Kick Vote Quorum"
+                value="{{ .form.Kick_Quorum }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600 group relative" for="voting_quorum">
@@ -482,9 +493,9 @@
                   </div>
                 </div>
               </label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="voting_quorum" name="voting_quorum" min="0" max="101"
-                type="number" required="" placeholder="Session Vote Quorum" aria-label="Session Vote Quorum"
-                value="{{ data.form['voting_quorum'] }}" />
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="voting_quorum" name="voting_quorum"
+                min="0" max="101" type="number" required="" placeholder="Session Vote Quorum"
+                aria-label="Session Vote Quorum" value="{{ .form.Voting_Quorum }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600 group relative" for="vote_duration">
@@ -495,9 +506,9 @@
                   </div>
                 </div>
               </label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="vote_duration" name="vote_duration" min="10" max="30"
-                type="number" required="" placeholder="Vote Duration" aria-label="Vote Duration"
-                value="{{ data.form['vote_duration'] }}" />
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="vote_duration" name="vote_duration"
+                min="10" max="30" type="number" required="" placeholder="Vote Duration" aria-label="Vote Duration"
+                value="{{ .form.Vote_Duration }}" />
             </div>
             <div class="mt-2">
               <label class="block text-sm text-gray-600 group relative" for="blacklist_mode">
@@ -510,8 +521,9 @@
               </label>
               <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="blacklist_mode"
                 name="blacklist_mode">
-                <option value="0" {% if data.form['blacklist_mode']==0 %} selected {% endif %}>Kick Player</option>
-                <option value="1" {% if data.form['blacklist_mode']==1 %} selected {% endif %}>Kick Until Restart
+                <option value="0" {{ if (eq (derefInt .form.Blacklist_Mode) "0") }} selected {{ end }}>Kick Player
+                </option>
+                <option value="1" {{ if (eq (derefInt .form.Blacklist_Mode) "1") }} selected {{ end }}>Kick Until Restart
                 </option>
               </select>
             </div>
@@ -524,9 +536,9 @@
                   </div>
                 </div>
               </label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_contacts_per_km" min="-1" max="128"
-                name="max_contacts_per_km" type="number" required="" placeholder="Max Collision per KM"
-                aria-label="Max Collision per KM" value="{{ data.form['max_contacts_per_km'] }}" />
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="max_contacts_per_km" min="-1"
+                max="128" name="max_contacts_per_km" type="number" required="" placeholder="Max Collision per KM"
+                aria-label="Max Collision per KM" value="{{ .form.Max_Contacts_Per_Km }}" />
             </div>
           </div>
         </div>
@@ -544,9 +556,9 @@
         </div>
     </div>
     </form>
-    <form id="frmDelete" action="{{ url_for('difficulty_delete', id=data['id']) }}" method="POST"></form>
-    {% endif %}
+    <form id="frmDelete" action="/difficulty_delete/{{ .form.Id }}" method="POST"></form>
+    {{ end }}
   </div>
 </div>
 
-{% endblock %}
+{{ template "footer.htm" }}
