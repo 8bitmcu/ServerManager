@@ -146,7 +146,7 @@
         <script>
           function time_weather() {
             return {
-              items: JSON.parse({{ .form.Weathers | toJson }}),
+              items: {{ .form.Weathers }},
               add_panel() {
                 this.items.push({});
               },

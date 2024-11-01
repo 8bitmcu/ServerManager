@@ -2,6 +2,7 @@ package sm
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -41,9 +42,9 @@ type User_Config struct {
 }
 
 type User_Event struct {
-	Id                 *int
-	Race_Laps          *int
-	Strategy           *int
+	Id                 *int `form:"id"`
+	Race_Laps          *int `form:"race_laps"`
+	Strategy           *int `form:"strategy"`
 	Track_Name         *string
 	Track_Length       *int
 	Pitboxes           *int
@@ -66,74 +67,74 @@ type User_Event struct {
 	Time_Name          *string
 	Time               *string
 	Graphics           *string
-	Cache_Track_Key    *string
-	Cache_Track_Config *string
-	Difficulty_Id      *int
-	Session_Id         *int
-	Class_Id           *int
-	Time_Id            *int
+	Cache_Track_Key    *string `form:"track_key"`
+	Cache_Track_Config *string `form:"track_config"`
+	Difficulty_Id      *int    `form:"difficulty"`
+	Session_Id         *int    `form:"session"`
+	Class_Id           *int    `form:"class"`
+	Time_Id            *int    `form:"time"`
 	Started_At         time.Time
 	Finished           *int
 }
 
 type User_Difficulty struct {
-	Id                         *int
-	Name                       *string `form:"name"`
-	Abs_Allowed                *int    `form:"abs_allowed"`
-	Tc_Allowed                 *int    `form:"tc_allowed"`
-	Stability_Allowed          *int    `form:"stability_allowed"`
-	Autoclutch_Allowed         *int    `form:"autoclutch_allowed"`
-	Tyre_Blankets_Allowed      *int    `form:"tyre_blankets_allowed"`
-	Force_Virtual_Mirror       *int    `form:"force_virtual_mirror"`
-	Fuel_Rate                  *int    `form:"fuel_rate"`
-	Damage_Multiplier          *int    `form:"damage_multiplier"`
-	Tyre_Wear_Rate             *int    `form:"tyre_wear_rate"`
-	Allowed_Tyres_Out          *int    `form:"allowed_tyres_out"`
-	Max_Ballast_Kg             *int    `form:"max_ballast_kg"`
-	Start_Rule                 *int    `form:"start_rule"`
-	Race_Gas_Penality_Disabled *int    `form:"race_gas_penality_disabled"`
-	Dynamic_Track              *int    `form:"dynamic_track"`
-	Dynamic_Track_Preset       *int    `form:"dynamic_track_preset"`
-	Session_Start              *int    `form:"session_start"`
-	Randomness                 *int    `form:"randomness"`
-	Session_Transfer           *int    `form:"session_transfer"`
-	Lap_Gain                   *int    `form:"lap_gain"`
-	Kick_Quorum                *int    `form:"kick_quorum"`
-	Vote_Duration              *int    `form:"vote_duration"`
-	Voting_Quorum              *int    `form:"voting_quorum"`
-	Blacklist_Mode             *int    `form:"blacklist_mode"`
-	Max_Contacts_Per_Km        *int    `form:"max_contacts_per_km"`
+	Id                         *int    `from:"id" json:"id"`
+	Name                       *string `form:"name" json:"name"`
+	Abs_Allowed                *int    `form:"abs_allowed" json:"abs_allowed"`
+	Tc_Allowed                 *int    `form:"tc_allowed" json:"tc_allowed"`
+	Stability_Allowed          *int    `form:"stability_allowed" json:"stability_allowed"`
+	Autoclutch_Allowed         *int    `form:"autoclutch_allowed" json:"autoclutch_allowed"`
+	Tyre_Blankets_Allowed      *int    `form:"tyre_blankets_allowed" json:"tyre_blankets_allowed"`
+	Force_Virtual_Mirror       *int    `form:"force_virtual_mirror" json:"force_virtual_mirror"`
+	Fuel_Rate                  *int    `form:"fuel_rate" json:"fuel_rate"`
+	Damage_Multiplier          *int    `form:"damage_multiplier" json:"damage_multiplier"`
+	Tyre_Wear_Rate             *int    `form:"tyre_wear_rate" json:"tyre_wear_rate"`
+	Allowed_Tyres_Out          *int    `form:"allowed_tyres_out" json:"allowed_tyres_out"`
+	Max_Ballast_Kg             *int    `form:"max_ballast_kg" json:"max_ballast_kg"`
+	Start_Rule                 *int    `form:"start_rule" json:"start_rule"`
+	Race_Gas_Penality_Disabled *int    `form:"race_gas_penality_disabled" json:"race_gas_penality_disabled"`
+	Dynamic_Track              *int    `form:"dynamic_track" json:"dynamic_track"`
+	Dynamic_Track_Preset       *int    `form:"dynamic_track_preset" json:"dynamic_track_preset"`
+	Session_Start              *int    `form:"session_start" json:"session_start"`
+	Randomness                 *int    `form:"randomness" json:"randomness"`
+	Session_Transfer           *int    `form:"session_transfer" json:"session_transfer"`
+	Lap_Gain                   *int    `form:"lap_gain" json:"lap_gain"`
+	Kick_Quorum                *int    `form:"kick_quorum" json:"kick_quorum"`
+	Vote_Duration              *int    `form:"vote_duration" json:"vote_duration"`
+	Voting_Quorum              *int    `form:"voting_quorum" json:"voting_quorum"`
+	Blacklist_Mode             *int    `form:"blacklist_mode" json:"blacklist_mode"`
+	Max_Contacts_Per_Km        *int    `form:"max_contacts_per_km" json:"max_contacts_per_km"`
 }
 
 type User_Session struct {
 	Id                      *int
-	Name                    *string `form:"name"`
-	Booking_Enabled         *int    `form:"booking_enabled"`
-	Booking_Time            *int    `form:"booking_time"`
-	Practice_Enabled        *int    `form:"practice_enabled"`
-	Practice_Time           *int    `form:"practice_time"`
-	Practice_Is_Open        *int    `form:"practice_is_open"`
-	Qualify_Enabled         *int    `form:"qualify_enabled"`
-	Qualify_Time            *int    `form:"qualify_time"`
-	Qualify_Is_Open         *int    `form:"qualify_is_open"`
-	Qualify_Max_Wait_Perc   *int    `form:"qualify_max_wait_perc"`
-	Race_Enabled            *int    `form:"race_enabled"`
-	Race_Time               *int    `form:"race_time"`
-	Race_Extra_Lap          *int    `form:"race_extra_lap"`
-	Race_Over_Time          *int    `form:"race_over_time"`
-	Race_Wait_Time          *int    `form:"race_wait_time"`
-	Race_Is_Open            *int    `form:"race_is_open"`
-	Reversed_Grid_Positions *int    `form:"reversed_grid_positions"`
-	Race_Pit_Window_Start   *int    `form:"race_pit_window_start"`
-	Race_Pit_Window_End     *int    `form:"race_pit_window_end"`
+	Name                    *string `form:"name" json:"name"`
+	Booking_Enabled         *int    `form:"booking_enabled" json:"booking_enabled"`
+	Booking_Time            *int    `form:"booking_time" json:"booking_time"`
+	Practice_Enabled        *int    `form:"practice_enabled" json:"practice_enabled"`
+	Practice_Time           *int    `form:"practice_time" json:"practice_time"`
+	Practice_Is_Open        *int    `form:"practice_is_open" json:"practice_is_open"`
+	Qualify_Enabled         *int    `form:"qualify_enabled" json:"qualify_enabled"`
+	Qualify_Time            *int    `form:"qualify_time" json:"qualify_time"`
+	Qualify_Is_Open         *int    `form:"qualify_is_open" json:"qualify_is_open"`
+	Qualify_Max_Wait_Perc   *int    `form:"qualify_max_wait_perc" json:"qualify_max_wait_perc"`
+	Race_Enabled            *int    `form:"race_enabled" json:"race_enabled"`
+	Race_Time               *int    `form:"race_time" json:"race_time"`
+	Race_Extra_Lap          *int    `form:"race_extra_lap" json:"race_extra_lap"`
+	Race_Over_Time          *int    `form:"race_over_time" json:"race_over_time"`
+	Race_Wait_Time          *int    `form:"race_wait_time" json:"race_wait_time"`
+	Race_Is_Open            *int    `form:"race_is_open" json:"race_is_open"`
+	Reversed_Grid_Positions *int    `form:"reversed_grid_positions" json:"reversed_grid_positions"`
+	Race_Pit_Window_Start   *int    `form:"race_pit_window_start" json:"race_pit_window_start"`
+	Race_Pit_Window_End     *int    `form:"race_pit_window_end" json:"race_pit_window_end"`
 }
 
 type User_Time struct {
 	Id                *int
-	Name              *string             `form:"name"`
-	Time              *string             `form:"time"`
-	Time_Of_Day_Multi *int                `form:"time_of_day_multi"`
-	Weathers          []User_Time_Weather
+	Name              *string             `form:"name" json:"name"`
+	Time              *string             `form:"time" json:"time"`
+	Time_Of_Day_Multi *int                `form:"time_of_day_multi" json:"time_of_day_multi"`
+	Weathers          []User_Time_Weather `json:"weathers"`
 }
 
 type User_Time_Weather struct {
@@ -152,16 +153,16 @@ type User_Time_Weather struct {
 
 type User_Class struct {
 	Id      *int
-	Name    *string
-	Entries []User_Class_Entry
+	Name    *string            `json:"name"`
+	Entries []User_Class_Entry `json:"entries"`
 }
 
 type User_Class_Entry struct {
 	Id            *int
-	User_Class_Id *int
-	Cache_Car_Key *string
-	Skin_Key      *string
-	Ballast       *int
+	User_Class_Id *int    `json:"user_class_id"`
+	Cache_Car_Key *string `json:"cache_car_key"`
+	Skin_Key      *string `json:"skin_key"`
+	Ballast       *int    `json:"ballast"`
 }
 
 type DropDown_List struct {
@@ -170,38 +171,49 @@ type DropDown_List struct {
 }
 
 type Cache_Car struct {
-	Id     *int
-	Key    *string
-	Name   *string
-	Brand  *string
-	Desc   *string
-	Tags   *string
-	Class  *string
-	Specs  *string
-	Torque *string
-	Power  *string
-	Skins  *string
+	Id    *int
+	Key   *string   `json:"key"`
+	Name  *string   `json:"name"`
+	Brand *string   `json:"brand"`
+	Desc  *string   `json:"description"`
+	Tags  *[]string `json:"tags"`
+	Class *string   `json:"class"`
+	Specs struct {
+		Bhp          string `json:"bhp"`
+		Torque       string `json:"torque"`
+		Weight       string `json:"weight"`
+		Topspeed     string `json:"topspeed"`
+		Acceleration string `json:"acceleration"`
+		Pwratio      string `json:"pwratio"`
+		Range        int    `json:"range"`
+	} `json:"specs"`
+	Torque []any `json:"torqueCurve"`
+	Power  []any `json:"powerCurve"`
+	Skins  []struct {
+		Key  string `json:"key"`
+		Name string `json:"name"`
+	} `json:"skins"`
 }
 
 type Cache_Track struct {
 	Id       *int
-	Key      *string
-	Config   *string
-	Name     *string
-	Desc     *string
-	Tags     *string
-	Country  *string
-	City     *string
-	Length   *int
-	Width    *int
-	Pitboxes *int
-	Run      *string
+	Key      *string   `json:"key"`
+	Config   *string   `json:"config"`
+	Name     *string   `json:"name"`
+	Desc     *string   `json:"desc"`
+	Tags     *[]string `json:"tags"`
+	Country  *string   `json:"country"`
+	City     *string   `json:"city"`
+	Length   *int      `json:"length"`
+	Width    *int      `json:"width"`
+	Pitboxes *int      `json:"pitboxes"`
+	Run      *string   `json:"run"`
 }
 
 type Cache_Weather struct {
 	Id   *int
-	Key  *string
-	Name *string
+	Key  *string `json:"key"`
+	Name *string `json:"name"`
 }
 
 func Open(name string) Dbaccess {
@@ -457,7 +469,7 @@ GROUP BY (s.id)
 
 func (dba Dbaccess) Select_Event(id int) User_Event {
 	evt := User_Event{}
-	stmt, err := dba.Db.Prepare("SELECT id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy, started_at, finished FROM user_event LIMIT 1 WHERE id = ?")
+	stmt, err := dba.Db.Prepare("SELECT id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy, started_at, finished FROM user_event WHERE id = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
@@ -688,7 +700,7 @@ func (dba Dbaccess) Update_Time(time User_Time) int64 {
 	return 1
 }
 
-func (dba Dbaccess) Select_Class(id int) User_Class {
+func (dba Dbaccess) Select_Class_Entries(id int) User_Class {
 	cls := User_Class{}
 	stmt, err := dba.Db.Prepare("SELECT id, name FROM user_class WHERE id = ?")
 	if err != nil {
@@ -700,32 +712,28 @@ func (dba Dbaccess) Select_Class(id int) User_Class {
 		log.Print(err)
 	}
 
-	return cls
-}
-
-func (dba Dbaccess) Select_Class_Entries(id int) []User_Class_Entry {
-	stmt, err := dba.Db.Prepare("SELECT id, user_class_id, cache_car_key, skin_key, ballast FROM user_class_entry WHERE user_class_id = ?")
+	stmt, err = dba.Db.Prepare("SELECT id, user_class_id, cache_car_key, skin_key, ballast FROM user_class_entry WHERE user_class_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
 	defer stmt.Close()
 	rows, err := stmt.Query(id)
 
-	entries := make([]User_Class_Entry, 0)
+	cls.Entries = make([]User_Class_Entry, 0)
 	for rows.Next() {
 		ent := User_Class_Entry{}
 		err = rows.Scan(&ent.Id, &ent.User_Class_Id, &ent.Cache_Car_Key, &ent.Skin_Key, &ent.Ballast)
 		if err != nil {
 			log.Print(err)
 		}
-		entries = append(entries, ent)
+		cls.Entries = append(cls.Entries, ent)
 	}
 
 	if err != nil {
 		log.Print(err)
 	}
 
-	return entries
+	return cls
 }
 
 func (dba Dbaccess) Select_ClassList(filled bool) []DropDown_List {
@@ -754,7 +762,19 @@ func (dba Dbaccess) Delete_Class(id int) int64 {
 }
 
 func (dba Dbaccess) Update_Class(cls User_Class) int64 {
-	stmt, err := dba.Db.Prepare("DELETE FROM user_class_entry WHERE user_class_id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_class SET filled = 1 WHERE id = ?")
+
+	if err != nil {
+		log.Print(err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(cls.Id)
+	if err != nil {
+		log.Print(err)
+	}
+
+	stmt, err = dba.Db.Prepare("DELETE FROM user_class_entry WHERE user_class_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
@@ -770,7 +790,7 @@ func (dba Dbaccess) Update_Class(cls User_Class) int64 {
 		if err != nil {
 			log.Print(err)
 		}
-		_, err = stmt.Exec(&ent.User_Class_Id, &ent.Cache_Car_Key, &ent.Skin_Key)
+		_, err = stmt.Exec(cls.Id, ent.Cache_Car_Key, ent.Skin_Key)
 		defer stmt.Close()
 
 		if err != nil {
@@ -792,7 +812,37 @@ func (dba Dbaccess) Update_Cache_Cars(cars []Cache_Car) int64 {
 		if err != nil {
 			log.Print(err)
 		}
-		_, err = stmt.Exec(&car.Key, &car.Name, &car.Brand, &car.Desc, &car.Tags, &car.Class, &car.Specs, &car.Torque, &car.Power, &car.Skins)
+
+		tagsRes, err := json.Marshal(&car.Tags)
+		if err != nil {
+			log.Print(err)
+		}
+		tags := string(tagsRes)
+
+		specsRes, err := json.Marshal(&car.Specs)
+		if err != nil {
+			log.Print(err)
+		}
+		specs := string(specsRes)
+
+		powerRes, err := json.Marshal(&car.Power)
+		if err != nil {
+			log.Print(err)
+		}
+		power := string(powerRes)
+
+		torqueRes, err := json.Marshal(&car.Torque)
+		if err != nil {
+			log.Print(err)
+		}
+		torque := string(torqueRes)
+
+		skinsRes, err := json.Marshal(&car.Skins)
+		if err != nil {
+			log.Print(err)
+		}
+		skins := string(skinsRes)
+		_, err = stmt.Exec(&car.Key, &car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins)
 		defer stmt.Close()
 
 		if err != nil {
@@ -804,15 +854,41 @@ func (dba Dbaccess) Update_Cache_Cars(cars []Cache_Car) int64 {
 }
 
 func (dba Dbaccess) Select_Cache_Cars() []Cache_Car {
-	rows, err := dba.Db.Query("SELECT key, name, brand, desc, tags, class, specs, torque, power, skins FROM cache_car")
+	rows, err := dba.Db.Query("SELECT key, name, brand, desc, tags, class, specs, torque, power, skins FROM cache_car ORDER BY name")
 	if err != nil {
 		log.Print(err)
 	}
 
+	var tags string
+	var specs string
+	var power string
+	var torque string
+	var skins string
+
 	cars := make([]Cache_Car, 0)
 	for rows.Next() {
 		car := Cache_Car{}
-		err = rows.Scan(&car.Key, &car.Name, &car.Brand, &car.Desc, &car.Tags, &car.Class, &car.Specs, &car.Torque, &car.Power, &car.Skins)
+		err = rows.Scan(&car.Key, &car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins)
+		if err != nil {
+			log.Print(err)
+		}
+		err = json.Unmarshal([]byte(tags), &car.Tags)
+		if err != nil {
+			log.Print(err)
+		}
+		err = json.Unmarshal([]byte(specs), &car.Specs)
+		if err != nil {
+			log.Print(err)
+		}
+		err = json.Unmarshal([]byte(power), &car.Power)
+		if err != nil {
+			log.Print(err)
+		}
+		err = json.Unmarshal([]byte(torque), &car.Torque)
+		if err != nil {
+			log.Print(err)
+		}
+		err = json.Unmarshal([]byte(skins), &car.Skins)
 		if err != nil {
 			log.Print(err)
 		}
@@ -827,13 +903,39 @@ func (dba Dbaccess) Select_Cache_Cars() []Cache_Car {
 }
 
 func (dba Dbaccess) Select_Cache_Car(car_key string) Cache_Car {
+	var tags string
+	var specs string
+	var power string
+	var torque string
+	var skins string
+
 	car := Cache_Car{}
 	stmt, err := dba.Db.Prepare("SELECT key, name, brand, desc, tags, class, specs, torque, power, skins FROM cache_car WHERE key = ?")
 	if err != nil {
 		log.Print(err)
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(car_key).Scan(&car.Key, &car.Name, &car.Brand, &car.Desc, &car.Tags, &car.Class, &car.Specs, &car.Torque, &car.Power, &car.Skins)
+	err = stmt.QueryRow(car_key).Scan(&car.Key, &car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins)
+	if err != nil {
+		log.Print(err)
+	}
+	err = json.Unmarshal([]byte(tags), &car.Tags)
+	if err != nil {
+		log.Print(err)
+	}
+	err = json.Unmarshal([]byte(specs), &car.Specs)
+	if err != nil {
+		log.Print(err)
+	}
+	err = json.Unmarshal([]byte(power), &car.Power)
+	if err != nil {
+		log.Print(err)
+	}
+	err = json.Unmarshal([]byte(torque), &car.Torque)
+	if err != nil {
+		log.Print(err)
+	}
+	err = json.Unmarshal([]byte(skins), &car.Skins)
 	if err != nil {
 		log.Print(err)
 	}
@@ -848,11 +950,18 @@ func (dba Dbaccess) Update_Cache_Tracks(tracks []Cache_Track) int64 {
 	}
 
 	for _, track := range tracks {
+
+		tagsRes, err := json.Marshal(&track.Tags)
+		if err != nil {
+			log.Print(err)
+		}
+		tags := string(tagsRes)
+
 		stmt, err := dba.Db.Prepare("INSERT INTO cache_track (key, config, name, desc, tags, country, city, length, width, pitboxes, run) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
 			log.Print(err)
 		}
-		_, err = stmt.Exec(&track.Key, &track.Config, &track.Name, &track.Desc, &track.Tags, &track.Country, &track.City, &track.Length, &track.Width, &track.Pitboxes, &track.Run)
+		_, err = stmt.Exec(&track.Key, &track.Config, &track.Name, &track.Desc, tags, &track.Country, &track.City, &track.Length, &track.Width, &track.Pitboxes, &track.Run)
 		defer stmt.Close()
 
 		if err != nil {
@@ -869,13 +978,20 @@ func (dba Dbaccess) Select_Cache_Tracks() []Cache_Track {
 		log.Print(err)
 	}
 
+	var tags string
 	tracks := make([]Cache_Track, 0)
 	for rows.Next() {
 		t := Cache_Track{}
-		err = rows.Scan(&t.Key, &t.Config, &t.Name, &t.Desc, &t.Tags, &t.Country, &t.City, &t.Length, &t.Width, &t.Pitboxes, &t.Run)
+		err = rows.Scan(&t.Key, &t.Config, &t.Name, &t.Desc, &tags, &t.Country, &t.City, &t.Length, &t.Width, &t.Pitboxes, &t.Run)
 		if err != nil {
 			log.Print(err)
 		}
+
+		err = json.Unmarshal([]byte(tags), &t.Tags)
+		if err != nil {
+			log.Print(err)
+		}
+
 		tracks = append(tracks, t)
 	}
 
@@ -888,6 +1004,7 @@ func (dba Dbaccess) Select_Cache_Tracks() []Cache_Track {
 
 func (dba Dbaccess) Select_Cache_Track(track_key string, track_config string) Cache_Track {
 	t := Cache_Track{}
+	var tags string
 
 	if track_config == "" {
 		stmt, err := dba.Db.Prepare("SELECT key, config, name, desc, tags, country, city, length, width, pitboxes, run FROM cache_track WHERE key = ?")
@@ -895,7 +1012,7 @@ func (dba Dbaccess) Select_Cache_Track(track_key string, track_config string) Ca
 			log.Print(err)
 		}
 		defer stmt.Close()
-		err = stmt.QueryRow(track_key).Scan(&t.Key, &t.Config, &t.Name, &t.Desc, &t.Tags, &t.Country, &t.City, &t.Length, &t.Width, &t.Pitboxes, &t.Run)
+		err = stmt.QueryRow(track_key).Scan(&t.Key, &t.Config, &t.Name, &t.Desc, &tags, &t.Country, &t.City, &t.Length, &t.Width, &t.Pitboxes, &t.Run)
 		if err != nil {
 			log.Print(err)
 		}
@@ -905,13 +1022,16 @@ func (dba Dbaccess) Select_Cache_Track(track_key string, track_config string) Ca
 			log.Print(err)
 		}
 		defer stmt.Close()
-		err = stmt.QueryRow(track_key, track_config).Scan(&t.Key, &t.Config, &t.Name, &t.Desc, &t.Tags, &t.Country, &t.City, &t.Length, &t.Width, &t.Pitboxes, &t.Run)
+		err = stmt.QueryRow(track_key, track_config).Scan(&t.Key, &t.Config, &t.Name, &t.Desc, &tags, &t.Country, &t.City, &t.Length, &t.Width, &t.Pitboxes, &t.Run)
 		if err != nil {
 			log.Print(err)
 		}
-
 	}
 
+	err := json.Unmarshal([]byte(tags), &t.Tags)
+	if err != nil {
+		log.Print(err)
+	}
 	return t
 }
 

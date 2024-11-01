@@ -41,17 +41,16 @@
 
   function session() {
     return {
-      tracks_data: JSON.parse('{{ .track_data }}'),
-      class_data: JSON.parse('{{ .classes }}'),
-      time_data: JSON.parse('{{ .times }}'),
+      tracks_data: {{ .track_data }},
+      class_data: {{ .classes }},
+      time_data: {{ .times }},
 
-
-      selection_track_key: "{{ .form.cache_track_key }}",
-      selection_track_config: "{{ .form.cache_track_config }}",
-      selection_difficulty: "{{ .form.difficulty_id }}",
-      selection_session: "{{ .form.session_id }}",
-      selection_class: "{{ .form.class_id }}",
-      selection_time: "{{ .form.time_id }}",
+      selection_track_key: {{ .form.Cache_Track_Key | derefStr }},
+      selection_track_config: {{ .form.Cache_Track_Config | derefStr }},
+      selection_difficulty: {{ .form.Difficulty_Id | derefInt  }},
+      selection_session: {{ .form.Session_Id | derefInt }},
+      selection_class: {{ .form.Class_Id | derefInt }},
+      selection_time: {{ .form.Time_Id | derefInt }},
 
       get_trackdata: function(key, config) {
         if (key == "")
@@ -76,33 +75,33 @@
         if (this.selection_difficulty == "")
           this.loaded_difficulty = {}
         else
-          fetch('/api/get_difficulty/' + this.selection_difficulty)
+          fetch('/api/difficulty/' + this.selection_difficulty)
             .then((response) => response.json())
-            .then((json) => this.loaded_difficulty = json);
+            .then((json) => this.loaded_difficulty = json.data);
       },
       get_session: function() {
         if(this.selection_session == "")
           this.loaded_session = {}
         else
-          fetch('/api/get_session/' + this.selection_session)
+          fetch('/api/session/' + this.selection_session)
             .then((response) => response.json())
-            .then((json) => this.loaded_session = json);
+            .then((json) => this.loaded_session = json.data);
       },
       get_class: function() {
         if(this.selection_class == "")
           this.loaded_class = { entries: []}
         else
-          fetch('/api/get_class/' + this.selection_class)
+          fetch('/api/class/' + this.selection_class)
             .then((response) => response.json())
-            .then((json) => this.loaded_class = json);
+            .then((json) => this.loaded_class = json.data);
       },
       get_time: function() {
         if(this.selection_time == "")
           this.loaded_time = { weathers: [], time: ''}
         else
-          fetch('/api/get_time/' + this.selection_time)
+          fetch('/api/time/' + this.selection_time)
             .then((response) => response.json())
-            .then((json) => this.loaded_time = json);
+            .then((json) => this.loaded_time = json.data);
       },
 
       random_track: function() {
@@ -180,13 +179,13 @@
 
       track_preview: function (key, config) {
         if (!key) return "";
-        if (!config) return "/api/track_preview/" + key + ".png";
-        else return "/api/track_preview/" + key + "/" + config + ".png";
+        if (!config) return "/api/track/preview/" + key;
+        else return "/api/track/preview/" + key + "/" + config;
       },
       track_outline: function (key, config) {
         if (!key) return "";
-        if (!config) return "/api/track_outline/" + key + ".png";
-        else return "/api/track_outline/" + key + "/" + config + ".png";
+        if (!config) return "/api/track/outline/" + key;
+        else return "/api/track/outline/" + key + "/" + config;
       },
 
       trackpicker_open: false,
@@ -237,104 +236,105 @@
         </tr>
       </thead>
       <tbody class="text-gray-700">
+        {{$g := . }}
         {{range $event := .events }}
         <tr class="odd:bg-gray-100">
           <td class="text-left whitespace-nowrap align-baseline">
-            <span>{{ $event.track_name }}</span>
+            <span>{{ $event.Track_Name }}</span>
             <div class="text-xs">
               <i class="fas fa-route"></i>
-              <span class="pr-2" x-html="format_distance({{ $event.track_length }})"></span>
-              <span>{{ $event.pitboxes }} pitboxes</span>
+              <span class="pr-2" x-html="format_distance({{ $event.Track_Length }})"></span>
+              <span>{{ $event.Pitboxes }} pitboxes</span>
             </div>
           </td>
           <td class="text-left whitespace-nowrap align-baseline">
-            <span>{{ $event.difficulty_name }}</span>
+            <span>{{ $event.Difficulty_Name }}</span>
             <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row">
-              <span :class="{{ $event.abs_allowed }} ? 'text-red-500' : 'text-gray-500'">
+              <span :class="{{ $event.Abs_Allowed }} ? 'text-red-500' : 'text-gray-500'">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="pr-4">ABS</span>
               </span>
-              <span :class="{{ $event.tc_allowed }} ? 'text-red-500' : 'text-gray-500'">
+              <span :class="{{ $event.Tc_Allowed }} ? 'text-red-500' : 'text-gray-500'">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="pr-4">TC</span>
               </span>
-              <span :class="{{ $event.stability_allowed }} ? 'text-red-500' : 'text-gray-500'">
+              <span :class="{{ $event.Stability_Allowed }} ? 'text-red-500' : 'text-gray-500'">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="pr-4">Stability</span>
               </span>
-              <span :class="{{ $event.autoclutch_allowed }} ? 'text-red-500' : 'text-gray-500'">
+              <span :class="{{ $event.Autoclutch_Allowed }} ? 'text-red-500' : 'text-gray-500'">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="pr-4">Clutch</span>
               </span>
             </div>
           </td>
           <td class="text-left whitespace-nowrap align-baseline py-3">
-            <span>{{ $event.session_name }}</span>
+            <span>{{ $event.Session_Name }}</span>
             <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row whitespace-nowrap">
               <div class="flex flex-col">
-                <span :class="{{ $event.booking_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.booking_enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Booking</span>
+                <span :class="{{ $event.Booking_Enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {{ if $event.Booking_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Booking</span>
                 </span>
               </div>
-                {{ if $event.booking_enabled }}
-                <span class="pr-2">{{ $event.booking_time }} minutes</span>
+                {{ if $event.Booking_Enabled }}
+                <span class="pr-2">{{ $event.Booking_Time }} minutes</span>
                 {{ end }}
               <div class="flex flex-col">
-                <span :class="{{ $event.practice_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.practice_enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Practice</span>
+                <span :class="{{ $event.Practice_Enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {{ if $event.Practice_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Practice</span>
                 </span>
-                {{ if $event.practice_enabled }}
-                <span class="pr-2">{{ $event.practice_time }} minutes</span>
-                {{ end }}
-              </div>
-              <div class="flex flex-col">
-                <span :class="{{ $event.qualify_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.qualify_enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Qualifying</span>
-                </span>
-                {{ if $event.qualify_enabled }}
-                <span class="pr-2">{{ $event.qualify_time }} minutes</span>
+                {{ if $event.Practice_Enabled }}
+                <span class="pr-2">{{ $event.Practice_Time }} minutes</span>
                 {{ end }}
               </div>
               <div class="flex flex-col">
-                <span :class="{{ $event.race_enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.race_enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Race</span>
+                <span :class="{{ $event.Qualify_Enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {{ if $event.Qualify_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Qualifying</span>
                 </span>
-                {{ if $event.race_laps and $event.race_enabled }}
-                <span class="pr-2">{{ $event.race_laps }} laps</span>
-                {{ else if $event.race_enabled }}
-                <span class="pr-2">{{ $event.race_time }} minutes</span>
+                {{ if $event.Qualify_Enabled }}
+                <span class="pr-2">{{ $event.Qualify_Time }} minutes</span>
+                {{ end }}
+              </div>
+              <div class="flex flex-col">
+                <span :class="{{ $event.Race_Enabled }} ? 'text-red-500' : 'text-gray-500'">
+                  <i class="fas {{ if $event.Race_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Race</span>
+                </span>
+                {{ if and $event.Race_Laps $event.Race_Enabled }}
+                <span class="pr-2">{{ $event.Race_Laps }} laps</span>
+                {{ else if $event.Race_Enabled }}
+                <span class="pr-2">{{ $event.Race_Time }} minutes</span>
                 {{ end }}
               </div>
             </div>
           </td>
           <td class="text-left whitespace-nowrap align-baseline">
-            <span>{{ $event.class_name }}</span>
+            <span>{{ $event.Class_Name }}</span>
             <div class="text-xs">
               <span><i class="fas fa-warehouse"></i>
-              {{ if (gt .max_clients $event.pitboxes) and (gt .max_clients $event.entries) }}
-                {{ .max_clients }} 
-                {{ if (eq $event.strategy 1) }}first{{ end }}
-                {{ if (eq $event.strategy 2) }}random{{ end }}
-                entries of {{ $event.entries }}
-              {{ else if (gt $event.pitboxes $event.entries) }}
-                {{ $event.pitboxes }}
-                {{ if (eq $event.strategy 1) }}first{{ end }}
-                {{ if (eq $event.strategy 2) }}random{{ end }}
-                entries of {{ $event.entries }}
+              {{ if and (gt $g.max_clients (toInt $event.Pitboxes)) (gt $g.max_clients (toInt $event.Entries)) }}
+                {{ $g.max_clients }} 
+                {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
+                {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
+                entries of {{ $event.Entries }}
+              {{ else if (gt $event.Pitboxes $event.Entries) }}
+                {{ $event.Pitboxes }}
+                {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
+                {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
+                entries of {{ $event.Entries }}
               {{ else }}
-              all {{ $event.entries }} entries
+              all {{ $event.Entries }} entries
               {{ end }}
               </span>
             </div>
           </td>
           <td class="text-left whitespace-nowrap flex flex-col align-baseline">
-            <span>{{ $event.time_name }}</span>
-            <span class="text-xs mr-4"><i class="fas fa-stopwatch"></i> {{ $event.time }} </span>
-            <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> {{ $event.graphics }}</span>
+            <span>{{ $event.Time_Name }}</span>
+            <span class="text-xs mr-4"><i class="fas fa-stopwatch"></i> {{ $event.Time }} </span>
+            <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> {{ $event.Graphics }}</span>
           </td>
           <td class="text-left whitespace-nowrap">
-            <a href="/event/{{ $event.id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
-                Edit</button></a><a href="/event_delete/{{ $event.id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
+            <a href="/event/{{ $event.Id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
+                Edit</button></a><a href="/event_delete/{{ $event.Id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
               Remove
               </button></a>
           </td>
@@ -503,8 +503,8 @@
                 required>
                 <option value="">Select ...</option>
                 {{range $val := .track_data }}
-                <option value="{{ (print $val.key ':' $val.config) }}">
-                  {{ $val.name }}
+                <option value="{{ $val.Key }}:{{ $val.Config }}">
+                  {{ $val.Name }}
                 </option>
                 {{ end }}
               </select>
@@ -529,7 +529,7 @@
                 @change="get_difficulty()" required>
                 <option value="">Select ...</option>
                 {{range $val := .difficulties }}
-                <option value="{{ $val.id }}">{{ $val.name }}</option>
+                <option value="{{ $val.Id }}">{{ $val.Name }}</option>
                 {{ end }}
               </select>
             </div>
@@ -542,7 +542,7 @@
                 @change="get_session()">
                 <option value="">Select ...</option>
                 {{range $val := .sessions }}
-                <option value="{{ $val.id }}">{{ $val.name }}</option>
+                <option value="{{ $val.Id }}">{{ $val.Name }}</option>
                 {{ end }}
               </select>
             </div>
@@ -556,7 +556,7 @@
                 </div>
               </label>
               <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="race_laps" placeholder="Laps"
-                 aria-label="Laps" value="{{.form.race_laps }}"/>
+                 aria-label="Laps" value="{{.form.Race_Laps | derefInt }}"/>
             </div>
           </div>
 
@@ -568,7 +568,7 @@
                   @change="get_class()">
                   <option value="">Select ...</option>
                   {{range $val := .classes }}
-                  <option value="{{ $val.id }}">{{ $val.name }}</option>
+                  <option value="{{ $val.Id }}">{{ $val.Name }}</option>
                   {{ end }}
                 </select>
                 <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_class()">
@@ -587,8 +587,8 @@
               </label>
               <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="strategy" required>
                 <option value="">Select ...</option>
-                <option {{ if (eq .form.strategy 1) }} selected {{ end }} value="1">First</option>
-                <option {{ if (eq .form.strategy 2) }} selected {{ end }} value="2">Random</option>
+                <option {{ if (eq (derefInt .form.Strategy) "1") }} selected {{ end }} value="1">First</option>
+                <option {{ if (eq (derefInt .form.Strategy) "2") }} selected {{ end }} value="2">Random</option>
               </select>
             </div>
           </div>
@@ -601,7 +601,7 @@
                 @change="get_time()">
                 <option value="">Select ...</option>
                 {{range $val := .times }}
-                <option value="{{ $val.id }}">{{ $val.name }}</option>
+                <option value="{{ $val.Id }}">{{ $val.Name }}</option>
                 {{ end }}
               </select>
               <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_time()">
@@ -712,7 +712,7 @@
           </button>
         </p>
       </div>
-    <input type="hidden" name="id" value="{{ .form.id }}"></input>
+    <input type="hidden" name="id" value="{{ .form.Id | derefInt }}"></input>
     </form>
   </div>
 </div>

@@ -10,7 +10,7 @@
           load_content: function () {
             this.loading = true;
             this.content_loaded = false;
-            fetch("/api/recache_vehicles")
+            fetch("/api/recache_cars")
               .then((response) => response.json())
               .then((json) => {
                 this.loading = false;
@@ -23,7 +23,7 @@
         }
       }
 </script>
-<h1 class="text-3xl text-black">Vehicle Classes</h1>
+<h1 class="text-3xl text-black">Car Classes</h1>
 <div class="flex flex-row bp-6" x-data="reload_content()">
   <p class="pr-4" style="align-self: center">
     <span x-html="content_total"></span> cars loaded
@@ -40,10 +40,11 @@
     <p class="text-xl pb-6 flex items-center"></p>
     <div class="flex flex-wrap">
       <nav class="flex flex-row flex-wrap w-full border-r-2 bg-gray-800 text-white">
+        {{ $g := . }}
         {{range $val := .list }}
-        <a href="/class/{{ $val.id }}"
-          class="py-4 px-6 block text-gray-500 hover:text-white font-medium {{ if (eq $val.id .form.id) }} text-white {{ end }}">
-          <i class="fas fa-edit mr-3"></i{{ $val.name }}>
+        <a href="/class/{{ $val.Id }}"
+          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {{ if (eq (derefInt $val.Id) (derefInt $g.form.Id)) }} text-white {{ end }}">
+          <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
         </a>
         {{ end }}
 
@@ -75,15 +76,15 @@
                   <div class="sm:flex sm:items-start">
                     <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                       <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                        Add a new Vehicle Class
+                        Add a new Car Class
                       </h3>
                       <div class="mt-2">
                         <p class="text-sm text-gray-500">
                           Enter the name of the class
                         </p>
                         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="class_name"
-                          name="class_name" type="text" required="" placeholder="Vehicle Class"
-                          aria-label="Vehicle Class" />
+                          name="class_name" type="text" required="" placeholder="Car Class"
+                          aria-label="Car Class" />
                       </div>
                     </div>
                   </div>
@@ -103,7 +104,7 @@
         </form>
       </nav>
 
-      {{ if .form }}
+      {{ if .form.Id }}
 
       <script>
         function move(arr, from, to) {
@@ -134,7 +135,7 @@
         function class_data() {
           return {
             // data loaded for all the cars.
-            car_data: JSON.parse('{{ .car_data }}'),
+            car_data: {{ .car_data }},
 
             car_getdata: function (car_key) {
               if (!car_key)
@@ -153,16 +154,15 @@
             },
 
             // Car class panel
-            // keys: key, id, skin, ballast
             class_cars: [],
 
             class_init: function () {
-              var init_data = JSON.parse('{{ .entries }}');
+              var init_data = {{ .form.Entries }};
 
               init_data.forEach((x) => {
                 let car = {
                   uid: Math.random().toString(16).slice(2),
-                  key: x["cache_vehicle_key"],
+                  cache_car_key: x["cache_car_key"],
                   skin_key: x["skin_key"],
                 };
 
@@ -289,7 +289,7 @@
             },
             skin_getimg: function (car_key, skin_key) {
               if (!car_key || !skin_key) return "";
-              return "/api/skin_img/" + car_key + "/" + skin_key + ".jpg";
+              return "/api/car/image/" + car_key + "/" + skin_key;
             },
 
             // details panel shown at the bottom
@@ -297,7 +297,7 @@
             details_car: {},
             details_chart: null,
             details_fetch: function (car) {
-              if (!car.key) return;
+              if (!car.cache_car_key) return;
               if (this.details_car.uid == car.uid) {
                 this.details_car = {};
                 return;
@@ -336,7 +336,7 @@
                   while (dataset.data.length) dataset.data.pop();
                 });
               }
-              fetch("/api/get_vehicle/" + car.key)
+              fetch("/api/get_car/" + car.cache_car_key)
                 .then((response) => response.json())
                 .then((json) => {
                   json.labels.forEach((x) => {
@@ -359,19 +359,19 @@
           };
         }
       </script>
-      <form id="frmUpdate" method="POST" action="/class/{{ .form.id }}" class="w-full flex flex-col bg-white text-black">
+      <form id="frmUpdate" method="POST" action="/class/{{ .form.Id }}" class="w-full flex flex-col bg-white text-black">
         <div x-data="class_data()" x-init="class_init()">
-          <input type="hidden" x-model="JSON.stringify(class_cars)" name="cars" />
+          <input type="hidden" x-model="JSON.stringify(class_cars)" name="entries" />
           <nav class="flex flex-col">
             <div class="w-full flex px-6 py-6" x-show="skinpicker_car.uid">
               <div class="w-full rounded-lg bg-gray-100">
                 <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
                 <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
-                  <template x-for="skin in car_getdata(skinpicker_car.key).skins">
+                  <template x-for="skin in car_getdata(skinpicker_car.cache_car_key).skins">
                     <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
-                      x-bind:src="skin_getimg(skinpicker_car.key, skin.skin_key)"
-                      :class="skinpicker_car.skin_key == skin.skin_key ? 'border-red-500' : ''"
-                      @click="skinpicker_car.skin_key = skin.skin_key" />
+                      x-bind:src="skin_getimg(skinpicker_car.cache_car_key, skin.key)"
+                      :class="skinpicker_car.skin_key == skin.key ? 'border-red-500' : ''"
+                      @click="skinpicker_car.skin_key = skin.key" />
                   </template>
                 </div>
               </div>
@@ -485,9 +485,9 @@
                   </thead>
                   <tbody>
                     <template x-for="(result, r_index) in search_getresults()">
-                      <tr :class="search_car.key == result.key ? 'text-red-500' : ''">
+                      <tr :class="search_car.cache_car_key == result.key ? 'text-red-500' : ''">
                         <td class="px-6 border-b border-grey-light">
-                          <a href="#" @click="search_car.key = result.key; car_changed(search_car)"
+                          <a href="#" @click="search_car.cache_car_key = result.key; car_changed(search_car)"
                             x-text="result.name"></a>
                         </td>
                         <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
@@ -508,16 +508,16 @@
                   <td class="relative max-w-64" style="padding: 0">
                     <span class="text-2xl text-white px-2 py-1 absolute"
                       x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
-                    <img x-bind:src="skin_getimg(car.key, car.skin_key)" class="w-64"/>
+                    <img x-bind:src="skin_getimg(car.cache_car_key, car.skin_key)" class="w-64"/>
                   </td>
                   <td class="pl-4 pr-4">
-                    <label class="block text-sm text-gray-600">Vehicle</label>
+                    <label class="block text-sm text-gray-600">Car</label>
                     <div class="flex flex-row">
-                      <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.key" required=""
+                      <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.cache_car_key" required=""
                         @change="car_changed(car)">
                         <option value="">Select ...</option>
-                        {{range $val := .cars }}
-                        <option value="{{  $val.key }}">{{ $val.name }}</option>
+                        {{range $val := .car_data }}
+                        <option value="{{  $val.Key }}">{{ $val.Name }}</option>
                         {{ end }}
                       </select>
                       <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
@@ -532,9 +532,9 @@
                         <option value="" :selected="car.skin_key == ''">
                           Select ...
                         </option>
-                        <template x-for="skin in car_getdata(car.key).skins">
-                          <option x-bind:value="skin.skin_key" x-text="skin.skin_name"
-                            :selected="car.skin_key == skin.skin_key"></option>
+                        <template x-for="skin in car_getdata(car.cache_car_key).skins">
+                          <option x-bind:value="skin.key" x-text="skin.name"
+                            :selected="car.skin_key == skin.key"></option>
                         </template>
                       </select>
                       <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
@@ -606,12 +606,12 @@
               </div>
               <div class="w-1/2 mx-6">
                 <h2 class="text-lg"
-                  x-text="car_getdata(details_car.key).name + ' - ' + skin_getdata(details_car.key, details_car.skin_key).skin_name">
+                  x-text="car_getdata(details_car.cache_car_key).name + ' - ' + skin_getdata(details_car.cache_car_key, details_car.skin_key).skin_name">
                 </h2>
-                <img x-bind:src="skin_getimg(details_car.key, details_car.skin_key)" class="py-4" />
+                <img x-bind:src="skin_getimg(details_car.cache_car_key, details_car.skin_key)" class="py-4" />
 
                 <div>
-                  <template x-for="tag in car_getdata(details_car.key).tags">
+                  <template x-for="tag in car_getdata(details_car.cache_car_key).tags">
                     <div
                       class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
                       <div class="mt-px" x-html="tag"></div>
@@ -626,16 +626,16 @@
                     line-height: 1.6;
                   ">
                   Power:
-                  <span x-text="car_getdata(details_car.key).specs.bhp"></span><br />
+                  <span x-text="car_getdata(details_car.cache_car_key).specs.bhp"></span><br />
                   Torque:
-                  <span x-text="car_getdata(details_car.key).specs.torque"></span><br />
+                  <span x-text="car_getdata(details_car.cache_car_key).specs.torque"></span><br />
                   Weight:
-                  <span x-text="car_getdata(details_car.key).specs.weight"></span><br />
+                  <span x-text="car_getdata(details_car.cache_car_key).specs.weight"></span><br />
                   Top Speed:
-                  <span x-text="car_getdata(details_car.key).specs.topspeed"></span>
+                  <span x-text="car_getdata(details_car.cache_car_key).specs.topspeed"></span>
                   <br />
                   Acceleration:
-                  <span x-text="car_getdata(details_car.key).specs.acceleration"></span>
+                  <span x-text="car_getdata(details_car.cache_car_key).specs.acceleration"></span>
                 </p>
 
                 <p class="text-xs text-justify py-4" x-html="details.desc"></p>
@@ -656,7 +656,7 @@
         </div>
       </form>
     </div>
-    <form id="frmDelete" action="/class_delete/{{ .form.id }}" method="POST"></form>
+    <form id="frmDelete" action="/class_delete/{{ .form.Id }}" method="POST"></form>
 
     {{ end }}
   </div>
