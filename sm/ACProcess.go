@@ -10,8 +10,8 @@ var lines string
 var cmd *exec.Cmd
 
 func Start() {
-	cmd = exec.Command(filepath.Join(basepath(), "server", "acServer"))
-	cmd.Dir = filepath.Join(basepath(), "server")
+	cmd = exec.Command(filepath.Join(Dba.Basepath(), "server", "acServer"))
+	cmd.Dir = filepath.Join(Dba.Basepath(), "server")
 	var stdOut, _ = cmd.StdoutPipe()
 	cmd.Start()
 

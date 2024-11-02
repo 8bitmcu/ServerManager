@@ -14,7 +14,7 @@ func API_Car_Image(c *gin.Context) {
 	car := c.Param("car")
 	skin := c.Param("skin")
 
-	file := filepath.Join(basepath(), "content", "cars", car, "skins", skin, "preview.jpg")
+	file := filepath.Join(Dba.Basepath(), "content", "cars", car, "skins", skin, "preview.jpg")
 	if _, err := os.Stat(file); errors.Is(err, os.ErrNotExist) {
 		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
 		return
@@ -87,10 +87,10 @@ func API_Track_Preview_Image(c *gin.Context) {
 	file := ""
 	fileName := ""
 	if config != "" {
-		file = filepath.Join(basepath(), "content", "tracks", track, "ui", config, "preview.png")
+		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", config, "preview.png")
 		fileName = track + "_" + config
 	} else {
-		file = filepath.Join(basepath(), "content", "tracks", track, "ui", "preview.png")
+		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", "preview.png")
 		fileName = track
 	}
 
@@ -110,10 +110,10 @@ func API_Track_Outline_Image(c *gin.Context) {
 	file := ""
 	fileName := ""
 	if config != "" {
-		file = filepath.Join(basepath(), "content", "tracks", track, "ui", config, "outline.png")
+		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", config, "outline.png")
 		fileName = track + "_" + config
 	} else {
-		file = filepath.Join(basepath(), "content", "tracks", track, "ui", "outline.png")
+		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", "outline.png")
 		fileName = track
 	}
 

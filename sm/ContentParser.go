@@ -19,7 +19,7 @@ func Parse_Weathers(dba Dbaccess) int {
 
 	weathers := make([]Cache_Weather, 0)
 
-	weather_path := filepath.Join(basepath(), "content", "weather")
+	weather_path := filepath.Join(Dba.Basepath(), "content", "weather")
 	entries, err := os.ReadDir(weather_path)
 	if err != nil {
 		log.Print(err)
@@ -110,7 +110,7 @@ func Parse_Tracks(dba Dbaccess) int {
 	}
 
 	tracks := make([]Cache_Track, 0)
-	tracks_path := filepath.Join(basepath(), "content", "tracks")
+	tracks_path := filepath.Join(Dba.Basepath(), "content", "tracks")
 	entries, err := os.ReadDir(tracks_path)
 	if err != nil {
 		log.Print(err)
@@ -168,7 +168,7 @@ func Parse_Tracks(dba Dbaccess) int {
 
 func Parse_Cars(dba Dbaccess) int {
 	cars := make([]Cache_Car, 0)
-	cars_path := filepath.Join(basepath(), "content", "cars")
+	cars_path := filepath.Join(Dba.Basepath(), "content", "cars")
 	entries, err := os.ReadDir(cars_path)
 	if err != nil {
 		log.Print(err)

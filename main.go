@@ -2,22 +2,54 @@ package main
 
 import (
 	"html/template"
+	"io"
+	"log"
 	"main/sm"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jessevdk/go-assets"
 )
+
+func loadTemplate(t *template.Template) error {
+	for name, file := range Assets.Files {
+		if file.IsDir() || !strings.HasSuffix(name, ".htm") {
+			continue
+		}
+		h, err := io.ReadAll(file)
+		if err != nil {
+			return err
+		}
+		t, err = t.New(name).Parse(string(h))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func findFile(filePath string) *assets.File {
+	for _, file := range Assets.Files {
+		if file.Path == filePath {
+			return file
+		}
+	}
+	return nil
+}
 
 func main() {
 
-	dba := sm.Open("smdata/sm.db")
-	dba.Apply_Schema()
+	dba := sm.Open("smdata.db")
+
+
+	dba.Apply_Schema(findFile("/schema.sql"))
+	sm.Dba = dba
 
 	router := gin.Default()
-	router.Static("/static", "./static")
 
-	router.SetFuncMap(template.FuncMap{
+	funcMap := template.FuncMap{
 		"derefStr": func(t *string) string {
 			if t == nil {
 				return ""
@@ -45,15 +77,20 @@ func main() {
 			}
 			return false
 		},
-	})
+	}
 
-	router.LoadHTMLGlob("htm/*")
+	//router.SetFuncMap(funcMap)
+	//router.LoadHTMLGlob("*")
 
-	//sm.Parse_Weathers(dba)
-	//sm.Parse_Tracks(dba)
-	//sm.Parse_Cars(dba)
+	t := template.New("")
+	t.Funcs(funcMap)
+	err := loadTemplate(t)
+	if err != nil {
+		panic(err)
+	}
+	router.SetHTMLTemplate(t)
 
-	sm.Dba = dba
+	router.StaticFS("/static", Assets)
 
 	router.GET("/", sm.Route_Index)
 
@@ -120,9 +157,13 @@ func main() {
 	router.GET("/api/server/server_cfg.ini", sm.API_Server_Cfg)
 
 	router.NoRoute(func(c *gin.Context) {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{})
 	})
 
 	router.Run(":3030")
+
+
+
+	log.Print(Assets.LocalPath)
 
 }

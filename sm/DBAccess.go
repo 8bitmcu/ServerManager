@@ -3,11 +3,11 @@ package sm
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"io"
 	"log"
-	"os"
 	"time"
 
+	"github.com/jessevdk/go-assets"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -230,10 +230,17 @@ func Open(name string) Dbaccess {
 	return dba
 }
 
-func (dba Dbaccess) Apply_Schema() {
-	sqlBytes, err := os.ReadFile("schema.sql")
+func (Dba Dbaccess) Basepath() string {
+	return *Dba.Select_Config().Install_Path
+}
+
+func (dba Dbaccess) Apply_Schema(f *assets.File) {
+	sqlBytes, err := io.ReadAll(f)
 	if err != nil {
-		fmt.Print(err)
+		log.Print(err)
+	}
+	if err != nil {
+		log.Print(err)
 	}
 	sqlStmt := string(sqlBytes)
 	_, err = dba.Db.Exec(sqlStmt)

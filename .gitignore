@@ -1,10 +1,9 @@
-sqlite.db
-package-lock.json
-py/*.pyc
-node_modules/*
-__pycache__/*
-py/__pycache__/*
-static/css/main.css
 *.db
+package-lock.json
+node_modules/*
+static/css/main.css
 main
+main.exe
 go.sum
+bin/*
+assets.go
