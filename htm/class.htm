@@ -10,7 +10,7 @@
           load_content: function () {
             this.loading = true;
             this.content_loaded = false;
-            fetch("/api/recache_cars")
+            fetch("/api/car/recache")
               .then((response) => response.json())
               .then((json) => {
                 this.loading = false;
@@ -656,7 +656,7 @@
         </div>
       </form>
     </div>
-    <form id="frmDelete" action="/class_delete/{{ .form.Id }}" method="POST"></form>
+    <form id="frmDelete" action="/class/delete/{{ .form.Id }}" method="POST"></form>
 
     {{ end }}
   </div>

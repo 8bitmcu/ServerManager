@@ -2,11 +2,12 @@ package sm
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func API_Car_Image(c *gin.Context) {
@@ -69,17 +70,21 @@ func API_Track_Outline_Image(c *gin.Context) {
 	}
 }
 
-// TODO: return 404 when id not found
 func API_Difficulty(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
 		return
-	} else {
-		c.PureJSON(200, gin.H{
-			"data": Dba.Select_Difficulty(id),
-		})
 	}
+
+	data := Dba.Select_Difficulty(id)
+	if data.Id == nil {
+		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		return
+	}
+	c.PureJSON(http.StatusOK, gin.H{
+		"data": data,
+	})
 }
 
 func API_Session(c *gin.Context) {
@@ -87,11 +92,16 @@ func API_Session(c *gin.Context) {
 	if err != nil {
 		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
 		return
-	} else {
-		c.PureJSON(200, gin.H{
-			"data": Dba.Select_Session(id),
-		})
 	}
+
+	data := Dba.Select_Session(id)
+	if data.Id == nil {
+		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		return
+	}
+	c.PureJSON(http.StatusOK, gin.H{
+		"data": data,
+	})
 }
 
 func API_Class(c *gin.Context) {
@@ -99,11 +109,16 @@ func API_Class(c *gin.Context) {
 	if err != nil {
 		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
 		return
-	} else {
-		c.PureJSON(200, gin.H{
-			"data": Dba.Select_Class_Entries(id),
-		})
 	}
+
+	data := Dba.Select_Class_Entries(id)
+	if data.Id == nil {
+		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		return
+	}
+	c.PureJSON(http.StatusOK, gin.H{
+		"data": data,
+	})
 }
 
 func API_Time(c *gin.Context) {
@@ -111,12 +126,92 @@ func API_Time(c *gin.Context) {
 	if err != nil {
 		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
 		return
-	} else {
-		c.PureJSON(200, gin.H{
-			"data": Dba.Select_Time_Weather(id),
-		})
 	}
+
+	data := Dba.Select_Time_Weather(id)
+	if data.Id == nil {
+		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		return
+	}
+	c.PureJSON(http.StatusOK, gin.H{
+		"data": data,
+	})
 }
+
+func API_Recache_Cars(c *gin.Context) {
+	result := Parse_Cars(Dba)
+	c.PureJSON(http.StatusOK, gin.H{
+		"result": "ok",
+		"value": result,
+	})
+}
+
+func API_Recache_Tracks(c *gin.Context) {
+	result := Parse_Tracks(Dba)
+	c.PureJSON(http.StatusOK, gin.H{
+		"result": "ok",
+		"value": result,
+	})
+}
+
+func API_Recache_Weathers(c *gin.Context) {
+	result := Parse_Weathers(Dba)
+	c.PureJSON(http.StatusOK, gin.H{
+		"result": "ok",
+		"value": result,
+	})
+}
+
+func API_Validate_Installpath(c *gin.Context) {
+	path := filepath.Join(c.PostForm("path"), "acs.exe")
+	exists := true
+
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		exists = false
+	}
+
+	c.PureJSON(http.StatusOK, gin.H{
+		"result": exists,
+	})
+}
+
+func API_Console_Start(c *gin.Context) {
+	Start()
+	c.PureJSON(http.StatusOK, gin.H{
+		"is_running": Is_Running(),
+		"text": Get_Content(),
+	})
+}
+
+func API_Console_Stop(c *gin.Context) {
+	Stop()
+	c.PureJSON(http.StatusOK, gin.H{
+		"is_running": Is_Running(),
+		"text": Get_Content(),
+	})
+}
+
+func API_Console_Status(c *gin.Context) {
+	c.PureJSON(http.StatusOK, gin.H{
+		"is_running": Is_Running(),
+		"text": Get_Content(),
+	})
+}
+
+func API_Entry_List(c *gin.Context) {
+	id := c.Query("id")
+	idInt, _ := strconv.Atoi(id)
+	c.String(http.StatusOK, Render_Entry_List(idInt))
+}
+
+func API_Server_Cfg(c *gin.Context) {
+	id := c.Query("id")
+	idInt, _ := strconv.Atoi(id)
+	str, _ := Render_Ini(idInt)
+
+	c.String(http.StatusOK, str)
+}
+
 
 /*
 @app.route("/api/get_vehicle/<string:key>")
@@ -149,31 +244,5 @@ def get_vehicle(key):
     return jsonify(json_data)
 
 
-
-@app.route("/api/validate_installpath", methods=('POST', ))
-def validate_installpath():
-    if fsa.validate_installpath(request.form['path']):
-        return jsonify({"result": "ok"})
-    else:
-        return jsonify({"result": "no"})
-
-@app.route("/api/recache_vehicles")
-def recache_vehicles():
-    result = fsa.parse_cars_folder(dba)
-    return jsonify({'result': 'ok', 'value': result})
-
-@app.route("/api/recache_tracks")
-def recache_tracks():
-    result = fsa.parse_tracks_folder(dba)
-    return jsonify({'result': 'ok', 'value': result})
-
-@app.route("/api/recache_weathers")
-def recache_weathers():
-    result = fsa.parse_weathers_folder(dba)
-    return jsonify({'result': 'ok', 'value': result})
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
 
 */

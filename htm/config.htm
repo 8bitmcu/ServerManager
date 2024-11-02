@@ -11,21 +11,14 @@
         this.loading = true;
         let data = new FormData()
         data.append("path", this.install_path)
-        fetch("/api/validate_installpath", {
+        fetch("/api/validate/installpath", {
           method: "POST",
           body: data
         })
         .then((response) => response.json())
           .then((json) => {
             this.loading = false;
-            if(json.result == 'ok') {
-              this.path_valid = true;
-            } else if(json.result == 'no') {
-              this.path_valid = false;
-            }
-            else {
-              this.path_valid = null;
-            }
+            this.path_valid = json.result;
           });
       },
     }

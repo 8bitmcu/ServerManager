@@ -26,7 +26,7 @@
       load_content: function () {
         this.loading = true;
         this.content_loaded = false;
-        fetch("/api/recache_tracks")
+        fetch("/api/track/recache")
           .then((response) => response.json())
           .then((json) => {
             this.loading = false;
@@ -239,7 +239,7 @@
         {{$g := . }}
         {{range $event := .events }}
         <tr class="odd:bg-gray-100">
-          <td class="text-left whitespace-nowrap align-baseline">
+          <td class="text-left whitespace-nowrap align-baseline pl-4">
             <span>{{ $event.Track_Name }}</span>
             <div class="text-xs">
               <i class="fas fa-route"></i>
@@ -273,35 +273,35 @@
             <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row whitespace-nowrap">
               <div class="flex flex-col">
                 <span :class="{{ $event.Booking_Enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.Booking_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Booking</span>
+                  <i class="fas {{ if (eq (derefInt $event.Booking_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Booking</span>
                 </span>
               </div>
-                {{ if $event.Booking_Enabled }}
+                {{ if (eq (derefInt $event.Booking_Enabled) "1") }}
                 <span class="pr-2">{{ $event.Booking_Time }} minutes</span>
                 {{ end }}
               <div class="flex flex-col">
                 <span :class="{{ $event.Practice_Enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.Practice_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Practice</span>
+                  <i class="fas {{ if (eq (derefInt $event.Practice_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Practice</span>
                 </span>
-                {{ if $event.Practice_Enabled }}
+                {{ if (eq (derefInt $event.Practice_Enabled) "1") }}
                 <span class="pr-2">{{ $event.Practice_Time }} minutes</span>
                 {{ end }}
               </div>
               <div class="flex flex-col">
                 <span :class="{{ $event.Qualify_Enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.Qualify_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Qualifying</span>
+                  <i class="fas {{ if (eq (derefInt $event.Qualify_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Qualifying</span>
                 </span>
-                {{ if $event.Qualify_Enabled }}
+                {{ if (eq (derefInt $event.Qualify_Enabled) "1") }}
                 <span class="pr-2">{{ $event.Qualify_Time }} minutes</span>
                 {{ end }}
               </div>
               <div class="flex flex-col">
                 <span :class="{{ $event.Race_Enabled }} ? 'text-red-500' : 'text-gray-500'">
-                  <i class="fas {{ if $event.Race_Enabled }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Race</span>
+                  <i class="fas {{ if (eq (derefInt $event.Race_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Race</span>
                 </span>
-                {{ if and $event.Race_Laps $event.Race_Enabled }}
+                {{ if and $event.Race_Laps (eq (derefInt $event.Race_Enabled) "1") }}
                 <span class="pr-2">{{ $event.Race_Laps }} laps</span>
-                {{ else if $event.Race_Enabled }}
+                {{ else if (eq (derefInt $event.Race_Enabled) "1") }}
                 <span class="pr-2">{{ $event.Race_Time }} minutes</span>
                 {{ end }}
               </div>
@@ -316,7 +316,7 @@
                 {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
                 {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
                 entries of {{ $event.Entries }}
-              {{ else if (gt $event.Pitboxes $event.Entries) }}
+              {{ else if (gt (toInt $event.Pitboxes) (toInt $event.Entries)) }}
                 {{ $event.Pitboxes }}
                 {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
                 {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
@@ -334,7 +334,7 @@
           </td>
           <td class="text-left whitespace-nowrap">
             <a href="/event/{{ $event.Id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
-                Edit</button></a><a href="/event_delete/{{ $event.Id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
+                Edit</button></a><a href="/event/delete/{{ $event.Id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
               Remove
               </button></a>
           </td>

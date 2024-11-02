@@ -10,7 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 var Dba Dbaccess
+
+func basepath() string {
+	return "/mnt/smb"
+}
 
 func Route_Config(c *gin.Context) {
 	var form User_Config
@@ -39,7 +44,6 @@ func Route_Content(c *gin.Context) {
 func Route_Index(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.htm", gin.H{
 		"page":       "index",
-		"is_running": false,
 	})
 }
 
@@ -68,6 +72,13 @@ func Route_Difficulty(c *gin.Context) {
 		"list": Dba.Select_DifficultyList(false),
 		"form": form,
 	})
+}
+
+func Route_Delete_Difficulty(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	Dba.Delete_Difficulty(id)
+	c.Redirect(http.StatusFound, "/difficulty")
+	return
 }
 
 func Route_Class(c *gin.Context) {
@@ -99,6 +110,13 @@ func Route_Class(c *gin.Context) {
 	})
 }
 
+func Route_Delete_Class(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	Dba.Delete_Class(id)
+	c.Redirect(http.StatusFound, "/class")
+	return
+}
+
 func Route_Session(c *gin.Context) {
 	form := User_Session{}
 	id, err := strconv.Atoi(c.Param("id"))
@@ -125,6 +143,13 @@ func Route_Session(c *gin.Context) {
 		"list": Dba.Select_SessionList(false),
 		"form": form,
 	})
+}
+
+func Route_Delete_Session(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	Dba.Delete_Session(id)
+	c.Redirect(http.StatusFound, "/session")
+	return
 }
 
 func Route_Time(c *gin.Context) {
@@ -161,6 +186,13 @@ func Route_Time(c *gin.Context) {
 	})
 }
 
+func Route_Delete_Time(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	Dba.Delete_Time(id)
+	c.Redirect(http.StatusFound, "/time")
+	return
+}
+
 func Route_Event(c *gin.Context) {
 	form := User_Event{}
 
@@ -175,10 +207,8 @@ func Route_Event(c *gin.Context) {
 	}
 	if c.Request.Method == "POST" {
 		if c.PostForm("id") != "" {
-			log.Print("updating event")
 			Dba.Update_Event(form)
 		} else if c.ShouldBind(&form) == nil {
-			log.Print("insertin event")
 			id := Dba.Insert_Event(form)
 			c.Redirect(http.StatusFound, fmt.Sprint("/event/", id))
 			return
@@ -197,4 +227,11 @@ func Route_Event(c *gin.Context) {
 		"track_data":   Dba.Select_Cache_Tracks(),
 	})
 
+}
+
+func Route_Delete_Event(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	Dba.Delete_Event(id)
+	c.Redirect(http.StatusFound, "/event")
+	return
 }

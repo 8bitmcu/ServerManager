@@ -10,7 +10,7 @@
       load_content: function () {
         this.loading = true;
         this.content_loaded = false;
-        fetch("/api/recache_weathers")
+        fetch("/api/weather/recache")
           .then((response) => response.json())
           .then((json) => {
             this.loading = false;
@@ -324,7 +324,7 @@
         </div>
     </div>
     </form>
-    <form id="frmDelete" action="/time_delete/{{ .form.Id }}" method="POST"></form>
+    <form id="frmDelete" action="/time/delete/{{ .form.Id }}" method="POST"></form>
     {{ end }}
   </div>
 </div>

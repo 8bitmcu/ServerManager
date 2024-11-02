@@ -12,10 +12,6 @@ import (
 	"strconv"
 )
 
-func basepath() string {
-	return "/mnt/smb"
-}
-
 func Parse_Weathers(dba Dbaccess) int {
 	r := regexp.MustCompile("^NAME")
 	r2 := regexp.MustCompile("^NAME=(.*)$")

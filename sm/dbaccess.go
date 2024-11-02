@@ -139,6 +139,7 @@ type User_Time struct {
 
 type User_Time_Weather struct {
 	Id                       *int
+	Name                     *string `json:"name"`
 	User_Time_Id             *int
 	Graphics                 *string `json:"graphics"`
 	Base_Temperature_Ambient *int    `json:"base_temperature_ambient,string"`
@@ -166,8 +167,8 @@ type User_Class_Entry struct {
 }
 
 type DropDown_List struct {
-	Id   *int
-	Name *string
+	Id   *int    `json:"id"`
+	Name *string `json:"name"`
 }
 
 type Cache_Car struct {
@@ -276,7 +277,7 @@ func (dba Dbaccess) Select_DropDownList(filled bool, tableName string) []DropDow
 		item := DropDown_List{}
 		err = rows.Scan(&item.Id, &item.Name)
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 
 		ddl = append(ddl, item)
@@ -288,7 +289,6 @@ func (dba Dbaccess) Select_DropDownList(filled bool, tableName string) []DropDow
 	}
 
 	return ddl
-
 }
 
 func (dba Dbaccess) Delete_From(id int, tableName string) int64 {
@@ -632,7 +632,7 @@ func (dba Dbaccess) Select_Time_Weather(id int) User_Time {
 		log.Print(err)
 	}
 
-	stmt, err = dba.Db.Prepare("SELECT id, user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction FROM user_time_weather WHERE user_time_id = ?")
+	stmt, err = dba.Db.Prepare("SELECT a.id, name, user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction FROM user_time_weather a JOIN cache_weather b on a.graphics = b.key WHERE user_time_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
@@ -641,7 +641,7 @@ func (dba Dbaccess) Select_Time_Weather(id int) User_Time {
 	time.Weathers = make([]User_Time_Weather, 0)
 	wt := User_Time_Weather{}
 	for rows.Next() {
-		err = rows.Scan(&wt.Id, &wt.User_Time_Id, &wt.Graphics, &wt.Base_Temperature_Ambient, &wt.Base_Temperature_Road, &wt.Variation_Ambient, &wt.Variation_Road, &wt.Wind_Base_Speed_Min, &wt.Wind_Base_Speed_Max, &wt.Wind_Base_Direction, &wt.Wind_Variation_Direction)
+		err = rows.Scan(&wt.Id, &wt.Name, &wt.User_Time_Id, &wt.Graphics, &wt.Base_Temperature_Ambient, &wt.Base_Temperature_Road, &wt.Variation_Ambient, &wt.Variation_Road, &wt.Wind_Base_Speed_Min, &wt.Wind_Base_Speed_Max, &wt.Wind_Base_Direction, &wt.Wind_Variation_Direction)
 
 		time.Weathers = append(time.Weathers, wt)
 	}
