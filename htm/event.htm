@@ -503,7 +503,7 @@
                 required>
                 <option value="">Select ...</option>
                 {{range $val := .track_data }}
-                <option value="{{ $val.Key }}:{{ $val.Config }}">
+                <option value="{{ $val.Key }}:{{ $val.Config }}" :selected="selection_track_key + selection_track_config ==  '{{ $val.Key }}{{ $val.Config }}'">
                   {{ $val.Name }}
                 </option>
                 {{ end }}

@@ -80,7 +80,7 @@
           </div>
         </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="register_to_lobby" id="register_to_lobby" value="1" {% if (eq .form.Register_To_Lobby 1) %} checked {% endif %}
+          <input type="checkbox" name="register_to_lobby" id="register_to_lobby" value="1" {{ if (eq (derefInt .form.Register_To_Lobby) "1") }} checked {{ end }}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="register_to_lobby"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -97,7 +97,7 @@
           </div>
         </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="pickup_mode_enabled" id="pickup_mode_enabled" value="1" {% if (eq .form.Pickup_Mode_Enabled 1) %} checked {% endif %}
+          <input type="checkbox" name="pickup_mode_enabled" id="pickup_mode_enabled" value="1" {{ if (eq (derefInt .form.Pickup_Mode_Enabled) "1") }} checked {{ end }}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="pickup_mode_enabled"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -114,7 +114,7 @@
           </div>
         </label>
         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="locked_entry_list" id="locked_entry_list" value="1" {% if (eq .form.Locked_Entry_List 1) %} checked {% endif %}
+          <input type="checkbox" name="locked_entry_list" id="locked_entry_list" value="1" {{ if (eq (derefInt .form.Locked_Entry_List) "1") }} checked {{ end }}
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="locked_entry_list"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
@@ -261,8 +261,8 @@
         </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit"
           name="measurement_unit">
-          <option value="0" {% if (eq .form.Measurement_Unit 0)%} selected {% endif %}>KM, KM/h</option>
-          <option value="1" {% if (eq .form.Measurement_Unit 1) %} selected {% endif %}>Miles, MPH</option>
+          <option value="0" {{ if (eq (derefInt .form.Measurement_Unit) "0")}} selected {{ end }}>KM, KM/h</option>
+          <option value="1" {{ if (eq (derefInt .form.Measurement_Unit) "1") }} selected {{ end }}>Miles, MPH</option>
         </select>
       </div>
       <div class="mt-2">
@@ -275,8 +275,8 @@
           </div>
         </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="temp_unit" name="temp_unit">
-          <option value="0" {% if (eq .form.temp_unit 0) %} selected {% endif %}>Celcius</option>
-          <option value="1" {% if (eq .form.temp_unit 1) %} selected {% endif %}>Fahrenheit</option>
+          <option value="0" {{ if (eq (derefInt .form.Temp_Unit) "0") }} selected {{ end }}>Celcius</option>
+          <option value="1" {{ if (eq (derefInt .form.Temp_Unit) "1") }} selected {{ end }}>Fahrenheit</option>
         </select>
       </div>
     </div>

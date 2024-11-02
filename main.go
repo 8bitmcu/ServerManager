@@ -1,19 +1,18 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"html/template"
 	"main/sm"
+	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
 	dba := sm.Open("smdata/sm.db")
 	dba.Apply_Schema()
-
-
-
 
 	router := gin.Default()
 	router.Static("/static", "./static")
@@ -39,7 +38,7 @@ func main() {
 		},
 		"toJsBool": func(t *int) bool {
 			if t == nil {
-				return true
+				return false
 			}
 			if *t > 0 {
 				return true
@@ -94,6 +93,7 @@ func main() {
 	router.POST("/event/:id", sm.Route_Event)
 	router.GET("/event/delete/:id", sm.Route_Delete_Event)
 
+	router.GET("/api/car/:key", sm.API_Car)
 	router.GET("/api/car/image/:car/:skin", sm.API_Car_Image)
 
 	router.GET("/api/track/preview/:track/:config", sm.API_Track_Preview_Image)
@@ -119,7 +119,10 @@ func main() {
 	router.GET("/api/server/entry_list.ini", sm.API_Entry_List)
 	router.GET("/api/server/server_cfg.ini", sm.API_Server_Cfg)
 
-	router.Run(":3030")
+	router.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+	})
 
+	router.Run(":3030")
 
 }

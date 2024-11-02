@@ -77,7 +77,7 @@ func Parse_Weathers(dba Dbaccess) int {
 
 func Parse_Tracks(dba Dbaccess) int {
 	parse_json := func(json_path string, key string, config string) Cache_Track {
-		r := regexp.MustCompile("^[0-9]")
+		r := regexp.MustCompile("[^0-9]")
 		jsonBytes, err := os.ReadFile(json_path)
 		if err != nil {
 			log.Print(err)

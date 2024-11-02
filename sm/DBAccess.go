@@ -188,8 +188,8 @@ type Cache_Car struct {
 		Pwratio      string `json:"pwratio"`
 		Range        int    `json:"range"`
 	} `json:"specs"`
-	Torque []any `json:"torqueCurve"`
-	Power  []any `json:"powerCurve"`
+	Torque [][]any `json:"torqueCurve"`
+	Power  [][]any `json:"powerCurve"`
 	Skins  []struct {
 		Key  string `json:"key"`
 		Name string `json:"name"`
@@ -206,8 +206,8 @@ type Cache_Track struct {
 	Country  *string   `json:"country"`
 	City     *string   `json:"city"`
 	Length   *int      `json:"length"`
-	Width    *int      `json:"width"`
-	Pitboxes *int      `json:"pitboxes"`
+	Width    *string   `json:"width"`
+	Pitboxes *int      `json:"pitboxes,string"`
 	Run      *string   `json:"run"`
 }
 
@@ -345,7 +345,6 @@ func (dba Dbaccess) Select_Config() User_Config {
 		log.Print(err)
 	}
 
-	log.Print(cfg)
 	return cfg
 }
 

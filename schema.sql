@@ -1,4 +1,4 @@
-CREATE TABLE user_config (
+CREATE TABLE IF NOT EXISTS user_config (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT,
   password TEXT,
@@ -26,7 +26,7 @@ CREATE TABLE user_config (
   csp_version INTEGER
 );
 
-CREATE TABLE user_difficulty (
+CREATE TABLE IF NOT EXISTS user_difficulty (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   abs_allowed INTEGER,
@@ -57,7 +57,7 @@ CREATE TABLE user_difficulty (
   filled INTEGER
 );
 
-CREATE TABLE user_time (
+CREATE TABLE IF NOT EXISTS user_time (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   time TEXT,
@@ -66,7 +66,7 @@ CREATE TABLE user_time (
   filled INTEGER
 );
 
-CREATE TABLE user_time_weather (
+CREATE TABLE IF NOT EXISTS user_time_weather (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_time_id INTEGER NOT NULL,
   graphics TEXT,
@@ -80,7 +80,7 @@ CREATE TABLE user_time_weather (
   wind_variation_direction INTEGER
 );
 
-CREATE TABLE user_session (
+CREATE TABLE IF NOT EXISTS user_session (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   booking_enabled INTEGER,
@@ -105,14 +105,14 @@ CREATE TABLE user_session (
   filled INTEGER
 );
 
-CREATE TABLE user_class (
+CREATE TABLE IF NOT EXISTS user_class (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
 
   filled INTEGER
 );
 
-CREATE TABLE user_class_entry (
+CREATE TABLE IF NOT EXISTS user_class_entry (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_class_id INTEGER NOT NULL,
   cache_car_key TEXT NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE user_class_entry (
   ballast INTEGER
 );
 
-CREATE TABLE user_event (
+CREATE TABLE IF NOT EXISTS user_event (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cache_track_key TEXT NOT NULL,
   cache_track_config TEXT NOT NULL,
@@ -136,7 +136,7 @@ CREATE TABLE user_event (
   finished INTEGER
 );
 
-CREATE TABLE cache_track (
+CREATE TABLE IF NOT EXISTS cache_track (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT NOT NULL,
   config TEXT NOT NULL,
@@ -151,7 +151,7 @@ CREATE TABLE cache_track (
   run TEXT
 );
 
-CREATE TABLE cache_car (
+CREATE TABLE IF NOT EXISTS cache_car (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -165,22 +165,24 @@ CREATE TABLE cache_car (
   skins TEXT
 );
 
-CREATE TABLE cache_weather (
+CREATE TABLE IF NOT EXISTS cache_weather (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT NOT NULL,
   name TEXT NOT NULL
 );
 
 
-CREATE UNIQUE INDEX idx_cache_track_key_config
+-- INDEXES
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cache_track_key_config
 ON cache_track (key, config);
 
-CREATE UNIQUE INDEX idx_cache_car_key
-ON cache_cars (key);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cache_car_key
+ON cache_car (key);
 
-CREATE UNIQUE INDEX idx_cache_weather_key
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cache_weather_key
 ON cache_weather (key);
 
 
-
-INSERT INTO user_config (name, udp_port, tcp_port, http_port, client_send_interval, num_threads) VALUES ('AC Server', 9600, 9600, 8081, 18, 2);
+-- DEFAULT VALUES
+INSERT OR IGNORE INTO user_config (id, name, udp_port, tcp_port, http_port, client_send_interval, num_threads) VALUES (1, 'AC Server', 9600, 9600, 8081, 18, 2);

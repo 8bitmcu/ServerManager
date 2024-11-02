@@ -24,6 +24,62 @@ func API_Car_Image(c *gin.Context) {
 	}
 }
 
+func API_Car(c *gin.Context) {
+	key := c.Param("key")
+
+	car_data := Dba.Select_Cache_Car(key)
+
+	var power []any
+	var torque []any
+	var labels []any
+
+	for _, l := range car_data.Power {
+		labels = append(labels, l[0])
+	}
+	for _, p := range car_data.Power {
+		power = append(power, p[1])
+	}
+	for _, t := range car_data.Torque {
+		torque = append(torque, t[1])
+	}
+
+	c.PureJSON(http.StatusOK, gin.H{
+		"key":    key,
+		"desc":   car_data.Desc,
+		"power":  power,
+		"torque": torque,
+		"labels": labels,
+	})
+
+	/*
+	   car_data = dba.get_car(key)
+
+	   raw_power = json.loads(car_data['power'])
+
+	   torque = []
+	   for t in json.loads(car_data['torque']):
+	       torque.append(int(t[1]))
+
+	   power = []
+	   for p in raw_power:
+	       power.append(int(p[1]))
+
+	   labels = []
+	   for p in raw_power:
+	       labels.append(int(p[0]))
+
+	   json_data = {
+	       'key': key,
+	       'desc': car_data['desc'],
+	       'power': power,
+	       'torque': torque,
+	       'labels': labels
+	   }
+
+	   return jsonify(json_data)
+	*/
+}
+
 func API_Track_Preview_Image(c *gin.Context) {
 	track := c.Param("track")
 	config := c.Param("config")
@@ -142,7 +198,7 @@ func API_Recache_Cars(c *gin.Context) {
 	result := Parse_Cars(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result": "ok",
-		"value": result,
+		"value":  result,
 	})
 }
 
@@ -150,7 +206,7 @@ func API_Recache_Tracks(c *gin.Context) {
 	result := Parse_Tracks(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result": "ok",
-		"value": result,
+		"value":  result,
 	})
 }
 
@@ -158,7 +214,7 @@ func API_Recache_Weathers(c *gin.Context) {
 	result := Parse_Weathers(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result": "ok",
-		"value": result,
+		"value":  result,
 	})
 }
 
@@ -179,7 +235,7 @@ func API_Console_Start(c *gin.Context) {
 	Start()
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
-		"text": Get_Content(),
+		"text":       Get_Content(),
 	})
 }
 
@@ -187,14 +243,14 @@ func API_Console_Stop(c *gin.Context) {
 	Stop()
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
-		"text": Get_Content(),
+		"text":       Get_Content(),
 	})
 }
 
 func API_Console_Status(c *gin.Context) {
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
-		"text": Get_Content(),
+		"text":       Get_Content(),
 	})
 }
 
@@ -211,38 +267,3 @@ func API_Server_Cfg(c *gin.Context) {
 
 	c.String(http.StatusOK, str)
 }
-
-
-/*
-@app.route("/api/get_vehicle/<string:key>")
-@require_config_set
-def get_vehicle(key):
-    car_data = dba.get_car(key)
-
-    raw_power = json.loads(car_data['power'])
-
-    torque = []
-    for t in json.loads(car_data['torque']):
-        torque.append(int(t[1]))
-
-    power = []
-    for p in raw_power:
-        power.append(int(p[1]))
-
-    labels = []
-    for p in raw_power:
-        labels.append(int(p[0]))
-
-    json_data = {
-        'key': key,
-        'desc': car_data['desc'],
-        'power': power,
-        'torque': torque,
-        'labels': labels
-    }
-
-    return jsonify(json_data)
-
-
-
-*/

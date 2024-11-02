@@ -150,7 +150,7 @@
               if (!car_key || !skin_key) return {};
               return this.car_data
                 .find((x) => x.key == car_key)
-                .skins.find((x) => x.skin_key == skin_key);
+                .skins.find((x) => x.key == skin_key);
             },
 
             // Car class panel
@@ -336,7 +336,7 @@
                   while (dataset.data.length) dataset.data.pop();
                 });
               }
-              fetch("/api/get_car/" + car.cache_car_key)
+              fetch("/api/car/" + car.cache_car_key)
                 .then((response) => response.json())
                 .then((json) => {
                   json.labels.forEach((x) => {
@@ -606,7 +606,7 @@
               </div>
               <div class="w-1/2 mx-6">
                 <h2 class="text-lg"
-                  x-text="car_getdata(details_car.cache_car_key).name + ' - ' + skin_getdata(details_car.cache_car_key, details_car.skin_key).skin_name">
+                  x-text="car_getdata(details_car.cache_car_key).name + ' - ' + skin_getdata(details_car.cache_car_key, details_car.skin_key).name">
                 </h2>
                 <img x-bind:src="skin_getimg(details_car.cache_car_key, details_car.skin_key)" class="py-4" />
 

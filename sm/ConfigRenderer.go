@@ -4,13 +4,26 @@ import (
 	"bytes"
 	"html/template"
 	"log"
+	"math"
 	"math/rand"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
-func Time_To_SunAngle(*string) int {
-	return -80
+// 8:00 AM = -80
+// 18:00 PM = 80
+// increment of 8 every 30 minutes
+func Time_To_SunAngle(time_str *string) int {
+	time, err := time.Parse("15:04", *time_str)
+	if err != nil {
+		log.Print(err)
+	}
+
+	angle := -80 + (16 * (time.Hour() - 8))
+	angle = angle + int(math.Round(float64(time.Minute()) / 15))*4
+
+	return angle
 }
 
 func Render_Ini(event_id int) (string, string) {
