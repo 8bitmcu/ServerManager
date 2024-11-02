@@ -1,7 +1,7 @@
 *.db
 package-lock.json
 node_modules/*
-static/css/main.css
+css/main.css
 main
 main.exe
 go.sum
