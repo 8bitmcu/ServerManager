@@ -10,9 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 var Dba Dbaccess
-
+var Stats Server_Stats
 
 func Route_Config(c *gin.Context) {
 	var form User_Config
@@ -20,9 +19,12 @@ func Route_Config(c *gin.Context) {
 		Dba.Update_Config(form)
 	}
 
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/config.htm", gin.H{
-		"page": "config",
-		"form": Dba.Select_Config(),
+		"page":          "config",
+		"form":          Dba.Select_Config(),
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 }
 
@@ -32,15 +34,24 @@ func Route_Content(c *gin.Context) {
 		Dba.Update_Content(form)
 	}
 
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/content.htm", gin.H{
-		"page": "content",
-		"form": Dba.Select_Config(),
+		"page":          "content",
+		"form":          Dba.Select_Config(),
+		"track_data":    Dba.Select_Cache_Tracks(), // TODO: we only need a list at this point
+		"car_data":      Dba.Select_Cache_Cars(),
+		"weather_data":  Dba.Select_Cache_Weathers(),
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 }
 
 func Route_Index(c *gin.Context) {
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/index.htm", gin.H{
-		"page":       "index",
+		"page":          "index",
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 }
 
@@ -51,7 +62,7 @@ func Route_Difficulty(c *gin.Context) {
 		form = Dba.Select_Difficulty(id)
 
 		if form.Id == nil {
-			c.HTML(http.StatusNotFound, "htm/404.htm", gin.H{})
+			NoRoute(c)
 			return
 		}
 	}
@@ -64,10 +75,13 @@ func Route_Difficulty(c *gin.Context) {
 			Dba.Update_Difficulty(form)
 		}
 	}
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/difficulty.htm", gin.H{
-		"page": "difficulty",
-		"list": Dba.Select_DifficultyList(false),
-		"form": form,
+		"page":          "difficulty",
+		"list":          Dba.Select_DifficultyList(false),
+		"form":          form,
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 }
 
@@ -85,7 +99,7 @@ func Route_Class(c *gin.Context) {
 		form = Dba.Select_Class_Entries(id)
 
 		if form.Id == nil {
-			c.HTML(http.StatusNotFound, "htm/404.htm", gin.H{})
+			NoRoute(c)
 			return
 		}
 	}
@@ -99,11 +113,14 @@ func Route_Class(c *gin.Context) {
 			Dba.Update_Class(form)
 		}
 	}
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/class.htm", gin.H{
-		"page":     "class",
-		"list":     Dba.Select_ClassList(false),
-		"car_data": Dba.Select_Cache_Cars(), // TODO: only select needed data
-		"form":     form,
+		"page":          "class",
+		"list":          Dba.Select_ClassList(false),
+		"car_data":      Dba.Select_Cache_Cars(), // TODO: only select needed data
+		"form":          form,
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 }
 
@@ -121,7 +138,7 @@ func Route_Session(c *gin.Context) {
 		form = Dba.Select_Session(id)
 
 		if form.Id == nil {
-			c.HTML(http.StatusNotFound, "htm/404.htm", gin.H{})
+			NoRoute(c)
 			return
 		}
 	}
@@ -135,10 +152,13 @@ func Route_Session(c *gin.Context) {
 			Dba.Update_Session(form)
 		}
 	}
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/session.htm", gin.H{
-		"page": "session",
-		"list": Dba.Select_SessionList(false),
-		"form": form,
+		"page":          "session",
+		"list":          Dba.Select_SessionList(false),
+		"form":          form,
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 }
 
@@ -156,7 +176,7 @@ func Route_Time(c *gin.Context) {
 		form = Dba.Select_Time_Weather(id)
 
 		if form.Id == nil {
-			c.HTML(http.StatusNotFound, "htm/404.htm", gin.H{})
+			NoRoute(c)
 			return
 		}
 	}
@@ -175,11 +195,14 @@ func Route_Time(c *gin.Context) {
 		form.Weathers = append(form.Weathers, User_Time_Weather{})
 	}
 
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/time.htm", gin.H{
-		"page":        "time",
-		"list":        Dba.Select_TimeList(false),
-		"weatherlist": Dba.Select_Cache_Weathers(),
-		"form":        form,
+		"page":          "time",
+		"list":          Dba.Select_TimeList(false),
+		"weatherlist":   Dba.Select_Cache_Weathers(),
+		"form":          form,
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 }
 
@@ -198,7 +221,7 @@ func Route_Event(c *gin.Context) {
 		form = Dba.Select_Event(id)
 
 		if form.Id == nil {
-			c.HTML(http.StatusNotFound, "htm/404.htm", gin.H{})
+			NoRoute(c)
 			return
 		}
 	}
@@ -212,16 +235,19 @@ func Route_Event(c *gin.Context) {
 		}
 	}
 
+	Stats.Status = Is_Running()
 	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
-		"page":         "event",
-		"form":         form,
-		"events":       Dba.Select_Events(),
-		"difficulties": Dba.Select_DifficultyList(true),
-		"sessions":     Dba.Select_SessionList(true),
-		"times":        Dba.Select_TimeList(true),
-		"classes":      Dba.Select_ClassList(true),
-		"max_clients":  2, // TODO
-		"track_data":   Dba.Select_Cache_Tracks(),
+		"page":          "event",
+		"form":          form,
+		"events":        Dba.Select_Events(),
+		"difficulties":  Dba.Select_DifficultyList(true),
+		"sessions":      Dba.Select_SessionList(true),
+		"times":         Dba.Select_TimeList(true),
+		"classes":       Dba.Select_ClassList(true),
+		"max_clients":   2, // TODO
+		"track_data":    Dba.Select_Cache_Tracks(),
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
 	})
 
 }
@@ -231,4 +257,12 @@ func Route_Delete_Event(c *gin.Context) {
 	Dba.Delete_Event(id)
 	c.Redirect(http.StatusFound, "/event")
 	return
+}
+
+func NoRoute(c *gin.Context) {
+	Stats.Status = Is_Running()
+	c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
+	})
 }

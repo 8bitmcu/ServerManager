@@ -50,34 +50,6 @@ func API_Car(c *gin.Context) {
 		"torque": torque,
 		"labels": labels,
 	})
-
-	/*
-	   car_data = dba.get_car(key)
-
-	   raw_power = json.loads(car_data['power'])
-
-	   torque = []
-	   for t in json.loads(car_data['torque']):
-	       torque.append(int(t[1]))
-
-	   power = []
-	   for p in raw_power:
-	       power.append(int(p[1]))
-
-	   labels = []
-	   for p in raw_power:
-	       labels.append(int(p[0]))
-
-	   json_data = {
-	       'key': key,
-	       'desc': car_data['desc'],
-	       'power': power,
-	       'torque': torque,
-	       'labels': labels
-	   }
-
-	   return jsonify(json_data)
-	*/
 }
 
 func API_Track_Preview_Image(c *gin.Context) {
@@ -215,6 +187,17 @@ func API_Recache_Weathers(c *gin.Context) {
 	c.PureJSON(http.StatusOK, gin.H{
 		"result": "ok",
 		"value":  result,
+	})
+}
+func API_Recache_Content(c *gin.Context) {
+	track := Parse_Tracks(Dba)
+	car := Parse_Cars(Dba)
+	weather := Parse_Weathers(Dba)
+	c.PureJSON(http.StatusOK, gin.H{
+		"result":         "ok",
+		"tracks_total":   track,
+		"cars_total":     car,
+		"weathers_total": weather,
 	})
 }
 

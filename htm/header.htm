@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ServerManager {{ .title }}</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <meta name="author" content="8bitmcu" />
   <meta name="description" content="" />
 
@@ -63,20 +64,21 @@
         <div>
           <span>Server status: &nbsp;</span>
           <div
-            class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-green-500 py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
-            <div class="mt-px">online</div>
+              class="center relative inline-block select-none whitespace-nowrap rounded-lg {{ if .stats.Status }}bg-green-500{{ else }}bg-red-500{{ end }} py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
+            {{ if .stats.Status }}<div class="mt-px">online</div>{{ end }}
+            {{ if not .stats.Status }}<div class="mt-px">offline</div>{{ end}}
           </div>
         </div>
         <div class="mt-2">
           <span>Server IP: &nbsp;</span>
           <input type="textbox" class="text-gray-700 bg-gray-200 rounded text-center" x-data="" @click="$el.select()"
-            value="174.118.36.72" style="width: 100px; font-weight: lighter" />
+            value="{{ .stats.Public_Ip }}" style="width: 100px; font-weight: lighter" />
         </div>
       </div>
     </div>
     <nav class="text-white text-base font-semibold pt-3">
-      <a href="/"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "index") }}bg-red-900{{ end }}">
+      {{ if .config_filled }}
+      <a href="/" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "index") }}bg-red-900{{ end }}">
         <i class="fas fa-tachometer-alt mr-3"></i>
         Server Dashboard
       </a>
@@ -105,6 +107,7 @@
         <i class="fas fa-road mr-3"></i>
         Difficulty Presets
       </a>
+      {{ end }}
       <a href="/config"
         class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "config") }}bg-red-900{{ end }}">
         <i class="fas fa-server mr-3"></i>
@@ -139,7 +142,9 @@
 
       <!-- Dropdown Nav -->
       <nav :class="isOpen ? 'flex': 'hidden'" class="flex flex-col pt-4">
-        <a href="/" class="flex items-center active-nav-link text-white py-2 pl-4 nav-item">
+
+        {{ if .config_filled }}
+        <a href="/" class="flex items-center opacity-75 hover:opacity-100 text-white py-2 pl-4 nav-item">
           <i class="fas fa-tachometer-alt mr-3"></i>
           Server Dashboard
         </a>
@@ -163,6 +168,7 @@
           <i class="fas fa-road mr-3"></i>
           Difficulty Presets
         </a>
+        {{ end }}
         <a href="/config" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
           <i class="fas fa-server mr-3"></i>
           Server Configuration
@@ -175,4 +181,19 @@
     </header>
 
     <div class="w-full h-screen overflow-x-hidden border-t flex flex-col">
-      <main class="mb-auto w-full flex-grow p-6">
+      <main class="mb-auto w-full flex-grow lg:p-6 md:p-4 p-2">
+        {{ if not .config_filled }}
+        <div class="font-regular relative block w-full rounded-lg bg-green-500 px-4 py-4 text-base text-white mb-6">
+          <div class="absolute top-12 left-4">
+            <i class="fas fa-check"></i>
+          </div>
+          <div class="ml-8 mr-6">
+            <h5 class="block text-xl text-white">
+              Welcome!
+            </h5>
+            <p class="mt-2 block text-white">
+              Welcome to Server Manager. Please take the time to fill in the details in the Server Config and Content &amp; Mods page
+            </p>
+          </div>
+        </div>
+        {{ end }}

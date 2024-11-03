@@ -23,7 +23,10 @@ CREATE TABLE IF NOT EXISTS user_config (
   csp_phycars INTEGER,
   csp_phytracks INTEGER,
   csp_hidepit INTEGER,
-  csp_version INTEGER
+  csp_version INTEGER,
+
+  cfg_filled INTEGER,
+  mod_filled INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS user_difficulty (

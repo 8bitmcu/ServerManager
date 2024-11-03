@@ -1,9 +1,6 @@
-*.db
 package-lock.json
 node_modules/*
 css/main.css
-main
-main.exe
 go.sum
 bin/*
 assets.go

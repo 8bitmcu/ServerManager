@@ -1,68 +1,35 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/jessevdk/go-assets"
 	"html/template"
 	"io"
 	"log"
 	"main/sm"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-var DEBUG bool = false
+var DEBUG bool = true
+var dba sm.Dbaccess
 
-func loadTemplate(t *template.Template) error {
-	for name, file := range Assets.Files {
-		if file.IsDir() || !strings.HasSuffix(name, ".htm") {
-			continue
+func ConfigCompleted() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		config_filled := dba.Select_Config_Filled()
+		if !config_filled && c.Request.URL.Path != "/config" && c.Request.URL.Path != "/content" {
+			c.Redirect(http.StatusFound, "/config")
+			return
 		}
-		h, err := io.ReadAll(file)
-		if err != nil {
-			return err
-		}
-		t, err = t.New(name).Parse(string(h))
-		if err != nil {
-			return err
-		}
+		c.Next()
 	}
-	return nil
-}
-
-func findFile(filePath string) *assets.File {
-	for _, file := range Assets.Files {
-		if file.Path == filePath {
-			return file
-		}
-	}
-	return nil
-}
-
-// open opens the specified URL in the default browser of the user.
-func open(url string) error {
-	var cmd string
-	var args []string
-
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
-	case "darwin":
-		cmd = "open"
-	default: // "linux", "freebsd", "openbsd", "netbsd"
-		cmd = "xdg-open"
-	}
-	args = append(args, url)
-	return exec.Command(cmd, args...).Start()
 }
 
 func main() {
+	sm.Assets = Assets
 
 	config_folder := os.Getenv("XDG_CONFIG_HOME")
 	if runtime.GOOS == "windows" {
@@ -78,13 +45,13 @@ func main() {
 
 	db_path := filepath.Join(sm_path, "smdata.db")
 	log.Print("Opening database file located at: " + db_path)
-	dba := sm.Open(db_path)
+	dba = sm.Open(db_path)
+	dba.Apply_Schema(sm.FindFile("/schema.sql"))
 
 	if !DEBUG {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	dba.Apply_Schema(findFile("/schema.sql"))
 	sm.Dba = dba
 
 	router := gin.Default()
@@ -123,7 +90,7 @@ func main() {
 
 	t := template.New("")
 	t.Funcs(funcMap)
-	err := loadTemplate(t)
+	err := sm.LoadTemplate(t, ".htm")
 	if err != nil {
 		panic(err)
 	}
@@ -131,43 +98,53 @@ func main() {
 
 	router.StaticFS("/static", Assets)
 
-	router.GET("/", sm.Route_Index)
+	app := router.Group("/")
 
-	router.GET("/config", sm.Route_Config)
-	router.POST("/config", sm.Route_Config)
+	app.Use(ConfigCompleted())
+	{
+		app.GET("/", sm.Route_Index)
 
-	router.GET("/content", sm.Route_Content)
-	router.POST("/content", sm.Route_Content)
+		app.GET("/config", sm.Route_Config)
+		app.POST("/config", sm.Route_Config)
 
-	router.GET("/difficulty", sm.Route_Difficulty)
-	router.POST("/difficulty", sm.Route_Difficulty)
-	router.GET("/difficulty/:id", sm.Route_Difficulty)
-	router.POST("/difficulty/:id", sm.Route_Difficulty)
-	router.GET("/difficulty/delete/:id", sm.Route_Delete_Difficulty)
+		app.GET("/content", sm.Route_Content)
+		app.POST("/content", sm.Route_Content)
 
-	router.GET("/class", sm.Route_Class)
-	router.POST("/class", sm.Route_Class)
-	router.GET("/class/:id", sm.Route_Class)
-	router.POST("/class/:id", sm.Route_Class)
-	router.GET("/class/delete/:id", sm.Route_Delete_Class)
+		app.GET("/difficulty", sm.Route_Difficulty)
+		app.POST("/difficulty", sm.Route_Difficulty)
+		app.GET("/difficulty/:id", sm.Route_Difficulty)
+		app.POST("/difficulty/:id", sm.Route_Difficulty)
+		app.GET("/difficulty/delete/:id", sm.Route_Delete_Difficulty)
+		app.POST("/difficulty/delete/:id", sm.Route_Delete_Difficulty)
 
-	router.GET("/session", sm.Route_Session)
-	router.POST("/session", sm.Route_Session)
-	router.GET("/session/:id", sm.Route_Session)
-	router.POST("/session/:id", sm.Route_Session)
-	router.GET("/session/delete/:id", sm.Route_Delete_Session)
+		app.GET("/class", sm.Route_Class)
+		app.POST("/class", sm.Route_Class)
+		app.GET("/class/:id", sm.Route_Class)
+		app.POST("/class/:id", sm.Route_Class)
+		app.GET("/class/delete/:id", sm.Route_Delete_Class)
+		app.POST("/class/delete/:id", sm.Route_Delete_Class)
 
-	router.GET("/time", sm.Route_Time)
-	router.POST("/time", sm.Route_Time)
-	router.GET("/time/:id", sm.Route_Time)
-	router.POST("/time/:id", sm.Route_Time)
-	router.GET("/time/delete/:id", sm.Route_Delete_Time)
+		app.GET("/session", sm.Route_Session)
+		app.POST("/session", sm.Route_Session)
+		app.GET("/session/:id", sm.Route_Session)
+		app.POST("/session/:id", sm.Route_Session)
+		app.GET("/session/delete/:id", sm.Route_Delete_Session)
+		app.POST("/session/delete/:id", sm.Route_Delete_Session)
 
-	router.GET("/event", sm.Route_Event)
-	router.POST("/event", sm.Route_Event)
-	router.GET("/event/:id", sm.Route_Event)
-	router.POST("/event/:id", sm.Route_Event)
-	router.GET("/event/delete/:id", sm.Route_Delete_Event)
+		app.GET("/time", sm.Route_Time)
+		app.POST("/time", sm.Route_Time)
+		app.GET("/time/:id", sm.Route_Time)
+		app.POST("/time/:id", sm.Route_Time)
+		app.GET("/time/delete/:id", sm.Route_Delete_Time)
+		app.POST("/time/delete/:id", sm.Route_Delete_Time)
+
+		app.GET("/event", sm.Route_Event)
+		app.POST("/event", sm.Route_Event)
+		app.GET("/event/:id", sm.Route_Event)
+		app.POST("/event/:id", sm.Route_Event)
+		app.GET("/event/delete/:id", sm.Route_Delete_Event)
+		app.POST("/event/delete/:id", sm.Route_Delete_Event)
+	}
 
 	router.GET("/api/car/:key", sm.API_Car)
 	router.GET("/api/car/image/:car/:skin", sm.API_Car_Image)
@@ -185,6 +162,7 @@ func main() {
 	router.GET("/api/car/recache", sm.API_Recache_Cars)
 	router.GET("/api/track/recache", sm.API_Recache_Tracks)
 	router.GET("/api/weather/recache", sm.API_Recache_Weathers)
+	router.GET("/api/content/recache", sm.API_Recache_Content)
 
 	router.POST("/api/validate/installpath", sm.API_Validate_Installpath)
 
@@ -195,15 +173,26 @@ func main() {
 	router.GET("/api/server/entry_list.ini", sm.API_Entry_List)
 	router.GET("/api/server/server_cfg.ini", sm.API_Server_Cfg)
 
-	router.NoRoute(func(c *gin.Context) {
-		c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{})
-	})
+	router.NoRoute(sm.NoRoute)
 
 	log.Print("Server up and running on http://localhost:3030")
 
-	open("http://localhost:3030")
 	if !DEBUG {
-		router.Run(":3030")
+		sm.Open_URL("http://localhost:3030")
 	}
+
+	go func() {
+		res, err := http.Get("https://api.ipify.org")
+		if err != nil {
+			log.Print(err)
+		}
+		ip, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Print(err)
+		}
+		sm.Stats.Public_Ip = string(ip)
+	}()
+
+	router.Run(":3030")
 
 }

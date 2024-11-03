@@ -3,6 +3,7 @@ package sm
 import (
 	"bytes"
 	"html/template"
+	"io"
 	"log"
 	"math"
 	"math/rand"
@@ -21,7 +22,7 @@ func Time_To_SunAngle(time_str *string) int {
 	}
 
 	angle := -80 + (16 * (time.Hour() - 8))
-	angle = angle + int(math.Round(float64(time.Minute()) / 15))*4
+	angle = angle + int(math.Round(float64(time.Minute())/15))*4
 
 	return angle
 }
@@ -97,14 +98,19 @@ func Render_Ini(event_id int) (string, string) {
 		}
 	}
 
-
 	funcMap := template.FuncMap{
-		"derefInt": func (i *int) int {
+		"derefInt": func(i *int) int {
 			return *i
 		},
 	}
-	var tmplFile = filepath.Join("ini", "server_cfg.ini")
-	tmpl, err := template.New("server_cfg.ini").Funcs(funcMap).ParseFiles(tmplFile)
+
+	file := FindFile("/ini/server_cfg.ini")
+	tmplStr, err := io.ReadAll(file)
+	if err != nil {
+		log.Print(err)
+	}
+
+	tmpl, err := template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
 	if err != nil {
 		log.Print(err)
 	}

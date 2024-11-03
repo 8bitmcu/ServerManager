@@ -1,37 +1,12 @@
 {{ template "/htm/header.htm" . }}
 
-<script>
-  function install_path() {
-    return {
-      install_path: '{{ .form.Install_Path | derefStr }}',
-      path_valid: null,
-      loading: false,
-
-      validate_path: function() {
-        this.loading = true;
-        let data = new FormData()
-        data.append("path", this.install_path)
-        fetch("/api/validate/installpath", {
-          method: "POST",
-          body: data
-        })
-        .then((response) => response.json())
-          .then((json) => {
-            this.loading = false;
-            this.path_valid = json.result;
-          });
-      },
-    }
-  }
-</script>
-
 <h1 class="text-3xl text-black pb-6">Server Configuration</h1>
 <form class="flex flex-wrap" method="POST">
   <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Hosting Information
     </p>
-    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+    <div class="p-4 lg:p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
         <label class="block text-sm text-gray-600 group relative" for="name">
           Server Name
@@ -54,7 +29,7 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="password" name="password" type="password"
-          required="" placeholder="Server Password" aria-label="Password" value="{{ .form.Password | derefStr }}" />
+          placeholder="Server Password" aria-label="Password" value="{{ .form.Password | derefStr }}" />
       </div>
       <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="admin_password">
@@ -67,7 +42,7 @@
           </div>
         </label>
         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="admin_password" name="admin_password"
-          type="password" required="" placeholder="Admin Password" aria-label="Admin Password"
+          type="password" placeholder="Admin Password" aria-label="Admin Password"
           value="{{ .form.Admin_Password | derefStr }}" />
       </div>
       <div class="mt-2">
@@ -154,7 +129,7 @@
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Server Details
     </p>
-    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+    <div class="p-4 lg:p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
         <label class="block text-sm text-gray-600 group relative" for="udp_port">
           UDP Port
@@ -228,7 +203,7 @@
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Welcome Message
     </p>
-    <div class="p-10 bg-white rounded shadow-xl leading-loose">
+    <div class="p-4 lg:p-10 bg-white rounded shadow-xl leading-loose">
       <div class="">
         <label class="block text-sm text-gray-600 group relative" for="measurement_unit">
           Welcome Message
@@ -244,73 +219,6 @@
     </div>
   </div>
 
-
-  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-    <p class="text-xl pb-6 flex items-center">
-      <i class="fas fa-list mr-3"></i> Preferences
-    </p>
-    <div class="p-10 bg-white rounded shadow-xl leading-loose">
-      <div class="">
-        <label class="block text-sm text-gray-600 group relative" for="measurement_unit">
-          Measurement Units
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              Measurement units to be used in the web ui
-            </div>
-          </div>
-        </label>
-        <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit"
-          name="measurement_unit">
-          <option value="0" {{ if (eq (derefInt .form.Measurement_Unit) "0")}} selected {{ end }}>KM, KM/h</option>
-          <option value="1" {{ if (eq (derefInt .form.Measurement_Unit) "1") }} selected {{ end }}>Miles, MPH</option>
-        </select>
-      </div>
-      <div class="mt-2">
-        <label class="block text-sm text-gray-600 group relative" for="temp_unit">
-          Temperature Units
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              Temperature units to be used in the web ui
-            </div>
-          </div>
-        </label>
-        <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="temp_unit" name="temp_unit">
-          <option value="0" {{ if (eq (derefInt .form.Temp_Unit) "0") }} selected {{ end }}>Celcius</option>
-          <option value="1" {{ if (eq (derefInt .form.Temp_Unit) "1") }} selected {{ end }}>Fahrenheit</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-    <p class="text-xl pb-6 flex items-center">
-      <i class="fas fa-list mr-3"></i> Installation
-    </p>
-    <div class="p-10 bg-white rounded shadow-xl leading-loose">
-      <div class="" x-data="install_path()">
-        <label class="block text-sm text-gray-600 group relative" for="install_path">
-          Installation Path
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              Root folder of your Assetto Corsa installation path
-            </div>
-          </div>
-        </label>
-        <div class="flex flex-row">
-          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l" id="install_path" name="install_path"
-            type="text" required="" placeholder="Installation Path" aria-label="Installation Path" x-model="install_path"
-            value="" />
-          <button class="px-4 py-1 text-white font-light tracking-wider bg-red-500 rounded-r flex flex-row align-center" style="align-items: center" type="button"
-            @click="validate_path()">
-            <span class="pr-2">Test</span>
-            <div class="w-6 h-6 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
-            <i class="fas fa-check" x-show="path_valid == true"></i>
-            <i class="fas fa-times" x-show="path_valid == false"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
     <p class="text-xl pb-6 flex items-center">
