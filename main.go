@@ -1,17 +1,22 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/jessevdk/go-assets"
 	"html/template"
 	"io"
 	"log"
 	"main/sm"
 	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/jessevdk/go-assets"
 )
+
+var DEBUG bool = false
 
 func loadTemplate(t *template.Template) error {
 	for name, file := range Assets.Files {
@@ -39,15 +44,52 @@ func findFile(filePath string) *assets.File {
 	return nil
 }
 
+// open opens the specified URL in the default browser of the user.
+func open(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default: // "linux", "freebsd", "openbsd", "netbsd"
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	return exec.Command(cmd, args...).Start()
+}
+
 func main() {
 
-	dba := sm.Open("smdata.db")
+	config_folder := os.Getenv("XDG_CONFIG_HOME")
+	if runtime.GOOS == "windows" {
+		config_folder = os.Getenv("APPDATA")
+	}
+	sm_path := filepath.Join(config_folder, "servermanager")
+	if _, err := os.Stat(sm_path); os.IsNotExist(err) {
+		err := os.Mkdir(sm_path, os.ModePerm)
+		if err != nil {
+			log.Print(err)
+		}
+	}
 
+	db_path := filepath.Join(sm_path, "smdata.db")
+	log.Print("Opening database file located at: " + db_path)
+	dba := sm.Open(db_path)
+
+	if !DEBUG {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	dba.Apply_Schema(findFile("/schema.sql"))
 	sm.Dba = dba
 
 	router := gin.Default()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
 	funcMap := template.FuncMap{
 		"derefStr": func(t *string) string {
@@ -78,9 +120,6 @@ func main() {
 			return false
 		},
 	}
-
-	//router.SetFuncMap(funcMap)
-	//router.LoadHTMLGlob("*")
 
 	t := template.New("")
 	t.Funcs(funcMap)
@@ -160,10 +199,11 @@ func main() {
 		c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{})
 	})
 
-	router.Run(":3030")
+	log.Print("Server up and running on http://localhost:3030")
 
-
-
-	log.Print(Assets.LocalPath)
+	open("http://localhost:3030")
+	if !DEBUG {
+		router.Run(":3030")
+	}
 
 }

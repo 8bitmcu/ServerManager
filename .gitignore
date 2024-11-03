@@ -7,3 +7,4 @@ main.exe
 go.sum
 bin/*
 assets.go
+*syso
