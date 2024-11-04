@@ -7,15 +7,23 @@ import (
 	"log"
 	"math"
 	"math/rand"
-	"path/filepath"
+	"regexp"
 	"strconv"
 	"time"
 )
 
+var server_cfg_ini *template.Template
+var entry_list_ini *template.Template
+
+type ConfigRenderer struct {
+	ServerCfg_Result string
+	EntryList_Result string
+}
+
 // 8:00 AM = -80
 // 18:00 PM = 80
 // increment of 8 every 30 minutes
-func Time_To_SunAngle(time_str *string) int {
+func (cr ConfigRenderer) Time_To_SunAngle(time_str *string) int {
 	time, err := time.Parse("15:04", *time_str)
 	if err != nil {
 		log.Print(err)
@@ -27,29 +35,19 @@ func Time_To_SunAngle(time_str *string) int {
 	return angle
 }
 
-func Render_Ini(event_id int) (string, string) {
+func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
+	r := regexp.MustCompile("\\d{1,3}")
 
 	event := Dba.Select_Event(event_id)
-	time := Dba.Select_Time_Weather(*event.Time_Id)
+	tm := Dba.Select_Time_Weather(*event.Time_Id)
 	diff := Dba.Select_Difficulty(*event.Difficulty_Id)
 	cfg := Dba.Select_Config()
 	session := Dba.Select_Session(*event.Session_Id)
 	class := Dba.Select_Class_Entries(*event.Class_Id)
 	track := Dba.Select_Cache_Track(*event.Cache_Track_Key, *event.Cache_Track_Config)
 
-	data := map[string]any{
-		"event":    event,
-		"config":   cfg,
-		"diff":     diff,
-		"session":  session,
-		"time":     time,
-		"class":    class,
-		"track":    track,
-		"sunangle": Time_To_SunAngle(time.Time),
-		"cspstr":   "",
-	}
-
 	// csp required? build a cspstr to be concat with the track name
+	cspstr := ""
 	if cfg.Csp_Required != nil && *cfg.Csp_Required > 0 {
 		csp_letter := ""
 
@@ -69,7 +67,37 @@ func Render_Ini(event_id int) (string, string) {
 			csp_letter = "/../E"
 		}
 
-		data["cspstr"] = "csp/" + strconv.Itoa(*cfg.Csp_Version) + csp_letter + "/../"
+		cspstr = "csp/" + strconv.Itoa(*cfg.Csp_Version) + csp_letter + "/../"
+	}
+
+	// Weather CSP? build new graphics string
+	if *tm.Csp_Enabled == 1 {
+		t := "13:00" // sets the sun angle to zero; a "nice" default/backup value
+		tm.Time = &t
+		todm := 1
+		tm.Time_Of_Day_Multi = &todm
+		for _, wt := range tm.Weathers {
+			csp_time, err := time.Parse("15:04", *wt.Csp_Time)
+			if err != nil {
+				log.Print(err)
+			}
+			csp_timeInt := (csp_time.Hour() * 3600) + (csp_time.Minute() * 60) + csp_time.Second()
+			seconds := strconv.Itoa(csp_timeInt)
+			mult := strconv.Itoa(*wt.Csp_Time_Of_Day_Multi)
+
+			dateStr := ""
+			if wt.Csp_Date != nil && *wt.Csp_Date != "" {
+				csp_date, err := time.Parse("2006-01-02", *wt.Csp_Date)
+				if err != nil {
+					log.Print(err)
+				}
+
+				dateStr = "_start=" + strconv.FormatInt(csp_date.Unix(), 10)
+			}
+
+			matches := r.FindStringSubmatch(*wt.Graphics)
+			*wt.Graphics = matches[0] + "_time=" + seconds + "_mult=" + mult + dateStr
+		}
 	}
 
 	// Maximum clients defined as the minimum between max_clients, pitboxes and vehicles in class
@@ -84,8 +112,6 @@ func Render_Ini(event_id int) (string, string) {
 		strat_needed = true
 		max_clients = len(class.Entries)
 	}
-
-	data["max_clients"] = max_clients
 
 	// Strategy needed? re-order cars in the entry list as per selected strategy
 	if strat_needed {
@@ -104,43 +130,58 @@ func Render_Ini(event_id int) (string, string) {
 		},
 	}
 
-	file := FindFile("/ini/server_cfg.ini")
-	tmplStr, err := io.ReadAll(file)
-	if err != nil {
-		log.Print(err)
+	if server_cfg_ini == nil {
+		file := FindFile("/ini/server_cfg.ini")
+		tmplStr, err := io.ReadAll(file)
+		if err != nil {
+			log.Print(err)
+		}
+		server_cfg_ini, err = template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
+		if err != nil {
+			log.Print(err)
+		}
 	}
 
-	tmpl, err := template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
-	if err != nil {
-		log.Print(err)
-	}
-
-	var b bytes.Buffer
-	err = tmpl.Execute(&b, data)
-	if err != nil {
-		log.Print(err)
-	}
-
-	return b.String(), ""
-}
-
-func Render_Entry_List(event_id int) string {
-	event := Dba.Select_Event(event_id)
-	class := Dba.Select_Class_Entries(*event.Class_Id)
-
-	// TODO respect max clients
-
-	var tmplFile = filepath.Join("ini", "entry_list.ini")
-	tmpl, err := template.New("entry_list.ini").ParseFiles(tmplFile)
-	if err != nil {
-		log.Print(err)
+	data := map[string]any{
+		"event":       event,
+		"config":      cfg,
+		"diff":        diff,
+		"session":     session,
+		"time":        tm,
+		"class":       class,
+		"track":       track,
+		"max_clients": max_clients,
+		"sunangle":    cr.Time_To_SunAngle(tm.Time),
+		"cspstr":      cspstr,
 	}
 
 	var b bytes.Buffer
-	err = tmpl.Execute(&b, class)
+	err := server_cfg_ini.Execute(&b, data)
 	if err != nil {
 		log.Print(err)
 	}
 
-	return b.String()
+
+	if entry_list_ini == nil {
+		file := FindFile("/ini/entry_list.ini")
+		tmplStr, err := io.ReadAll(file)
+		if err != nil {
+			log.Print(err)
+		}
+		entry_list_ini, err = template.New("entry_list.ini").Funcs(funcMap).Parse(string(tmplStr))
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
+	var b2 bytes.Buffer
+	err = entry_list_ini.Execute(&b2, class)
+	if err != nil {
+		log.Print(err)
+	}
+
+	cr.ServerCfg_Result = b.String()
+	cr.EntryList_Result = b2.String()
+
+	return cr
 }

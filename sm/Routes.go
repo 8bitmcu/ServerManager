@@ -13,17 +13,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var Dba Dbaccess
-var Stats Server_Stats
-var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")
-
 func Route_Config(c *gin.Context) {
 	var form User_Config
 	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
 		Dba.Update_Config(form)
 	}
 
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/config.htm", gin.H{
 		"page":          "config",
 		"form":          Dba.Select_Config(),
@@ -38,7 +34,7 @@ func Route_Content(c *gin.Context) {
 		Dba.Update_Content(form)
 	}
 
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/content.htm", gin.H{
 		"page":          "content",
 		"form":          Dba.Select_Config(),
@@ -51,7 +47,7 @@ func Route_Content(c *gin.Context) {
 }
 
 func Route_Index(c *gin.Context) {
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/index.htm", gin.H{
 		"page":          "index",
 		"config_filled": Dba.Select_Config_Filled(),
@@ -79,7 +75,7 @@ func Route_Difficulty(c *gin.Context) {
 			Dba.Update_Difficulty(form)
 		}
 	}
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/difficulty.htm", gin.H{
 		"page":          "difficulty",
 		"list":          Dba.Select_DifficultyList(false),
@@ -117,7 +113,7 @@ func Route_Class(c *gin.Context) {
 			Dba.Update_Class(form)
 		}
 	}
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/class.htm", gin.H{
 		"page":          "class",
 		"list":          Dba.Select_ClassList(false),
@@ -155,7 +151,7 @@ func Route_Session(c *gin.Context) {
 			Dba.Update_Session(form)
 		}
 	}
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/session.htm", gin.H{
 		"page":          "session",
 		"list":          Dba.Select_SessionList(false),
@@ -198,7 +194,7 @@ func Route_Time(c *gin.Context) {
 		form.Weathers = append(form.Weathers, User_Time_Weather{})
 	}
 
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/time.htm", gin.H{
 		"page":          "time",
 		"list":          Dba.Select_TimeList(false),
@@ -238,7 +234,7 @@ func Route_Event(c *gin.Context) {
 		}
 	}
 
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
 		"page":          "event",
 		"form":          form,
@@ -347,7 +343,7 @@ func Route_Admin(c *gin.Context) {
 }
 
 func NoRoute(c *gin.Context) {
-	Stats.Status = Is_Running()
+	Stats.Refresh()
 	c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{
 		"config_filled": Dba.Select_Config_Filled(),
 		"stats":         Stats,

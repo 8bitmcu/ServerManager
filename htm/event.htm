@@ -189,9 +189,15 @@
       },
 
       trackpicker_open: false,
+      trackpicker_data: [],
       trackpicker_toggle: function () {
         this.trackpicker_open = !this.trackpicker_open;
-        if (this.trackpicker_open) this.search_open = false;
+        if (this.trackpicker_open) {
+          this.search_open = false;
+          this.trackpicker_data = this.tracks_data;
+        } else {
+          this.trackpicker_data = []
+        }
       },
     };
   }
@@ -311,18 +317,18 @@
             <span>{{ $event.Class_Name }}</span>
             <div class="text-xs">
               <span><i class="fas fa-warehouse"></i>
-              {{ if and (gt $g.max_clients (toInt $event.Pitboxes)) (gt $g.max_clients (toInt $event.Entries)) }}
+              {{ if and (gt (toInt $g.max_clients) (toInt $event.Pitboxes)) (gt (toInt $g.max_clients) (toInt $event.Entries)) }}
                 {{ $g.max_clients }} 
                 {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
                 {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
                 entries of {{ $event.Entries }}
-              {{ else if (gt (toInt $event.Pitboxes) (toInt $event.Entries)) }}
+              {{ else if (gt (toInt $event.Entries) (toInt $event.Pitboxes)) }}
                 {{ $event.Pitboxes }}
                 {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
                 {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
                 entries of {{ $event.Entries }}
               {{ else }}
-              all {{ $event.Entries }} entries
+                all {{ $event.Entries }} entries
               {{ end }}
               </span>
             </div>
@@ -351,7 +357,7 @@
         <div class="w-full rounded-lg bg-gray-100">
           <h2 class="px-6 py-4 text-xl">Track Picker</h2>
           <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
-            <template x-for="track in tracks_data">
+            <template x-for="track in trackpicker_data">
               <div class="relative mx-auto pb-2 my-4 hover:border-red-300 border-2 rounded cursor-pointer"
                 :class="selection_track_key == track.key && selection_track_config == track.config ? 'border-red-500':''" @click="selection_track_key = track.key; selection_track_config = track.config;">
                 <img style="height: 140px" x-bind:src="track_preview(track.key, track.config)" />
@@ -692,11 +698,22 @@
           <div class="w-1/2">
             <h2 class="py-4 text-xl">Time and Weather</h2>
             <div class="flex flex-row text-normal text-gray-700">
-              <span class="mr-4"><i class="fas fa-stopwatch"></i><span x-html="loaded_time.time"></span></span>
-              <span><i class="fas fa-cloud-moon-rain"></i>
-                <template x-for="w, i in loaded_time.weathers">
-                  <span x-html="w.name + (i == loaded_time.weathers.length-1 ? '' : ',')">
-                </template>
+              <span>
+                <i class="fas fa-stopwatch"></i>
+                <span class="flex flex-col mr-4">
+                  <span x-show="!loaded_time.csp_enabled" x-html="loaded_time.time"></span>
+                  <template x-for="w, i in loaded_time.weathers">
+                    <span x-html="w.csp_time"></span>
+                  </template>
+                </span>
+              </span>
+              <span>
+                <i class="fas fa-cloud-moon-rain"></i>
+                <span class="flex flex-col mr-4">
+                  <template x-for="w, i in loaded_time.weathers">
+                    <span x-html="w.name"></span>
+                  </template>
+                </span>
               </span>
             </div>
           </div>

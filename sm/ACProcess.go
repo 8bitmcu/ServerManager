@@ -10,6 +10,7 @@ var lines string
 var cmd *exec.Cmd
 
 func Start() {
+	// TODO: different binary for windows
 	cmd = exec.Command(filepath.Join(Dba.Basepath(), "server", "acServer"))
 	cmd.Dir = filepath.Join(Dba.Basepath(), "server")
 	var stdOut, _ = cmd.StdoutPipe()

@@ -102,24 +102,76 @@
       </nav>
 
       {{ if .form.Id }}
-      <form class="flex flex-wrap bg-white text-black" method="POST">
+      <script>
+        function csp_timeweather() {
+          return {
+            time_of_day_multi: {{ .form.Time_Of_Day_Multi | derefInt }},
+            time_of_day: {{ .form.Time | derefStr }},
+            csp_enabled: {{ .form.Csp_Enabled | toJsBool }},
+            csp_changed: function(val) {
+              this.items.forEach(x => {
+                x.csp_time = "";
+                x.csp_time_of_day_multi = "";
+                x.csp_date = "";
+              });
+              this.time_of_day_multi = "";
+              this.time_of_day = "";
+            },
+            items: {{ .form.Weathers }},
+            add_panel() {
+              this.items.push({});
+            },
+            remove_panel(index) {
+              this.items = this.items.filter((item, idx) => {
+                return index !== idx
+              })
+            }
+          }
+        }
+      </script>
+      <form class="flex flex-wrap bg-white text-black" method="POST" x-data="csp_timeweather()">
         <div class="w-full mt-6 pl-0 lg:pl-2">
+          <p class="text-xl px-6 pb-6 flex items-center">
+            <i class="fas fa-list mr-3"></i> CSP Time &amp; Weather
+          </p>
+          <div class="p-4 lg:p-10 leading-loose flex-row">
+            <div class="inline-block pr-1 w-1/2">
+              <label class="block text-sm text-gray-600 group relative" for="csp_enabled">
+                Enable CSP Time &amp; Weather
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Note: this preset will only show up in Events when CSP is enabled in the Content &amp; Mods page
+                  </div>
+                </div>
+              </label>
+              <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="csp_enabled" id="csp_enabled" value="1" x-model="csp_enabled"
+                   @click="csp_changed($event.target.checked)"
+                  class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                <label for="csp_enabled"
+                  class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                <input type='hidden' value='0' name='csp_enabled'>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="w-full mt-6 pl-0 lg:pl-2" x-show="!csp_enabled">
           <p class="text-xl px-6 pb-6 flex items-center">
             <i class="fas fa-list mr-3"></i> Time
           </p>
           <div class="p-4 lg:p-10 leading-loose flex-row">
-            <div class="inline-block mt-2 pr-1 w-1/2">
+            <div class="inline-block pr-1 w-1/2">
               <label class="block text-sm text-gray-600 group relative" for="time">
                 Time of Day
                 <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
                   <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                    # TODO: caption
+                    # TODO
                   </div>
                 </div>
               </label>
               <div class="flex">
-                <input type="time" id="time" class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" name="time" min="08:00" max="18:00"
-                  value="{{ .form.Time | derefStr }}" required>
+                <input type="time" id="time" class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" name="time" min="08:00" max="18:00" x-model="time_of_day"
+                  :required="!csp_enabled" :disabled="csp_enabled">
               </div>
             </div>
             <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
@@ -131,41 +183,62 @@
                   </div>
                 </div>
               </label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="time_of_day_multi" min="1" max="10"
-                name="time_of_day_multi" type="number" required="" placeholder="Multiplier" aria-label="Multiplier"
-                value="{{ .form.Time_Of_Day_Multi | derefInt }}" />
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="time_of_day_multi" min="1" max="10" :disabled="csp_enabled"
+                name="time_of_day_multi" type="number" :required="!csp_enabled" placeholder="Multiplier" aria-label="Multiplier" x-model="time_of_day_multi" />
             </div>
           </div>
         </div>
-        <div class="w-full mt-6 pl-0 lg:pl-2">
+        <div class="w-full mt-6 pl-0 lg:pl-2" x-show="!csp_enabled">
           <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Weather
+          <i class="fas fa-list mr-3"></i>Weather
           </p>
         </div>
-
-        <script>
-          function time_weather() {
-            return {
-              items: {{ .form.Weathers }},
-              add_panel() {
-                this.items.push({});
-              },
-              remove_panel(index) {
-                this.items = this.items.filter((item, idx) => {
-                  return index !== idx
-                })
-              }
-            }
-          }
-        </script>
-
-        <div x-data="time_weather()" class="flex flex-wrap flex-col sm:flex-row">
+        <div class="flex flex-wrap flex-col sm:flex-row">
           <template x-for="(time, index) in items">
-            <div class="w-full xl:w-1/3 lg:w-1/2 mt-6 pl-0 lg:pl-2">
+            <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
               <div
                 class="p-4 lg:p-10 m-2 leading-loose font-regular rounded-lg bg-gray-100">
-                <h2 class="text-black">Weather Panel <span x-html="index+1"></span></h2>
-                <div class="">
+                <h2 class="text-black"><span x-show="csp_enabled">Time &amp; </span> Weather Panel <span x-html="index+1"></span></h2>
+                <div class="inline-block mt-2 w-1/2 pr-1" x-show="csp_enabled">
+                  <label class="block text-sm text-gray-600 group relative" for="csp_time">
+                    Time of Day
+                    <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                      <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                        CSP Time of Day
+                      </div>
+                    </div>
+                  </label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="0"
+                    type="time" :required="csp_enabled" :disabled="!csp_enabled" placeholder="Time of Day" aria-label="Time of Day"
+                    x-model="time.csp_time" />
+                </div>
+                <div class="inline-block mt-2 -mx-1 pl-1 w-1/2" x-show="csp_enabled">
+                  <label class="block text-sm text-gray-600 group relative" for="csp_time_of_day_multi">
+                    Multiplier
+                    <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                      <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                        CSP Multiplier of time of day
+                      </div>
+                    </div>
+                  </label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" min="1" max="60"
+                    type="number" :required="csp_enabled" :disabled="!csp_enabled" placeholder="Multiplier" aria-label="Multiplier"
+                    x-model="time.csp_time_of_day_multi" />
+                </div>
+                <div class="mt-2" x-show="csp_enabled">
+                  <label class="block text-sm text-gray-600 group relative" for="csp_date">
+                    Date (optional)
+                    <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                      <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                        CSP Date
+                      </div>
+                    </div>
+                  </label>
+                  <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded"
+                    type="date" placeholder="CSP Date" aria-label="CSP Date"
+                    x-model="time.csp_date" />
+                </div>
+                <div class="mt-6">
                   <label class="block text-sm text-gray-600 group relative" for="graphics">
                     Weather
                     <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">

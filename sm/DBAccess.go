@@ -70,7 +70,7 @@ func (dba Dbaccess) Select_DropDownList(filled bool, tableName string) []DropDow
 	} else {
 		where = " WHERE deleted = 0"
 	}
-	rows, err := dba.Db.Query("SELECT id, name from " + tableName + where)
+	rows, err := dba.Db.Query("SELECT id, name from " + tableName + where + " ORDER BY name")
 
 	defer rows.Close()
 
@@ -277,7 +277,10 @@ SELECT
 	c.name as class_name,
 	COUNT(ce.id) as entries,
 	tw.name as time_name,
-	tw.time as time,
+	concat((SELECT
+		GROUP_CONCAT(a.csp_time, ', ')
+	FROM user_time_weather a
+	WHERE user_time_id = tw.id), tw.time) as time,
 	(SELECT
 		GROUP_CONCAT(b.name, ', ')
 	FROM user_time_weather a
@@ -394,7 +397,7 @@ func (dba Dbaccess) Select_Difficulty(id int) User_Difficulty {
 		log.Print(err)
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(id).Scan(&dif.Id, &dif.Name, &dif.Abs_Allowed, &dif.Tc_Allowed, &dif.Stability_Allowed, &dif.Autoclutch_Allowed, &dif.Tyre_Blankets_Allowed, &dif.Force_Virtual_Mirror, &dif.Fuel_Rate, &dif.Damage_Multiplier, &dif.Tyre_Wear_Rate, &dif.Allowed_Tyres_Out, &dif.Max_Ballast_Kg, &dif.Start_Rule, &dif.Race_Gas_Penality_Disabled, &dif.Dynamic_Track, &dif.Dynamic_Track_Preset, &dif.Session_Start, &dif.Randomness, &dif.Session_Transfer, &dif.Lap_Gain, &dif.Kick_Quorum, &dif.Vote_Duration, &dif.Voting_Quorum, &dif.Tyre_Blankets_Allowed, &dif.Max_Contacts_Per_Km)
+	err = stmt.QueryRow(id).Scan(&dif.Id, &dif.Name, &dif.Abs_Allowed, &dif.Tc_Allowed, &dif.Stability_Allowed, &dif.Autoclutch_Allowed, &dif.Tyre_Blankets_Allowed, &dif.Force_Virtual_Mirror, &dif.Fuel_Rate, &dif.Damage_Multiplier, &dif.Tyre_Wear_Rate, &dif.Allowed_Tyres_Out, &dif.Max_Ballast_Kg, &dif.Start_Rule, &dif.Race_Gas_Penality_Disabled, &dif.Dynamic_Track, &dif.Dynamic_Track_Preset, &dif.Session_Start, &dif.Randomness, &dif.Session_Transfer, &dif.Lap_Gain, &dif.Kick_Quorum, &dif.Vote_Duration, &dif.Voting_Quorum, &dif.Blacklist_Mode, &dif.Max_Contacts_Per_Km)
 	if err != nil {
 		log.Print(err)
 	}
@@ -483,17 +486,17 @@ func (dba Dbaccess) Update_Session(ses User_Session) int64 {
 
 func (dba Dbaccess) Select_Time_Weather(id int) User_Time {
 	time := User_Time{}
-	stmt, err := dba.Db.Prepare("SELECT id, name, time, time_of_day_multi FROM user_time WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, name, time, time_of_day_multi, csp_enabled FROM user_time WHERE id = ? AND deleted = 0 LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(id).Scan(&time.Id, &time.Name, &time.Time, &time.Time_Of_Day_Multi)
+	err = stmt.QueryRow(id).Scan(&time.Id, &time.Name, &time.Time, &time.Time_Of_Day_Multi, &time.Csp_Enabled)
 	if err != nil {
 		log.Print(err)
 	}
 
-	stmt, err = dba.Db.Prepare("SELECT a.id, name, user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction FROM user_time_weather a JOIN cache_weather b on a.graphics = b.key WHERE user_time_id = ? AND deleted = 0 LIMIT 1")
+	stmt, err = dba.Db.Prepare("SELECT a.id, name, user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction, csp_time, csp_time_of_day_multi, csp_date FROM user_time_weather a JOIN cache_weather b on a.graphics = b.key WHERE user_time_id = ? AND deleted = 0")
 	if err != nil {
 		log.Print(err)
 	}
@@ -502,7 +505,7 @@ func (dba Dbaccess) Select_Time_Weather(id int) User_Time {
 	time.Weathers = make([]User_Time_Weather, 0)
 	wt := User_Time_Weather{}
 	for rows.Next() {
-		err = rows.Scan(&wt.Id, &wt.Name, &wt.User_Time_Id, &wt.Graphics, &wt.Base_Temperature_Ambient, &wt.Base_Temperature_Road, &wt.Variation_Ambient, &wt.Variation_Road, &wt.Wind_Base_Speed_Min, &wt.Wind_Base_Speed_Max, &wt.Wind_Base_Direction, &wt.Wind_Variation_Direction)
+		err = rows.Scan(&wt.Id, &wt.Name, &wt.User_Time_Id, &wt.Graphics, &wt.Base_Temperature_Ambient, &wt.Base_Temperature_Road, &wt.Variation_Ambient, &wt.Variation_Road, &wt.Wind_Base_Speed_Min, &wt.Wind_Base_Speed_Max, &wt.Wind_Base_Direction, &wt.Wind_Variation_Direction, &wt.Csp_Time, &wt.Csp_Time_Of_Day_Multi, &wt.Csp_Date)
 
 		time.Weathers = append(time.Weathers, wt)
 	}
@@ -536,11 +539,11 @@ func (dba Dbaccess) Delete_Time(id int) int64 {
 }
 
 func (dba Dbaccess) Update_Time(time User_Time) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_time SET time = ?, time_of_day_multi = ?, filled = 1 WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_time SET time = ?, time_of_day_multi = ?, csp_enabled = ?, filled = 1 WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	_, err = stmt.Exec(&time.Time, &time.Time_Of_Day_Multi, &time.Id)
+	_, err = stmt.Exec(&time.Time, &time.Time_Of_Day_Multi, &time.Csp_Enabled, &time.Id)
 	defer stmt.Close()
 
 	if err != nil {
@@ -559,11 +562,11 @@ func (dba Dbaccess) Update_Time(time User_Time) int64 {
 	}
 
 	for _, w := range time.Weathers {
-		stmt, err = dba.Db.Prepare("INSERT INTO user_time_weather (user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		stmt, err = dba.Db.Prepare("INSERT INTO user_time_weather (user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction, csp_time, csp_time_of_day_multi, csp_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
 			log.Print(err)
 		}
-		_, err = stmt.Exec(&time.Id, &w.Graphics, &w.Base_Temperature_Ambient, &w.Base_Temperature_Road, &w.Variation_Ambient, &w.Variation_Road, &w.Wind_Base_Speed_Min, &w.Wind_Base_Speed_Max, &w.Wind_Base_Direction, &w.Wind_Variation_Direction)
+		_, err = stmt.Exec(&time.Id, &w.Graphics, &w.Base_Temperature_Ambient, &w.Base_Temperature_Road, &w.Variation_Ambient, &w.Variation_Road, &w.Wind_Base_Speed_Min, &w.Wind_Base_Speed_Max, &w.Wind_Base_Direction, &w.Wind_Variation_Direction, &w.Csp_Time, &w.Csp_Time_Of_Day_Multi, &w.Csp_Date)
 		defer stmt.Close()
 
 		if err != nil {
@@ -784,7 +787,7 @@ func (dba Dbaccess) Select_Cache_Car(car_key string) Cache_Car {
 	var skins string
 
 	car := Cache_Car{}
-	stmt, err := dba.Db.Prepare("SELECT key, name, brand, desc, tags, class, specs, torque, power, skins FROM cache_car WHERE key = ?")
+	stmt, err := dba.Db.Prepare("SELECT key, name, brand, desc, tags, class, specs, torque, power, skins FROM cache_car WHERE key = ? ORDER BY name")
 	if err != nil {
 		log.Print(err)
 	}
@@ -847,7 +850,7 @@ func (dba Dbaccess) Update_Cache_Tracks(tracks []Cache_Track) int64 {
 }
 
 func (dba Dbaccess) Select_Cache_Tracks() []Cache_Track {
-	rows, err := dba.Db.Query("SELECT key, config, name, desc, tags, country, city, length, width, pitboxes, run FROM cache_track")
+	rows, err := dba.Db.Query("SELECT key, config, name, desc, tags, country, city, length, width, pitboxes, run FROM cache_track ORDER BY name")
 	if err != nil {
 		log.Print(err)
 	}
@@ -932,7 +935,7 @@ func (dba Dbaccess) Update_Cache_Weathers(weathers []Cache_Weather) int64 {
 }
 
 func (dba Dbaccess) Select_Cache_Weathers() []Cache_Weather {
-	rows, err := dba.Db.Query("SELECT key, name FROM cache_weather")
+	rows, err := dba.Db.Query("SELECT key, name FROM cache_weather ORDER BY name")
 	if err != nil {
 		log.Print(err)
 	}
@@ -956,7 +959,7 @@ func (dba Dbaccess) Select_Cache_Weathers() []Cache_Weather {
 
 func (dba Dbaccess) Select_Cache_Weather(weather_key string) Cache_Weather {
 	w := Cache_Weather{}
-	stmt, err := dba.Db.Prepare("SELECT key, name FROM cache_weather WHERE key = ?")
+	stmt, err := dba.Db.Prepare("SELECT key, name FROM cache_weather WHERE key = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}

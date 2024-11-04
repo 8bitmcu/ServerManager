@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS user_time (
   name TEXT NOT NULL,
   time TEXT,
   time_of_day_multi INTEGER,
+  csp_enabled INTEGER,
 
   filled INTEGER,
   deleted INTEGER DEFAULT 0
@@ -89,6 +90,9 @@ CREATE TABLE IF NOT EXISTS user_time_weather (
   wind_base_speed_max INTEGER,
   wind_base_direction INTEGER,
   wind_variation_direction INTEGER,
+  csp_time TEXT,
+  csp_time_of_day_multi INTEGER,
+  csp_date TEXT,
 
   deleted INTEGER DEFAULT 0
 );
@@ -149,7 +153,7 @@ CREATE TABLE IF NOT EXISTS user_event (
   race_laps INTEGER,
   strategy INTEGER,
 
-  started_at DATETIME,
+  started_at INTEGER,
   finished INTEGER,
 
   deleted INTEGER DEFAULT 0

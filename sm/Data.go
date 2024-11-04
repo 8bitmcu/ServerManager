@@ -1,9 +1,5 @@
 package sm
 
-import (
-	"time"
-)
-
 type Users struct {
 	Name             *string `form:"name"`
 	Password         *string `form:"password"`
@@ -68,7 +64,7 @@ type User_Event struct {
 	Session_Id         *int    `form:"session"`
 	Class_Id           *int    `form:"class"`
 	Time_Id            *int    `form:"time"`
-	Started_At         time.Time
+	Started_At         *int
 	Finished           *int
 }
 
@@ -129,6 +125,7 @@ type User_Time struct {
 	Name              *string             `form:"name" json:"name"`
 	Time              *string             `form:"time" json:"time"`
 	Time_Of_Day_Multi *int                `form:"time_of_day_multi" json:"time_of_day_multi"`
+	Csp_Enabled       *int                `form:"csp_enabled" json:"csp_enabled"`
 	Weathers          []User_Time_Weather `json:"weathers"`
 }
 
@@ -145,6 +142,9 @@ type User_Time_Weather struct {
 	Wind_Base_Speed_Max      *int    `json:"wind_base_speed_max,string"`
 	Wind_Base_Direction      *int    `json:"wind_base_direction,string"`
 	Wind_Variation_Direction *int    `json:"wind_variation_direction,string"`
+	Csp_Time                 *string `json:"csp_time"`
+	Csp_Time_Of_Day_Multi    *int    `json:"csp_time_of_day_multi,string"`
+	Csp_Date                 *string `json:"csp_date"`
 }
 
 type User_Class struct {
@@ -212,7 +212,7 @@ type Cache_Weather struct {
 	Name *string `json:"name"`
 }
 
-type Server_Stats struct {
-	Status    bool   `json:"status"`
-	Public_Ip string `json:"public_ip"`
-}
+var Dba Dbaccess
+var Cr ConfigRenderer
+var Stats Server_Stats
+var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")

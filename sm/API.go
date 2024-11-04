@@ -202,9 +202,9 @@ func API_Recache_Content(c *gin.Context) {
 }
 
 func API_Validate_Installpath(c *gin.Context) {
+	// TODO eventually check for server binary, based on OS
 	path := filepath.Join(c.PostForm("path"), "acs.exe")
 	exists := true
-
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		exists = false
 	}
@@ -237,16 +237,19 @@ func API_Console_Status(c *gin.Context) {
 	})
 }
 
+// Warning: non determistic as some of the items can be randomized/shuffled.
 func API_Entry_List(c *gin.Context) {
 	id := c.Query("id")
 	idInt, _ := strconv.Atoi(id)
-	c.String(http.StatusOK, Render_Entry_List(idInt))
+
+	res := Cr.Render_Ini(idInt)
+	c.String(http.StatusOK, res.EntryList_Result)
 }
 
 func API_Server_Cfg(c *gin.Context) {
 	id := c.Query("id")
 	idInt, _ := strconv.Atoi(id)
-	str, _ := Render_Ini(idInt)
 
-	c.String(http.StatusOK, str)
+	res := Cr.Render_Ini(idInt)
+	c.String(http.StatusOK, res.ServerCfg_Result)
 }

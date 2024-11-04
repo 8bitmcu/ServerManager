@@ -80,6 +80,8 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	sm.Dba = dba
+	sm.Cr = sm.ConfigRenderer{}
+	sm.Stats = sm.Server_Stats{}
 
 	router := gin.Default()
 	router.Use(gin.Recovery())
@@ -220,7 +222,7 @@ func main() {
 		sm.Open_URL("http://localhost:3030")
 	}
 
-	sm.Update_Public_Ip()
+	sm.Stats.Update_Public_Ip()
 
 	router.Run(":3030")
 
