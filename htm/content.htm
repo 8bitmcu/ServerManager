@@ -1,16 +1,36 @@
 {{ template "/htm/header.htm" . }}
 
 <script>
+  function validate_install_path() {
+    let data = new FormData()
+    data.append("path", document.getElementById("install_path").value)
+    return fetch("/api/validate/installpath", {
+      method: "POST",
+      body: data
+    }).then((response) => response.json())
+  }
+
+  function submit_form() {
+    validate_install_path().then(x => {
+      if (x.result == true) {
+        document.getElementById("frmContent").submit();
+      } else {
+        document.getElementById("install_path").setCustomValidity("Please fill a valid install path");
+        document.getElementById("install_path").reportValidity();
+      }
+    });
+    return false;
+  }
   function csp() {
     return {
-      csp_required: {{ .form.Csp_Required | toJsBool }},
-      csp_version: {{ .form.Csp_Version }},
-      csp_phycars: {{ .form.Csp_Phycars | toJsBool }},
-      csp_phytracks: {{ .form.Csp_Phytracks | toJsBool }},
-      csp_hidepit: {{ .form.Csp_Hidepit | toJsBool }},
+      csp_required: {{ .form.Csp_Required | toJsBool}},
+      csp_version: {{ .form.Csp_Version}},
+      csp_phycars: {{ .form.Csp_Phycars | toJsBool}},
+      csp_phytracks: {{ .form.Csp_Phytracks | toJsBool}},
+      csp_hidepit: {{ .form.Csp_Hidepit | toJsBool}},
 
       csp_required_changed: function(val) {
-        if(val) {
+        if (val) {
           this.csp_version = '';
           this.csp_phycars = false;
           this.csp_phytracks = false;
@@ -21,9 +41,9 @@
   }
   function cache() {
     return {
-      tracks_total: {{ .track_data | len }},
-      cars_total: {{ .car_data | len }},
-      weathers_total: {{ .weather_data | len }},
+      tracks_total: {{ .track_data | len}},
+      cars_total: {{ .car_data | len}},
+      weathers_total: {{ .weather_data | len}},
       content_loaded: false,
       loading: false,
 
@@ -50,63 +70,65 @@
       path_valid: null,
       loading: false,
 
-      validate_path: function() {
+      validate_path: function () {
         this.loading = true;
-        let data = new FormData()
-        data.append("path", this.install_path)
-        fetch("/api/validate/installpath", {
-          method: "POST",
-          body: data
-        })
-        .then((response) => response.json())
-          .then((json) => {
-            this.loading = false;
-            this.path_valid = json.result;
-          });
+        validate_install_path().then((json) => {
+          this.loading = false;
+          this.path_valid = json.result;
+        });
       },
     }
   }
 </script>
 
 <h1 class="text-3xl text-black pb-6">Mods</h1>
-<form class="flex flex-wrap" method="POST" action="/content">
+<form class="flex flex-wrap" id="frmContent" method="POST" action="/content">
   <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2" x-data="cache()">
     <p class="text-xl pb-6 flex items-center">
       <i class="fas fa-list mr-3"></i> Content Cache
     </p>
     <div class="p-4 lg:p-10 bg-white rounded shadow-xl leading-loose">
-
       <div class="w-full flex flex-row px-2">
         <div class="flex-1 flex flex-col mt-2">
           <h2 class="text-xl">Tracks</h2>
-          <p :class="tracks_total == 0 ? 'text-red-500' : ''"><span x-html="tracks_total"></span> Tracks loaded</p>
+          <p :class="tracks_total == 0 ? 'text-red-500' : ''">
+            <span x-html="tracks_total"></span> Tracks loaded
+          </p>
         </div>
       </div>
       <hr />
       <div class="w-full flex flex-row px-2">
         <div class="flex-1 flex flex-col mt-2">
           <h2 class="text-xl">Cars</h2>
-          <p :class="cars_total == 0 ? 'text-red-500' : ''"><span x-html="cars_total"></span> Cars loaded</p>
+          <p :class="cars_total == 0 ? 'text-red-500' : ''">
+            <span x-html="cars_total"></span> Cars loaded
+          </p>
         </div>
       </div>
       <hr />
       <div class="w-full flex flex-row px-2">
         <div class="flex-1 flex flex-col mt-2">
           <h2 class="text-xl">Weathers</h2>
-          <p :class="weathers_total == 0 ? 'text-red-500' : ''"><span x-html="weathers_total"></span> Weathers loaded</p>
+          <p :class="weathers_total == 0 ? 'text-red-500' : ''">
+            <span x-html="weathers_total"></span> Weathers loaded
+          </p>
         </div>
       </div>
       <hr />
       <div class="w-full flex flex-row px-2 py-3">
         <div>
           {{ if .form.Mod_Filled }}
-          <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" type="button" @click="load_content()">
+          <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
+            type="button" @click="load_content()">
             <span class="pr-2">Reload Content</span>
             <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
             <i class="fas fa-check" x-show="content_loaded == true"></i>
           </button>
           {{ else }}
-          <p class="text-red-500"><i class="fas fa-info-circle"></i> Fill in a valid installation path to be able to load content</p>
+          <p class="text-red-500">
+            <i class="fas fa-info-circle"></i> Fill in a valid installation path
+            to be able to load content
+          </p>
           {{ end }}
         </div>
       </div>
@@ -114,7 +136,8 @@
   </div>
   <div class="w-full lg:w-1/2 my-6 pr-0 lg:pr-2" x-data="csp()">
     <p class="text-xl pb-6 flex items-center">
-    <i class="fas fa-list mr-3"></i> <a href="https://acstuff.club/patch/">Custom Shaders Patch</a>
+      <i class="fas fa-list mr-3"></i>
+      <a href="https://acstuff.club/patch/">Custom Shaders Patch</a>
     </p>
     <div class="p-4 lg:p-10 bg-white rounded shadow-xl leading-loose">
       <div>
@@ -122,7 +145,8 @@
           Required to join
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
             <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              Enable CSP on this server. Note: CSP <b>must</b> be installed in your assetto corsa folder
+              Enable CSP on this server. Note: CSP <b>must</b> be installed in
+              your assetto corsa folder
             </div>
           </div>
         </label>
@@ -132,7 +156,7 @@
             class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
           <label for="csp_required"
             class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-          <input type='hidden' value='0' name='csp_required'>
+          <input type="hidden" value="0" name="csp_required" />
         </div>
       </div>
 
@@ -146,8 +170,9 @@
               </div>
             </div>
           </label>
-          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="csp_version" name="csp_version" type="text" :required="csp_required" x-model="csp_version"
-            placeholder="Minimum Version" aria-label="Minimum Version" x-model="csp_version" />
+          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="csp_version" name="csp_version"
+            type="number" :required="csp_required" min="1" placeholder="Minimum Version" aria-label="Minimum Version"
+            x-model="csp_version" :disabled="!csp_required" />
         </div>
         <div class="mt-2">
           <label class="block text-sm text-gray-600 group relative" for="csp_phycars">
@@ -163,7 +188,7 @@
               class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
             <label for="csp_phycars"
               class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-            <input type='hidden' value='0' name='csp_phycars'>
+            <input type="hidden" value="0" name="csp_phycars" />
           </div>
         </div>
         <div class="mt-2">
@@ -180,7 +205,7 @@
               class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
             <label for="csp_phytracks"
               class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-            <input type='hidden' value='0' name='csp_phytracks'>
+            <input type="hidden" value="0" name="csp_phytracks" />
           </div>
         </div>
         <div class="mt-2">
@@ -197,7 +222,7 @@
               class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
             <label for="csp_hidepit"
               class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-            <input type='hidden' value='0' name='csp_hidepit'>
+            <input type="hidden" value="0" name="csp_hidepit" />
           </div>
         </div>
       </div>
@@ -220,10 +245,10 @@
         </label>
         <div class="flex flex-row">
           <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l" id="install_path" name="install_path"
-            type="text" required="" placeholder="Installation Path" aria-label="Installation Path" x-model="install_path"
-            value="" />
-          <button class="px-4 py-1 text-white font-light tracking-wider bg-red-500 rounded-r flex flex-row align-center" style="align-items: center" type="button"
-            @click="validate_path()">
+            type="text" required="" placeholder="Installation Path" aria-label="Installation Path"
+            x-model="install_path" value="" />
+          <button class="px-4 py-1 text-white font-light tracking-wider bg-red-500 rounded-r flex flex-row align-center"
+            style="align-items: center" type="button" @click="validate_path()">
             <span class="pr-2">Test</span>
             <div class="w-6 h-6 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
             <i class="fas fa-check" x-show="path_valid == true"></i>
@@ -236,7 +261,8 @@
 
   <div class="w-full mt-6 pl-0 lg:pl-2">
     <p class="text-xl pb-6 flex items-center">
-      <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded" type="submit">
+      <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded" onclick="return submit_form()"
+        type="submit">
         Save
       </button>
     </p>
@@ -244,4 +270,3 @@
 </form>
 
 {{ template "/htm/footer.htm" }}
-

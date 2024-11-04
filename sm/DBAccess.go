@@ -286,7 +286,9 @@ SELECT
 	FROM user_time_weather a
 	JOIN cache_weather b
 		on a.graphics = b.key
-	WHERE user_time_id = tw.id) as graphics
+	WHERE user_time_id = tw.id) as graphics,
+	(SELECT COUNT (*) FROM user_time_weather WHERE user_time_id = tw.id) as trunc_weather,
+	tw.csp_enabled as csp_weather
 FROM user_event s
 JOIN cache_track t
 	on s.cache_track_key = t.key
@@ -315,7 +317,7 @@ GROUP BY (s.id)
 	events := make([]User_Event, 0)
 	for rows.Next() {
 		evt := User_Event{}
-		err = rows.Scan(&evt.Id, &evt.Race_Laps, &evt.Strategy, &evt.Track_Name, &evt.Track_Length, &evt.Pitboxes, &evt.Difficulty_Name, &evt.Abs_Allowed, &evt.Tc_Allowed, &evt.Stability_Allowed, &evt.Autoclutch_Allowed, &evt.Session_Name, &evt.Booking_Enabled, &evt.Booking_Time, &evt.Practice_Enabled, &evt.Practice_Time, &evt.Qualify_Enabled, &evt.Qualify_Time, &evt.Race_Enabled, &evt.Race_Time, &evt.Class_Name, &evt.Entries, &evt.Time_Name, &evt.Time, &evt.Graphics)
+		err = rows.Scan(&evt.Id, &evt.Race_Laps, &evt.Strategy, &evt.Track_Name, &evt.Track_Length, &evt.Pitboxes, &evt.Difficulty_Name, &evt.Abs_Allowed, &evt.Tc_Allowed, &evt.Stability_Allowed, &evt.Autoclutch_Allowed, &evt.Session_Name, &evt.Booking_Enabled, &evt.Booking_Time, &evt.Practice_Enabled, &evt.Practice_Time, &evt.Qualify_Enabled, &evt.Qualify_Time, &evt.Race_Enabled, &evt.Race_Time, &evt.Class_Name, &evt.Entries, &evt.Time_Name, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.Csp_Weather)
 		if err != nil {
 			log.Fatal(err)
 		}

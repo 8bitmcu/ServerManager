@@ -165,7 +165,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="booking_time" name="booking_time"
-                  type="number" :required="booking_enabled" placeholder="Booking Time" aria-label="Booking Time" min="1"
+                  type="number" :required="booking_enabled" :disabled="!booking_enabled" placeholder="Booking Time" aria-label="Booking Time" min="1"
                   x-model="booking_time" />
               </div>
             </div>
@@ -207,7 +207,7 @@
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="practice_time" min="1"
                   name="practice_time" type="number" :required="practice_enabled" placeholder="Practice Time" aria-label="Practice Time"
-                  x-model="practice_time" />
+                  x-model="practice_time" :disabled="!practice_enabled" />
               </div>
               <div>
                 <label class="block text-sm text-gray-600 group relative" for="practice_is_open">
@@ -264,7 +264,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_time" name="qualify_time"
-                  type="number" :required="qualify_enabled" placeholder="Qualify Time" aria-label="Qualify Time" min="1"
+                  type="number" :required="qualify_enabled" :disabled="!qualify_enabled" placeholder="Qualify Time" aria-label="Qualify Time" min="1"
                   x-model="qualify_time" />
               </div>
               <div>
@@ -294,7 +294,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="qualify_max_wait_perc"
-                  name="qualify_max_wait_perc" type="number" :required="qualify_enabled" placeholder="Qualify limit Perc." min="0"
+                  name="qualify_max_wait_perc" type="number" :disabled="!qualify_enabled" :required="qualify_enabled" placeholder="Qualify limit Perc." min="0"
                   aria-label="Qualify limit Perc." x-model="qualify_max_wait_perc" />
               </div>
             </div>
@@ -335,7 +335,7 @@
                     </div>
                   </label>
                   <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_time" name="race_time"
-                    type="number" :required="race_enabled" placeholder="Race Minutes" aria-label="Race Minutes"
+                    type="number" :required="race_enabled" :disabled="!race_enabled" placeholder="Race Minutes" aria-label="Race Minutes"
                     x-model="race_time" />
                 </div>
                 <div class="w-1/2 mt-2">
@@ -367,7 +367,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_over_time" min="30" x-model="race_over_time"
-                  name="race_over_time" type="number" :required="race_enabled" placeholder="Race Overtime" aria-label="Race Overtime" />
+                  name="race_over_time" type="number" :required="race_enabled" :disabled="!race_enabled" placeholder="Race Overtime" aria-label="Race Overtime" />
               </div>
               <div class="mt-2">
                 <label class="block text-sm text-gray-600 group relative" for="race_wait_time">
@@ -379,7 +379,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_wait_time" min="20"
-                  name="race_wait_time" type="number" :required="race_enabled" placeholder="Race Wait Time" aria-label="Race Wait Time"
+                  name="race_wait_time" type="number" :required="race_enabled" :disabled="!race_enabled" placeholder="Race Wait Time" aria-label="Race Wait Time"
                   x-model="race_wait_time" />
               </div>
               <div class="mt-2">
@@ -392,7 +392,7 @@
                   </div>
                 </label>
                 <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="race_is_open"
-                  name="race_is_open" :required="race_enabled" x-model="race_is_open">
+                  name="race_is_open" :required="race_enabled" :disabled="!race_enabled" x-model="race_is_open">
                   <option value="">Select ...</option>
                   <option value="0">Close</option>
                   <option value="1">Open</option>
@@ -409,7 +409,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="reversed_grid_positions"
-                  name="reversed_grid_positions" type="number" :required="race_enabled" placeholder="Reversed Grid" min="0"
+                  name="reversed_grid_positions" type="number" :required="race_enabled" :disabled="!race_enabled" placeholder="Reversed Grid" min="0"
                   aria-label="Reversed Grid" x-model="reversed_grid_positions" />
               </div>
               <div class="inline-block mt-2 w-1/2 pr-1">
@@ -422,7 +422,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_start"
-                  name="race_pit_window_start" type="number" :required="race_enabled" placeholder="Mandatory Pit" min="0"
+                  name="race_pit_window_start" type="number" :required="race_enabled" :disabled="!race_enabled" placeholder="Mandatory Pit" min="0"
                   aria-label="Mandatory Pit" x-model="race_pit_window_start" />
               </div>
               <div class="inline-block mt-2 -mx-1 pl-1 w-1/2">
@@ -435,7 +435,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="race_pit_window_end"
-                  name="race_pit_window_end" type="number" :required="race_enabled" placeholder="Mandatory Pit" min="0"
+                  name="race_pit_window_end" type="number" :required="race_enabled" :disabled="!race_enabled" placeholder="Mandatory Pit" min="0"
                   aria-label="Mandatory Pit" x-model="race_pit_window_end" />
               </div>
             </div>

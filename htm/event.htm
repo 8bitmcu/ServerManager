@@ -20,18 +20,16 @@
   function reload_content() {
     return {
       content_total: {{ .track_data | len }},
-      content_loaded: false,
       loading: false,
 
       load_content: function () {
         this.loading = true;
-        this.content_loaded = false;
         fetch("/api/track/recache")
           .then((response) => response.json())
           .then((json) => {
             this.loading = false;
             if (json.result == 'ok') {
-              this.content_loaded = true;
+              location.reload();
             }
             this.content_total = json.value;
           });
@@ -51,6 +49,7 @@
       selection_session: {{ .form.Session_Id | derefInt }},
       selection_class: {{ .form.Class_Id | derefInt }},
       selection_time: {{ .form.Time_Id | derefInt }},
+      race_laps: {{.form.Race_Laps | derefInt }},
 
       get_trackdata: function(key, config) {
         if (key == "")
@@ -65,7 +64,12 @@
         this.selection_track_key = split[0];
         this.selection_track_config = split[1];
       },
-
+      init: function() {
+        this.get_difficulty();
+        this.get_session();
+        this.get_class();
+        this.get_time();
+      },
       loaded_difficulty: {},
       loaded_session: {},
       loaded_class: { entries: []},
@@ -85,7 +89,12 @@
         else
           fetch('/api/session/' + this.selection_session)
             .then((response) => response.json())
-            .then((json) => this.loaded_session = json.data);
+            .then((json) => {
+              this.loaded_session = json.data;
+              if (this.loaded_session.race_enabled != true) {
+                this.race_laps = '';
+              }
+            });
       },
       get_class: function() {
         if(this.selection_class == "")
@@ -203,19 +212,15 @@
   }
 </script>
 
-<h1 class="text-3xl text-black">Event</h1>
+<h1 class="text-3xl text-black">Events</h1>
 <div class="flex flex-row bp-6" x-data="reload_content()">
   <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> tracks loaded</p>
   <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()">
     <span class="pr-2">Reload Content</span>
     <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
-    <i class="fas fa-check" x-show="content_loaded == true"></i>
   </button>
 </div>
-<div class="w-full mt-6" x-data="session()">
-  <p class="text-xl pb-3 flex items-center">
-    <i class="fas fa-list mr-3"></i>Current Event
-  </p>
+<div class="w-full mt-12" x-data="session()" x-init="init()">
   <div class="overflow-auto">
 
     <table class="min-w-full bg-white">
@@ -335,8 +340,20 @@
           </td>
           <td class="text-left whitespace-nowrap flex flex-col align-baseline">
             <span>{{ $event.Time_Name }}</span>
+            {{ if (gt (toInt $event.Csp_Weather) 0) }}
+            <div>
+              <div
+                class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+                <div class="mt-px">CSP</div>
+              </div>
+            </div>
+            {{ end }}
+            {{ if (gt (toInt $event.TruncWeather) 1) }}
+            <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> 1 of {{ $event.TruncWeather }} entries</span>
+            {{ else }}
             <span class="text-xs mr-4"><i class="fas fa-stopwatch"></i> {{ $event.Time }} </span>
             <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> {{ $event.Graphics }}</span>
+            {{ end }}
           </td>
           <td class="text-left whitespace-nowrap">
             <a href="/event/{{ $event.Id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
@@ -554,15 +571,15 @@
             </div>
             <div class="w-1/4 ml-5">
               <label class="block text-sm text-gray-600 group relative" for="race_laps">
-                Laps
+                Laps (optional)
                 <div class="absolute mx-2 invisible group-hover:visible whitespace-nowrap" style="top: -2rem; left: -1rem; z-index: 2">
                   <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-                    Optional. When laps is not set, race time will be used instead
+                    When laps is not set, race time will be used instead
                   </div>
                 </div>
               </label>
-              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="race_laps" placeholder="Laps"
-                 aria-label="Laps" value="{{.form.Race_Laps | derefInt }}"/>
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="race_laps" placeholder="Laps" x-model="race_laps"
+                 aria-label="Laps" :disabled="loaded_session.race_enabled != true" />
             </div>
           </div>
 
@@ -697,7 +714,11 @@
           </div>
           <div class="w-1/2">
             <h2 class="py-4 text-xl">Time and Weather</h2>
-            <div class="flex flex-row text-normal text-gray-700">
+            <div x-show="loaded_time.csp_enabled"
+              class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+              <div class="mt-px">CSP</div>
+            </div>
+            <div class="flex flex-row text-normal text-gray-700" style="line-height: 1.6">
               <span>
                 <i class="fas fa-stopwatch"></i>
                 <span class="flex flex-col mr-4">

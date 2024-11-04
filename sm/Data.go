@@ -58,6 +58,8 @@ type User_Event struct {
 	Time_Name          *string
 	Time               *string
 	Graphics           *string
+	TruncWeather       *int
+	Csp_Weather        *int
 	Cache_Track_Key    *string `form:"track_key"`
 	Cache_Track_Config *string `form:"track_config"`
 	Difficulty_Id      *int    `form:"difficulty"`

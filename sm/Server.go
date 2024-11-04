@@ -12,8 +12,11 @@ type Server_Stats struct {
 	Public_Ip string `json:"public_ip"`
 }
 
+var Public_Ip string
+
 func (stats Server_Stats) Refresh() {
 	Stats.Status = Is_Running()
+	Stats.Public_Ip = Public_Ip
 }
 
 func (stats Server_Stats) Update_Public_Ip() {
@@ -31,9 +34,7 @@ func (stats Server_Stats) Update_Public_Ip() {
 				if err != nil {
 					log.Print(err)
 				}
-				if len(string(ip)) > 0 {
-					stats.Public_Ip = string(ip)
-				}
+				Public_Ip = string(ip)
 			case <-quit:
 				ticker.Stop()
 				return

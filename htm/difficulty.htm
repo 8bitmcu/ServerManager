@@ -385,7 +385,7 @@
                   </div>
                 </label>
                 <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="dynamic_track_preset"
-                  :required="open" name="dynamic_track_preset" x-model="dynamic_track_preset"
+                  :required="open" name="dynamic_track_preset" x-model="dynamic_track_preset" :disabled="!open"
                   @change="preset_changed()">
                   <option value="0" {{ if (eq (derefInt .form.Dynamic_Track_Preset) "0") }} selected {{ end }}>Custom
                   </option>
@@ -414,7 +414,7 @@
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_start"
                   x-model="session_start" min="80" max="100" name="session_start" type="number" :required="open"
-                  :disabled="dynamic_track_preset != 0" placeholder="Start Value" aria-label="Start Value" />
+                  :disabled="dynamic_track_preset != 0 || !open" placeholder="Start Value" aria-label="Start Value" />
                 <input type="hidden" name="session_start" x-model="session_start" />
               </div>
               <div class="mt-2">
@@ -427,7 +427,7 @@
                   </div>
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="randomness" name="randomness"
-                  min="0" max="10" type="number" :required="open" :disabled="dynamic_track_preset != 0"
+                  min="0" max="10" type="number" :required="open" :disabled="dynamic_track_preset != 0 || !open"
                   placeholder="Randomness" aria-label="Randomness" x-model="randomness" />
                 <input type="hidden" name="randomness" x-model="randomness" />
               </div>
@@ -442,7 +442,7 @@
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_transfer"
                   x-model="session_transfer" min="0" max="100" name="session_transfer" type="number" :required="open"
-                  :disabled="dynamic_track_preset != 0" placeholder="Transfer Grip" aria-label="Transfer Grip" />
+                  :disabled="dynamic_track_preset != 0 || !open" placeholder="Transfer Grip" aria-label="Transfer Grip" />
                 <input type="hidden" name="session_transfer" x-model="session_transfer" />
               </div>
               <div class="mt-2">
@@ -456,7 +456,7 @@
                 </label>
                 <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="lap_gain" name="lap_gain"
                   x-model="lap_gain" min="0" max="1000" type="number" :required="open"
-                  :disabled="dynamic_track_preset != 0" placeholder="Laps to Improve Grip"
+                  :disabled="dynamic_track_preset != 0 || !open" placeholder="Laps to Improve Grip"
                   aria-label="Laps to Improve Grip" />
                 <input type="hidden" name="lap_gain" x-model="lap_gain" />
               </div>

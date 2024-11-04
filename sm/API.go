@@ -167,26 +167,23 @@ func API_Time(c *gin.Context) {
 }
 
 func API_Recache_Cars(c *gin.Context) {
-	result := Parse_Cars(Dba)
+	Parse_Cars(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result": "ok",
-		"value":  result,
 	})
 }
 
 func API_Recache_Tracks(c *gin.Context) {
-	result := Parse_Tracks(Dba)
+	Parse_Tracks(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result": "ok",
-		"value":  result,
 	})
 }
 
 func API_Recache_Weathers(c *gin.Context) {
-	result := Parse_Weathers(Dba)
+	Parse_Weathers(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result": "ok",
-		"value":  result,
 	})
 }
 func API_Recache_Content(c *gin.Context) {

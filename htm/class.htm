@@ -4,24 +4,21 @@
   function reload_content() {
     return {
       content_total: {{ .car_data | len }},
-      content_loaded: false,
-        loading: false,
+      loading: false,
 
-          load_content: function () {
-            this.loading = true;
-            this.content_loaded = false;
-            fetch("/api/car/recache")
-              .then((response) => response.json())
-              .then((json) => {
-                this.loading = false;
-                if (json.result == 'ok') {
-                  this.content_loaded = true;
-                }
-                this.content_total = json.value;
-              });
-          }
+      load_content: function () {
+        this.loading = true;
+        fetch("/api/car/recache")
+          .then((response) => response.json())
+          .then((json) => {
+            this.loading = false;
+            if (json.result == 'ok') {
+              location.reload();
+            }
+          });
         }
       }
+    }
 </script>
 <h1 class="text-3xl text-black">Car Classes</h1>
 <div class="flex flex-row bp-6" x-data="reload_content()">
@@ -32,7 +29,6 @@
     @click="load_content()">
     <span class="pr-2">Reload Content</span>
     <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
-    <i class="fas fa-check" x-show="content_loaded == true"></i>
   </button>
 </div>
 <div class="flex flex-wrap">
