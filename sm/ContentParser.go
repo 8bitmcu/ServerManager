@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"github.com/kaptinlin/jsonrepair"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"sync"
+
+	"github.com/kaptinlin/jsonrepair"
 )
 
 func Parse_Weathers(dba Dbaccess) int {
@@ -167,23 +170,49 @@ func Parse_Tracks(dba Dbaccess) int {
 }
 
 func Parse_Cars(dba Dbaccess) int {
-	cars := make([]Cache_Car, 0)
-	cars_path := filepath.Join(Dba.Basepath(), "content", "cars")
-	entries, err := os.ReadDir(cars_path)
-	if err != nil {
-		log.Print(err)
+
+	type jsonCarSkin struct {
+		Key  string `json:"key"`
+		Name string `json:"name"`
 	}
 
-	for _, element := range entries {
-		if !element.IsDir() {
-			continue
+	parseSkin := func(skin fs.DirEntry, skins_path string) jsonCarSkin {
+		skin_json := filepath.Join(skins_path, skin.Name(), "ui_skin.json")
+		skin_name := skin.Name()
+		if _, err := os.Stat(skin_json); errors.Is(err, os.ErrNotExist) {
+			//log.Print(err)
+		} else {
+			jsonBytes, err := os.ReadFile(skin_json)
+			if err != nil {
+				log.Print(err)
+			}
+			jsonStr := string(jsonBytes)
+
+			data, err := jsonrepair.JSONRepair(jsonStr)
+			if err != nil {
+				log.Print(err)
+			}
+
+			var result map[string]string
+			err = json.Unmarshal([]byte(data), &result)
+			if err != nil {
+				//log.Print(err)
+			}
+
+			if result["skinname"] != "" {
+				skin_name = result["skinname"]
+			}
 		}
 
-		// if data.acd is missing, assume it's a missing dlc and avoid listing/saving it
-		data_acd := filepath.Join(cars_path, element.Name(), "data.acd")
-		if _, err := os.Stat(data_acd); errors.Is(err, os.ErrNotExist) {
-			continue
+		carSkin := jsonCarSkin{
+			Key:  skin.Name(),
+			Name: skin_name,
 		}
+
+		return carSkin
+	}
+
+	parseCar := func(element fs.DirEntry, cars_path string) Cache_Car {
 
 		json_path := filepath.Join(cars_path, element.Name(), "ui", "ui_car.json")
 		if _, err := os.Stat(json_path); errors.Is(err, os.ErrNotExist) {
@@ -218,53 +247,50 @@ func Parse_Cars(dba Dbaccess) int {
 			log.Print(err)
 		}
 
-		type jsonCarSkin struct {
-			Key  string `json:"key"`
-			Name string `json:"name"`
-		}
-
+		var wg sync.WaitGroup
 		for _, skin := range skins {
-
-			skin_json := filepath.Join(skins_path, skin.Name(), "ui_skin.json")
-			skin_name := skin.Name()
-			if _, err := os.Stat(skin_json); errors.Is(err, os.ErrNotExist) {
-				//log.Print(err)
-			} else {
-				jsonBytes, err := os.ReadFile(skin_json)
-				if err != nil {
-					log.Print(err)
-				}
-				jsonStr := string(jsonBytes)
-
-				data, err := jsonrepair.JSONRepair(jsonStr)
-				if err != nil {
-					log.Print(err)
-				}
-
-				var result map[string]string
-				err = json.Unmarshal([]byte(data), &result)
-				if err != nil {
-					//log.Print(err)
-				}
-
-				if result["skinname"] != "" {
-					skin_name = result["skinname"]
-				}
-			}
-
-			carSkin := jsonCarSkin{
-				Key:  skin.Name(),
-				Name: skin_name,
-			}
-
-			result.Skins = append(result.Skins, carSkin)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				result.Skins = append(result.Skins, parseSkin(skin, skins_path))
+			}()
 		}
+
+		wg.Wait()
 
 		key := element.Name()
 		result.Key = &key
 
-		cars = append(cars, result)
+		return result
 	}
+
+	cars := make([]Cache_Car, 0)
+	cars_path := filepath.Join(Dba.Basepath(), "content", "cars")
+	entries, err := os.ReadDir(cars_path)
+	if err != nil {
+		log.Print(err)
+	}
+
+	var wg sync.WaitGroup
+	for _, element := range entries {
+		if !element.IsDir() {
+			continue
+		}
+
+		// if data.acd is missing, assume it's a missing dlc and avoid listing/saving it
+		data_acd := filepath.Join(cars_path, element.Name(), "data.acd")
+		if _, err := os.Stat(data_acd); errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			cars = append(cars, parseCar(element, cars_path))
+		}()
+	}
+
+	wg.Wait()
 
 	dba.Update_Cache_Cars(cars)
 	return len(cars)

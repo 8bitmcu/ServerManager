@@ -24,7 +24,7 @@
 <h1 class="text-3xl text-black">Time and Weather</h1>
 <div class="flex flex-row bp-6" x-data="reload_content()">
   <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> weathers loaded</p>
-  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()">
+  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()" :disabled="loading">
     <span class="pr-2">Reload Content</span>
     <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
   </button>

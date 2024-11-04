@@ -215,7 +215,7 @@
 <h1 class="text-3xl text-black">Events</h1>
 <div class="flex flex-row bp-6" x-data="reload_content()">
   <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> tracks loaded</p>
-  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()">
+  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()" :disabled="loading">
     <span class="pr-2">Reload Content</span>
     <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
   </button>
@@ -339,15 +339,7 @@
             </div>
           </td>
           <td class="text-left whitespace-nowrap flex flex-col align-baseline">
-            <span>{{ $event.Time_Name }}</span>
-            {{ if (gt (toInt $event.Csp_Weather) 0) }}
-            <div>
-              <div
-                class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
-                <div class="mt-px">CSP</div>
-              </div>
-            </div>
-            {{ end }}
+            <span>{{ $event.Time_Name }} {{ if (gt (toInt $event.Csp_Weather) 0) }} (CSP) {{end}}</span>
             {{ if (gt (toInt $event.TruncWeather) 1) }}
             <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> 1 of {{ $event.TruncWeather }} entries</span>
             {{ else }}

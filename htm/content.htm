@@ -119,7 +119,7 @@
         <div>
           {{ if .form.Mod_Filled }}
           <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
-            type="button" @click="load_content()">
+            type="button" @click="load_content()" :disabled="loading">
             <span class="pr-2">Reload Content</span>
             <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
             <i class="fas fa-check" x-show="content_loaded == true"></i>
