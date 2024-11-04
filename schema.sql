@@ -15,10 +15,7 @@ CREATE TABLE IF NOT EXISTS user_config (
   max_clients INTEGER,
   welcome_message TEXT,
 
-  measurement_unit INTEGER,
-  temp_unit INTEGER,
   install_path TEXT,
-
   csp_required INTEGER,
   csp_phycars INTEGER,
   csp_phytracks INTEGER,
@@ -27,6 +24,15 @@ CREATE TABLE IF NOT EXISTS user_config (
 
   cfg_filled INTEGER,
   mod_filled INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  password TEXT,
+
+  measurement_unit INTEGER,
+  temp_unit INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS user_difficulty (
@@ -57,7 +63,8 @@ CREATE TABLE IF NOT EXISTS user_difficulty (
   blacklist_mode INTEGER,
   max_contacts_per_km INTEGER,
 
-  filled INTEGER
+  filled INTEGER,
+  deleted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_time (
@@ -66,7 +73,8 @@ CREATE TABLE IF NOT EXISTS user_time (
   time TEXT,
   time_of_day_multi INTEGER,
 
-  filled INTEGER
+  filled INTEGER,
+  deleted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_time_weather (
@@ -80,7 +88,9 @@ CREATE TABLE IF NOT EXISTS user_time_weather (
   wind_base_speed_min INTEGER,
   wind_base_speed_max INTEGER,
   wind_base_direction INTEGER,
-  wind_variation_direction INTEGER
+  wind_variation_direction INTEGER,
+
+  deleted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_session (
@@ -105,14 +115,16 @@ CREATE TABLE IF NOT EXISTS user_session (
   race_pit_window_start INTEGER,
   race_pit_window_end INTEGER,
 
-  filled INTEGER
+  filled INTEGER,
+  deleted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_class (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
 
-  filled INTEGER
+  filled INTEGER,
+  deleted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_class_entry (
@@ -120,7 +132,9 @@ CREATE TABLE IF NOT EXISTS user_class_entry (
   user_class_id INTEGER NOT NULL,
   cache_car_key TEXT NOT NULL,
   skin_key TEXT NOT NULL,
-  ballast INTEGER
+  ballast INTEGER,
+
+  deleted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_event (
@@ -136,7 +150,9 @@ CREATE TABLE IF NOT EXISTS user_event (
   strategy INTEGER,
 
   started_at DATETIME,
-  finished INTEGER
+  finished INTEGER,
+
+  deleted INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS cache_track (
@@ -186,6 +202,12 @@ ON cache_car (key);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_cache_weather_key
 ON cache_weather (key);
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_name
+ON users (name);
+
 
 -- DEFAULT VALUES
 INSERT OR IGNORE INTO user_config (id, name, udp_port, tcp_port, http_port, client_send_interval, num_threads) VALUES (1, 'AC Server', 9600, 9600, 8081, 18, 2);
+
+-- DEFAULT USERNAME admin PASSWORD admin
+INSERT OR IGNORE INTO users (id, name, password) VALUES (1, 'admin', '$2a$08$BvgMQY6H60BhcK9wM79RBu9IlURIP26BWYcCiWJjs06L1yEdkUif2')

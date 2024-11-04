@@ -6,12 +6,16 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var Dba Dbaccess
 var Stats Server_Stats
+var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")
 
 func Route_Config(c *gin.Context) {
 	var form User_Config
@@ -148,7 +152,6 @@ func Route_Session(c *gin.Context) {
 			c.Redirect(http.StatusFound, fmt.Sprint("/session/", id))
 			return
 		} else if c.ShouldBind(&form) == nil {
-			log.Print("Updating session")
 			Dba.Update_Session(form)
 		}
 	}
@@ -244,12 +247,11 @@ func Route_Event(c *gin.Context) {
 		"sessions":      Dba.Select_SessionList(true),
 		"times":         Dba.Select_TimeList(true),
 		"classes":       Dba.Select_ClassList(true),
-		"max_clients":   2, // TODO
+		"max_clients":   Dba.Select_Config().Max_Clients,
 		"track_data":    Dba.Select_Cache_Tracks(),
 		"config_filled": Dba.Select_Config_Filled(),
 		"stats":         Stats,
 	})
-
 }
 
 func Route_Delete_Event(c *gin.Context) {
@@ -257,6 +259,91 @@ func Route_Delete_Event(c *gin.Context) {
 	Dba.Delete_Event(id)
 	c.Redirect(http.StatusFound, "/event")
 	return
+}
+
+func Route_Login(c *gin.Context) {
+	if c.Request.Method == "POST" {
+		usr := c.PostForm("name")
+		pwd := c.PostForm("password")
+
+		user := Dba.Select_User(usr)
+
+		if user.Name == nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+		res := bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(pwd))
+
+		if res == nil {
+			claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"sub": user.Name,
+				"iss": "servermanager",
+				"aud": "admin",
+				"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+				"iat": time.Now().Unix(),
+			})
+
+			tokenString, err := claims.SignedString(SecretKey)
+			if err != nil {
+				c.String(http.StatusInternalServerError, "Error creating token")
+				return
+			}
+			c.SetCookie("token", tokenString, 3600*24*30, "/", "", false, true)
+
+			log.Print("Login successful for user: " + *user.Name)
+
+			c.Redirect(http.StatusFound, "/")
+			return
+		}
+	}
+
+	c.HTML(http.StatusOK, "/htm/login.htm", gin.H{})
+}
+
+func Route_Logout(c *gin.Context) {
+	c.SetCookie("token", "", 0, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/login")
+	return
+}
+
+func Route_User(c *gin.Context) {
+
+	user, exists := c.Get("user")
+	if !exists {
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	form := Dba.Select_User(user.(string))
+	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
+		Dba.Update_User(form)
+	}
+
+	c.HTML(http.StatusOK, "/htm/user.htm", gin.H{
+		"page":          "user",
+		"form":          form,
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
+	})
+}
+
+func Route_Admin(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	if user != "admin" {
+		NoRoute(c)
+		return
+	}
+
+	c.HTML(http.StatusOK, "/htm/admin.htm", gin.H{
+		"config_filled": Dba.Select_Config_Filled(),
+		"stats":         Stats,
+	})
+
 }
 
 func NoRoute(c *gin.Context) {

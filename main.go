@@ -2,7 +2,6 @@ package main
 
 import (
 	"html/template"
-	"io"
 	"log"
 	"main/sm"
 	"net/http"
@@ -12,20 +11,50 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-var DEBUG bool = true
 var dba sm.Dbaccess
+var DEBUG bool = true
 
-func ConfigCompleted() gin.HandlerFunc {
+func ConfigCompletedMiddlware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		config_filled := dba.Select_Config_Filled()
 		if !config_filled && c.Request.URL.Path != "/config" && c.Request.URL.Path != "/content" {
 			c.Redirect(http.StatusFound, "/config")
 			return
 		}
-		c.Next()
+
+		AuthenticateMiddleware(c)
 	}
+}
+
+func AuthenticateMiddleware(c *gin.Context) {
+	tokenString, err := c.Cookie("token")
+	if err != nil {
+		c.Redirect(http.StatusFound, "/login")
+		c.Abort()
+		return
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return sm.SecretKey, nil
+	})
+
+	if err != nil || !token.Valid {
+		c.Redirect(http.StatusFound, "/login")
+		c.Abort()
+		return
+	}
+
+	user, err := token.Claims.GetSubject()
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	c.Set("user", user)
+	c.Next()
 }
 
 func main() {
@@ -48,14 +77,11 @@ func main() {
 	dba = sm.Open(db_path)
 	dba.Apply_Schema(sm.FindFile("/schema.sql"))
 
-	if !DEBUG {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	gin.SetMode(gin.ReleaseMode)
 
 	sm.Dba = dba
 
 	router := gin.Default()
-	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
 	funcMap := template.FuncMap{
@@ -98,9 +124,12 @@ func main() {
 
 	router.StaticFS("/static", Assets)
 
-	app := router.Group("/")
+	router.GET("/login", sm.Route_Login)
+	router.POST("/login", sm.Route_Login)
+	router.GET("/logout", sm.Route_Logout)
 
-	app.Use(ConfigCompleted())
+	app := router.Group("/")
+	app.Use(ConfigCompletedMiddlware())
 	{
 		app.GET("/", sm.Route_Index)
 
@@ -144,34 +173,44 @@ func main() {
 		app.POST("/event/:id", sm.Route_Event)
 		app.GET("/event/delete/:id", sm.Route_Delete_Event)
 		app.POST("/event/delete/:id", sm.Route_Delete_Event)
+
+		app.GET("/user", sm.Route_User)
+		app.POST("/user", sm.Route_User)
+
+		app.GET("/admin", sm.Route_Admin)
 	}
 
-	router.GET("/api/car/:key", sm.API_Car)
-	router.GET("/api/car/image/:car/:skin", sm.API_Car_Image)
+	api := router.Group("/api")
+	api.Use(AuthenticateMiddleware)
+	{
+		api.GET("/car/:key", sm.API_Car)
+		api.GET("/car/image/:car/:skin", sm.API_Car_Image)
 
-	router.GET("/api/track/preview/:track/:config", sm.API_Track_Preview_Image)
-	router.GET("/api/track/preview/:track", sm.API_Track_Preview_Image)
-	router.GET("/api/track/outline/:track/:config", sm.API_Track_Outline_Image)
-	router.GET("/api/track/outline/:track", sm.API_Track_Outline_Image)
+		api.GET("/track/preview/:track/:config", sm.API_Track_Preview_Image)
+		api.GET("/track/preview/:track", sm.API_Track_Preview_Image)
+		api.GET("/track/outline/:track/:config", sm.API_Track_Outline_Image)
+		api.GET("/track/outline/:track", sm.API_Track_Outline_Image)
 
-	router.GET("/api/difficulty/:id", sm.API_Difficulty)
-	router.GET("/api/session/:id", sm.API_Session)
-	router.GET("/api/class/:id", sm.API_Class)
-	router.GET("/api/time/:id", sm.API_Time)
+		api.GET("/difficulty/:id", sm.API_Difficulty)
+		api.GET("/session/:id", sm.API_Session)
+		api.GET("/class/:id", sm.API_Class)
+		api.GET("/time/:id", sm.API_Time)
 
-	router.GET("/api/car/recache", sm.API_Recache_Cars)
-	router.GET("/api/track/recache", sm.API_Recache_Tracks)
-	router.GET("/api/weather/recache", sm.API_Recache_Weathers)
-	router.GET("/api/content/recache", sm.API_Recache_Content)
+		api.GET("/car/recache", sm.API_Recache_Cars)
+		api.GET("/track/recache", sm.API_Recache_Tracks)
+		api.GET("/weather/recache", sm.API_Recache_Weathers)
+		api.GET("/content/recache", sm.API_Recache_Content)
 
-	router.POST("/api/validate/installpath", sm.API_Validate_Installpath)
+		api.POST("/validate/installpath", sm.API_Validate_Installpath)
 
-	router.GET("/api/server/start", sm.API_Console_Start)
-	router.GET("/api/server/stop", sm.API_Console_Stop)
-	router.GET("/api/server/status", sm.API_Console_Status)
+		api.GET("/server/start", sm.API_Console_Start)
+		api.GET("/server/stop", sm.API_Console_Stop)
+		api.GET("/server/status", sm.API_Console_Status)
 
-	router.GET("/api/server/entry_list.ini", sm.API_Entry_List)
-	router.GET("/api/server/server_cfg.ini", sm.API_Server_Cfg)
+		api.GET("/server/entry_list.ini", sm.API_Entry_List)
+		api.GET("/server/server_cfg.ini", sm.API_Server_Cfg)
+
+	}
 
 	router.NoRoute(sm.NoRoute)
 
@@ -181,17 +220,7 @@ func main() {
 		sm.Open_URL("http://localhost:3030")
 	}
 
-	go func() {
-		res, err := http.Get("https://api.ipify.org")
-		if err != nil {
-			log.Print(err)
-		}
-		ip, err := io.ReadAll(res.Body)
-		if err != nil {
-			log.Print(err)
-		}
-		sm.Stats.Public_Ip = string(ip)
-	}()
+	sm.Update_Public_Ip()
 
 	router.Run(":3030")
 

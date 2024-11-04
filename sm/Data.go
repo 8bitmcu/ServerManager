@@ -4,6 +4,13 @@ import (
 	"time"
 )
 
+type Users struct {
+	Name             *string `form:"name"`
+	Password         *string `form:"password"`
+	Measurement_Unit *int    `form:"measurement_unit"`
+	Temp_Unit        *int    `form:"temp_unit"`
+}
+
 type User_Config struct {
 	Name                 *string `form:"name"`
 	Password             *string `form:"password"`
@@ -19,14 +26,14 @@ type User_Config struct {
 	Num_Threads          *int    `form:"num_threads"`
 	Max_Clients          *int    `form:"max_clients"`
 	Welcome_Message      *string `form:"welcome_message"`
-	Measurement_Unit     *int    `form:"measurement_unit"`
-	Temp_Unit            *int    `form:"temp_unit"`
 	Install_Path         *string `form:"install_path"`
 	Csp_Required         *int    `form:"csp_required"`
 	Csp_Version          *int    `form:"csp_version"`
 	Csp_Phycars          *int    `form:"csp_phycars"`
 	Csp_Phytracks        *int    `form:"csp_phytracks"`
 	Csp_Hidepit          *int    `form:"csp_hidepit"`
+	Cfg_Filled           *int
+	Mod_Filled           *int
 }
 
 type User_Event struct {
