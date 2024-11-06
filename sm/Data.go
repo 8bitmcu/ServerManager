@@ -66,7 +66,9 @@ type User_Event struct {
 	Session_Id         *int    `form:"session"`
 	Class_Id           *int    `form:"class"`
 	Time_Id            *int    `form:"time"`
-	Started_At         *int
+	ServerCfg          *string
+	EntryList          *string
+	Started_At         *int64
 	Finished           *int
 }
 

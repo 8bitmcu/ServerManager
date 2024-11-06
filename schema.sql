@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS user_config (
   csp_hidepit INTEGER,
   csp_version INTEGER,
 
-  cfg_filled INTEGER,
-  mod_filled INTEGER
+  cfg_filled INTEGER DEFAULT 0,
+  mod_filled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS user_difficulty (
   blacklist_mode INTEGER,
   max_contacts_per_km INTEGER,
 
-  filled INTEGER,
+  filled INTEGER DEFAULT 0,
   deleted INTEGER DEFAULT 0
 );
 
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS user_time (
   time_of_day_multi INTEGER,
   csp_enabled INTEGER,
 
-  filled INTEGER,
+  filled INTEGER DEFAULT 0,
   deleted INTEGER DEFAULT 0
 );
 
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS user_session (
   race_pit_window_start INTEGER,
   race_pit_window_end INTEGER,
 
-  filled INTEGER,
+  filled INTEGER DEFAULT 0,
   deleted INTEGER DEFAULT 0
 );
 
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS user_class (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
 
-  filled INTEGER,
+  filled INTEGER DEFAULT 0,
   deleted INTEGER DEFAULT 0
 );
 
@@ -154,8 +154,11 @@ CREATE TABLE IF NOT EXISTS user_event (
   strategy INTEGER,
 
   started_at INTEGER,
-  finished INTEGER,
 
+  servercfg TEXT,
+  entrylist TEXT,
+
+  finished INTEGER DEFAULT 0,
   deleted INTEGER DEFAULT 0
 );
 

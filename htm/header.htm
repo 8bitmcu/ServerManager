@@ -78,11 +78,7 @@
     </div>
     <nav class="text-white text-base font-semibold pt-3">
       {{ if .config_filled }}
-      <a href="/" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "index") }}bg-red-900{{ end }}">
-        <i class="fas fa-tachometer-alt mr-3"></i>
-        Server Dashboard
-      </a>
-      <a href="/event"
+      <a href="/"
         class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "event") }}bg-red-900{{ end }}">
         <i class="fas fa-flag-checkered mr-3"></i>
         Events
@@ -118,6 +114,12 @@
         <i class="fas fa-cog mr-3"></i>
         Content and Mods
       </a>
+      {{ if .config_filled }}
+      <a href="/console" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "console") }}bg-red-900{{ end }}">
+        <i class="fas fa-terminal mr-3"></i>
+        Server Console
+      </a>
+      {{ end }}
     </nav>
     <div class="absolute w-full bottom-0 flex items-center justify-center py-4">
       <img src="/static/img/corsa_logo.png" style="margin: auto; width: 80%" />
@@ -155,11 +157,7 @@
       <nav :class="isOpen ? 'flex': 'hidden'" class="flex flex-col pt-4">
 
         {{ if .config_filled }}
-        <a href="/" class="flex items-center opacity-75 hover:opacity-100 text-white py-2 pl-4 nav-item">
-          <i class="fas fa-tachometer-alt mr-3"></i>
-          Server Dashboard
-        </a>
-        <a href="/event" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+        <a href="/" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
           <i class="fas fa-flag-checkered mr-3"></i>
           Events
         </a>
@@ -188,6 +186,12 @@
           <i class="fas fa-cogs mr-3"></i>
           Content and Mods
         </a>
+        {{ if .config_filled }}
+        <a href="/console" class="flex items-center opacity-75 hover:opacity-100 text-white py-2 pl-4 nav-item">
+          <i class="fas fa-terminal mr-3"></i>
+          Server Console
+        </a>
+        {{ end }}
       </nav>
     </header>
 

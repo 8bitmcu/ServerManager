@@ -20,11 +20,8 @@ func Open(name string) Dbaccess {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// TODO close db
-	//defer db.Close()
 
 	dba := Dbaccess{name, db}
-
 	return dba
 }
 
@@ -251,8 +248,20 @@ func (dba Dbaccess) Update_Content(cfg User_Config) int64 {
 	return affected
 }
 
-func (dba Dbaccess) Select_Events() []User_Event {
-	rows, err := dba.Db.Query(`
+func (dba Dbaccess) Select_Events(started bool, finished bool) []User_Event {
+
+	and := ""
+	groupby := " GROUP BY (s.id)"
+
+	if finished {
+		and = " AND s.finished = 1"
+	} else if started {
+		and = " AND s.started_at is not null AND s.finished = 0"
+	} else {
+		and = " AND s.started_at is null"
+	}
+
+	query := `
 SELECT
 	s.id as id,
 	s.race_laps as race_laps,
@@ -288,7 +297,8 @@ SELECT
 		on a.graphics = b.key
 	WHERE user_time_id = tw.id) as graphics,
 	(SELECT COUNT (*) FROM user_time_weather WHERE user_time_id = tw.id) as trunc_weather,
-	tw.csp_enabled as csp_weather
+	tw.csp_enabled as csp_weather,
+	s.started_at as started_at
 FROM user_event s
 JOIN cache_track t
 	on s.cache_track_key = t.key
@@ -303,10 +313,9 @@ JOIN user_class_entry ce
 	on s.class_id = ce.user_class_id
 JOIN user_time tw
 	on s.time_id = tw.id
-WHERE s.deleted = 0
-GROUP BY (s.id)
-`)
+WHERE s.deleted = 0`
 
+	rows, err := dba.Db.Query(query + and + groupby)
 	defer rows.Close()
 
 	err = rows.Err()
@@ -317,7 +326,7 @@ GROUP BY (s.id)
 	events := make([]User_Event, 0)
 	for rows.Next() {
 		evt := User_Event{}
-		err = rows.Scan(&evt.Id, &evt.Race_Laps, &evt.Strategy, &evt.Track_Name, &evt.Track_Length, &evt.Pitboxes, &evt.Difficulty_Name, &evt.Abs_Allowed, &evt.Tc_Allowed, &evt.Stability_Allowed, &evt.Autoclutch_Allowed, &evt.Session_Name, &evt.Booking_Enabled, &evt.Booking_Time, &evt.Practice_Enabled, &evt.Practice_Time, &evt.Qualify_Enabled, &evt.Qualify_Time, &evt.Race_Enabled, &evt.Race_Time, &evt.Class_Name, &evt.Entries, &evt.Time_Name, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.Csp_Weather)
+		err = rows.Scan(&evt.Id, &evt.Race_Laps, &evt.Strategy, &evt.Track_Name, &evt.Track_Length, &evt.Pitboxes, &evt.Difficulty_Name, &evt.Abs_Allowed, &evt.Tc_Allowed, &evt.Stability_Allowed, &evt.Autoclutch_Allowed, &evt.Session_Name, &evt.Booking_Enabled, &evt.Booking_Time, &evt.Practice_Enabled, &evt.Practice_Time, &evt.Qualify_Enabled, &evt.Qualify_Time, &evt.Race_Enabled, &evt.Race_Time, &evt.Class_Name, &evt.Entries, &evt.Time_Name, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.Csp_Weather, &evt.Started_At)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -335,12 +344,27 @@ GROUP BY (s.id)
 
 func (dba Dbaccess) Select_Event(id int) User_Event {
 	evt := User_Event{}
-	stmt, err := dba.Db.Prepare("SELECT id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy, started_at, finished FROM user_event WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy, started_at, finished, servercfg, entrylist FROM user_event WHERE id = ? AND deleted = 0 LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(id).Scan(&evt.Id, &evt.Cache_Track_Key, &evt.Cache_Track_Config, &evt.Difficulty_Id, &evt.Session_Id, &evt.Class_Id, &evt.Time_Id, &evt.Race_Laps, &evt.Strategy, &evt.Started_At, &evt.Finished)
+	err = stmt.QueryRow(id).Scan(&evt.Id, &evt.Cache_Track_Key, &evt.Cache_Track_Config, &evt.Difficulty_Id, &evt.Session_Id, &evt.Class_Id, &evt.Time_Id, &evt.Race_Laps, &evt.Strategy, &evt.Started_At, &evt.Finished, &evt.ServerCfg, &evt.EntryList)
+	if err != nil {
+		log.Print(err)
+	}
+
+	return evt
+}
+
+func (dba Dbaccess) Select_Event_Next() User_Event {
+	evt := User_Event{}
+	row := dba.Db.QueryRow("SELECT id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy, started_at, finished, servercfg, entrylist FROM user_event WHERE started_at IS NULL AND finished != 1 AND deleted = 0 LIMIT 1")
+	err := row.Err()
+	if err != nil {
+		log.Print(err)
+	}
+	err = row.Scan(&evt.Id, &evt.Cache_Track_Key, &evt.Cache_Track_Config, &evt.Difficulty_Id, &evt.Session_Id, &evt.Class_Id, &evt.Time_Id, &evt.Race_Laps, &evt.Strategy, &evt.Started_At, &evt.Finished, &evt.ServerCfg, &evt.EntryList)
 	if err != nil {
 		log.Print(err)
 	}
@@ -369,13 +393,27 @@ func (dba Dbaccess) Insert_Event(evt User_Event) int64 {
 }
 
 func (dba Dbaccess) Update_Event(evt User_Event) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_event SET cache_track_key = ?, cache_track_config = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ? WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_event SET cache_track_key = ?, cache_track_config = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ?, started_at = ?, servercfg = ?, entrylist = ? WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	res, err := stmt.Exec(&evt.Cache_Track_Key, &evt.Cache_Track_Config, &evt.Difficulty_Id, &evt.Session_Id, &evt.Class_Id, &evt.Time_Id, &evt.Race_Laps, &evt.Strategy, &evt.Id)
+	res, err := stmt.Exec(evt.Cache_Track_Key, evt.Cache_Track_Config, evt.Difficulty_Id, evt.Session_Id, evt.Class_Id, evt.Time_Id, evt.Race_Laps, evt.Strategy, evt.Started_At, evt.ServerCfg, evt.EntryList, evt.Id)
 	defer stmt.Close()
 
+	if err != nil {
+		log.Print(err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		log.Print(err)
+	}
+
+	return affected
+}
+
+func (dba Dbaccess) Update_Event_SetComplete() int64 {
+	res, err := dba.Db.Exec("UPDATE user_event SET finished = 1 WHERE started_at IS NOT NULL")
 	if err != nil {
 		log.Print(err)
 	}

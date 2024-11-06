@@ -1,0 +1,618 @@
+{{ template "/htm/header.htm" . }}
+
+<script>
+  function sort_str(a, b) {
+    let x = a.toLowerCase();
+    let y = b.toLowerCase();
+    if (x < y) return -1;
+    if (x > y) return 1;
+    return 0;
+  }
+
+  function sort_num(a, b) {
+    return a - b;
+  }
+  function format_distance(len) {
+    return Math.round(Number(len) / 10) / 100 + " km";
+  }
+
+  function reload_content() {
+    return {
+      content_total: {{ .track_data | len }},
+      loading: false,
+
+      load_content: function () {
+        this.loading = true;
+        fetch("/api/track/recache")
+          .then((response) => response.json())
+          .then((json) => {
+            this.loading = false;
+            if (json.result == 'ok') {
+              location.reload();
+            }
+            this.content_total = json.value;
+          });
+      }
+    }
+  }
+  function session() {
+    return {
+      tracks_data: {{ .track_data }},
+      class_data: {{ .classes }},
+      time_data: {{ .times }},
+
+      selection_track_key: {{ .form.Cache_Track_Key | derefStr }},
+      selection_track_config: {{ .form.Cache_Track_Config | derefStr }},
+      selection_difficulty: {{ .form.Difficulty_Id | derefInt  }},
+      selection_session: {{ .form.Session_Id | derefInt }},
+      selection_class: {{ .form.Class_Id | derefInt }},
+      selection_time: {{ .form.Time_Id | derefInt }},
+      race_laps: {{.form.Race_Laps | derefInt }},
+
+      get_trackdata: function(key, config) {
+        if (key == "")
+          return { tags: []}
+        if (config == "")
+          return this.tracks_data.find(x => x.key == key);
+        return this.tracks_data.find(x => x.key == key && x.config == config)
+      },
+
+      track_changed: function(val) {
+        let split = val.split(':');
+        this.selection_track_key = split[0];
+        this.selection_track_config = split[1];
+      },
+      init: function() {
+        this.get_difficulty();
+        this.get_session();
+        this.get_class();
+        this.get_time();
+      },
+      loaded_difficulty: {},
+      loaded_session: {},
+      loaded_class: { entries: []},
+      loaded_time: { weathers: [], time: ''},
+
+      get_difficulty: function() {
+        if (this.selection_difficulty == "")
+          this.loaded_difficulty = {}
+        else
+          fetch('/api/difficulty/' + this.selection_difficulty)
+            .then((response) => response.json())
+            .then((json) => this.loaded_difficulty = json.data);
+      },
+      get_session: function() {
+        if(this.selection_session == "")
+          this.loaded_session = {}
+        else
+          fetch('/api/session/' + this.selection_session)
+            .then((response) => response.json())
+            .then((json) => {
+              this.loaded_session = json.data;
+              if (this.loaded_session.race_enabled != true) {
+                this.race_laps = '';
+              }
+            });
+      },
+      get_class: function() {
+        if(this.selection_class == "")
+          this.loaded_class = { entries: []}
+        else
+          fetch('/api/class/' + this.selection_class)
+            .then((response) => response.json())
+            .then((json) => this.loaded_class = json.data);
+      },
+      get_time: function() {
+        if(this.selection_time == "")
+          this.loaded_time = { weathers: [], time: ''}
+        else
+          fetch('/api/time/' + this.selection_time)
+            .then((response) => response.json())
+            .then((json) => this.loaded_time = json.data);
+      },
+
+      random_track: function() {
+        let rand = Math.floor(Math.random()*this.tracks_data.length);
+        this.selection_track_key = this.tracks_data[rand].key;
+        this.selection_track_config = this.tracks_data[rand].config;
+      },
+      random_class: function() {
+        let rand = Math.floor(Math.random()*this.class_data.length);
+        this.selection_class = this.class_data[rand].id;
+        this.get_class();
+      },
+      random_time: function() {
+        let rand = Math.floor(Math.random()*this.time_data.length);
+        this.selection_time = this.time_data[rand].id;
+        this.get_time();
+      },
+
+
+      search_open: false,
+      search_toggle: function () {
+        this.search_open = !this.search_open;
+        if (this.search_open) this.trackpicker_open = false;
+      },
+      search_name: "",
+      search_tag: "",
+      search_sortby: "name",
+      search_sortor: "asc",
+      search_track: {},
+      search_getresults: function () {
+        let sn = this.search_name;
+        let name_results = this.tracks_data.filter(function (x) {
+          return x.name.match(new RegExp(sn, "ig"));
+        });
+
+        let tag_results = [];
+        let st = this.search_tag;
+        name_results.forEach(function (track) {
+          if (track.tags.find((x) => x.match(new RegExp(st, "ig")))) {
+            tag_results.push(track);
+          }
+        });
+
+        let sortby = this.search_sortby;
+        let sortor = this.search_sortor;
+        let sorted_results = tag_results.sort(function (a, b) {
+          if (sortby == "name" && sortor == "asc")
+            return sort_str(a.name, b.name);
+          else if (sortby == "name" && sortor == "desc")
+            return sort_str(b.name, a.name);
+          else if (sortby == "country" && sortor == "asc")
+            return sort_str(a.country, b.country);
+          else if (sortby == "country" && sortor == "desc")
+            return sort_str(b.country, a.country);
+          else if (sortby == "city" && sortor == "asc")
+            return sort_str(a.city, b.city);
+          else if (sortby == "city" && sortor == "desc")
+            return sort_str(b.city, a.city);
+          else if (sortby == "length" && sortor == "asc")
+            return sort_num(a.length, b.length);
+          else if (sortby == "length" && sortor == "desc")
+            return sort_num(b.length, a.length);
+          else if (sortby == "width" && sortor == "asc")
+            return sort_num(a.width, b.width);
+          else if (sortby == "width" && sortor == "desc")
+            return sort_num(b.width, a.width);
+          else if (sortby == "pitboxes" && sortor == "asc")
+            return sort_num(a.pitboxes, b.pitboxes);
+          else if (sortby == "pitboxes" && sortor == "desc")
+            return sort_num(b.pitboxes, a.pitboxes);
+        });
+
+        return sorted_results;
+      },
+
+      track_preview: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track/preview/" + key;
+        else return "/api/track/preview/" + key + "/" + config;
+      },
+      track_outline: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track/outline/" + key;
+        else return "/api/track/outline/" + key + "/" + config;
+      },
+
+      trackpicker_open: false,
+      trackpicker_data: [],
+      trackpicker_toggle: function () {
+        this.trackpicker_open = !this.trackpicker_open;
+        if (this.trackpicker_open) {
+          this.search_open = false;
+          this.trackpicker_data = this.tracks_data;
+        } else {
+          this.trackpicker_data = []
+        }
+      },
+    };
+  }
+</script>
+<h1 class="text-3xl text-black">Edit Event</h1>
+<div class="flex flex-row bp-6" x-data="reload_content()">
+  <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> tracks loaded</p>
+  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()" :disabled="loading">
+    <span class="pr-2">Reload Content</span>
+    <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
+  </button>
+</div>
+<form class="w-full mt-6 rounded-lg flex bg-white flex-row flex-wrap" action="/event_edit" method="POST" x-data="session()" x-init="init()">
+  <input type="hidden" name="track_key" :value="selection_track_key"></input>
+  <input type="hidden" name="track_config" :value="selection_track_config"></input>
+
+  <div class="w-full flex px-6 py-6" x-show="trackpicker_open">
+    <div class="w-full rounded-lg bg-gray-100">
+      <h2 class="px-6 py-4 text-xl">Track Picker</h2>
+      <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
+        <template x-for="track in trackpicker_data">
+          <div class="relative mx-auto pb-2 my-4 hover:border-red-300 border-2 rounded cursor-pointer"
+            :class="selection_track_key == track.key && selection_track_config == track.config ? 'border-red-500':''" @click="selection_track_key = track.key; selection_track_config = track.config;">
+            <img style="height: 140px" x-bind:src="track_preview(track.key, track.config)" />
+            <img class="absolute" style="height: 140px; top: 0"
+              x-bind:src="track_outline(track.key, track.config)" />
+            <p class="text-xs" x-text="track.name + ', ' + format_distance(track.length)"></p>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white w-full flex px-6 py-6" x-show="search_open">
+    <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
+      <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-gray-100" style="position: sticky; top: 0">
+          <tr>
+            <th colspan="2"
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+              <label class="block text-sm text-gray-600">Name</label>
+              <div class="flex flex-row">
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                  x-model="search_name" placeholder="Name" aria-label="Name" />
+                <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                  <i class="fas fa-search"></i>
+                </div>
+              </div>
+            </th>
+            <th
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
+              colspan="2">
+              <label class="block text-sm text-gray-600">Tag</label>
+              <div class="flex flex-row">
+                <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                  x-model="search_tag" placeholder="Tag" aria-label="Tag" />
+                <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                  <i class="fas fa-search"></i>
+                </div>
+              </div>
+            </th>
+            <th colspan="2"></th>
+          </tr>
+          <tr>
+            <th
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+              Name
+              <button @click="search_sortby='name'; search_sortor='desc'"
+                :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-down"></i>
+              </button>
+              <button @click="search_sortby='name'; search_sortor='asc'"
+                :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+            </th>
+            <th
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+              Country
+              <button @click="search_sortby='country'; search_sortor='desc'"
+                :class="(search_sortby == 'country' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-down"></i>
+              </button>
+              <button @click="search_sortby='country'; search_sortor='asc'"
+                :class="(search_sortby == 'country' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+            </th>
+            <th
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+              City
+              <button @click="search_sortby='city'; search_sortor='desc'"
+                :class="(search_sortby == 'city' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-down"></i>
+              </button>
+              <button @click="search_sortby='city'; search_sortor='asc'"
+                :class="(search_sortby == 'city' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+            </th>
+            <th
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+              Length
+              <button @click="search_sortby='length'; search_sortor='desc'"
+                :class="(search_sortby == 'length' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-down"></i>
+              </button>
+              <button @click="search_sortby='length'; search_sortor='asc'"
+                :class="(search_sortby == 'length' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+            </th>
+            <th
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+              Width
+              <button @click="search_sortby='width'; search_sortor='desc'"
+                :class="(search_sortby == 'width' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-down"></i>
+              </button>
+              <button @click="search_sortby='width'; search_sortor='asc'"
+                :class="(search_sortby == 'width' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+            </th>
+            <th
+              class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+              Pitboxes
+              <button @click="search_sortby='pitboxes'; search_sortor='desc'"
+                :class="(search_sortby == 'pitboxes' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-down"></i>
+              </button>
+              <button @click="search_sortby='pitboxes'; search_sortor='asc'"
+                :class="(search_sortby == 'pitboxes' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="(result, r_index) in search_getresults()">
+            <tr :class="selection_track_key == result.key && selection_track_config == result.config ? 'text-red-500':''">
+              <td class="px-6 border-b border-grey-light">
+                <a href="#" @click="selection_track_key = result.key; selection_track_config = result.config" x-text="result.name"></a>
+              </td>
+              <td class="px-6 border-b border-grey-light" x-text="result.country"></td>
+              <td class="px-6 border-b border-grey-light" x-text="result.city"></td>
+              <td class="px-6 border-b border-grey-light" x-text="format_distance(result.length)"></td>
+              <td class="px-6 border-b border-grey-light" x-text="result.width"></td>
+              <td class="px-6 border-b border-grey-light" x-text="result.pitboxes"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+    <p class="text-xl px-6 pb-6 flex items-center">
+      <i class="fas fa-list mr-3"></i> {{ if .form.Id }}Edit{{ else }}Add to{{ end }} event
+    </p>
+    <div class="p-4 lg:p-10 leading-loose">
+      <div class="">
+        <label class="block text-sm text-gray-600" for="track">Track</label>
+        <div class="flex flex-row">
+          <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="track"
+            @change="track_changed($event.target.value)" required>
+            <option value="">Select ...</option>
+            {{range $val := .track_data }}
+            <option value="{{ $val.Key }}:{{ $val.Config }}"
+              :selected="selection_track_key + selection_track_config ==  '{{ $val.Key }}{{ $val.Config }}'">
+              {{ $val.Name }}
+            </option>
+            {{ end }}
+          </select>
+          <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_track()">
+            <i class="fas fa-random"></i>
+          </button>
+          <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="search_toggle()"
+            :class="search_open ? 'text-red-500' : ''">
+            <i class="fas fa-search"></i>
+          </button>
+          <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md" type="button" @click="trackpicker_toggle()"
+            :class="trackpicker_open ? 'text-red-500' : ''">
+            <i class="fas fa-grip-horizontal"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="difficulty">Difficulty</label>
+        <div class="flex flex-row">
+          <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="difficulty" x-model="selection_difficulty"
+            @change="get_difficulty()" required>
+            <option value="">Select ...</option>
+            {{range $val := .difficulties }}
+            <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+            {{ end }}
+          </select>
+        </div>
+      </div>
+
+      <div class="w-full mt-2 flex">
+        <div class="w-3/4">
+          <label class="block text-sm text-gray-600" for="session">Session</label>
+          <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="session" required x-model="selection_session"
+            @change="get_session()">
+            <option value="">Select ...</option>
+            {{range $val := .sessions }}
+            <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+            {{ end }}
+          </select>
+        </div>
+        <div class="w-1/4 ml-5">
+          <label class="block text-sm text-gray-600 group relative" for="race_laps">
+            Laps (optional)
+            <div class="absolute mx-2 invisible group-hover:visible whitespace-nowrap"
+              style="top: -2rem; left: -1rem; z-index: 2">
+              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                When laps is not set, race time will be used instead
+              </div>
+            </div>
+          </label>
+          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="text" name="race_laps"
+            placeholder="Laps" x-model="race_laps" aria-label="Laps" :disabled="loaded_session.race_enabled != true" />
+        </div>
+      </div>
+
+      <div class="w-full mt-2 flex">
+        <div class="w-3/4">
+          <label class="block text-sm text-gray-600" for="class">Class</label>
+          <div class="flex flex-row">
+            <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="class" required x-model="selection_class"
+              @change="get_class()">
+              <option value="">Select ...</option>
+              {{range $val := .classes }}
+              <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+              {{ end }}
+            </select>
+            <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_class()">
+              <i class="fas fa-random"></i>
+            </button>
+          </div>
+        </div>
+        <div class="w-1/4 ml-5">
+          <label class="block text-sm text-gray-600 group relative" for="strategy">
+            Strategy
+            <div class="absolute mx-2 invisible group-hover:visible whitespace-nowrap"
+              style="top: -2rem; left: -1rem; z-index: 2">
+              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                Stategy used when Maximum Players or Track pitboxes are lower than the number of vehicles in this class
+              </div>
+            </div>
+          </label>
+          <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="strategy" required>
+            <option value="">Select ...</option>
+            <option {{ if (eq (derefInt .form.Strategy) "1" ) }} selected {{ end }} value="1">First</option>
+            <option {{ if (eq (derefInt .form.Strategy) "2" ) }} selected {{ end }} value="2">Random</option>
+          </select>
+        </div>
+      </div>
+
+
+      <div class="mt-2">
+        <label class="block text-sm text-gray-600" for="time">Time and Weather</label>
+        <div class="flex flex-row">
+          <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="time" required x-model="selection_time"
+            @change="get_time()">
+            <option value="">Select ...</option>
+            {{range $val := .times }}
+            <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+            {{ end }}
+          </select>
+          <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_time()">
+            <i class="fas fa-random"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+    <p class="text-xl px-6 pb-6 flex items-center">
+      <i class="fas fa-list mr-3"></i> Event Preview
+    </p>
+    <div class="pl-10 pt-10 leading-loose" x-show="selection_track_key">
+      <h2 class="py-4 text-xl">Track</h2>
+      <div class="flex flex-col text-gray-700">
+        <div class="relative">
+          <img x-bind:src="track_preview(selection_track_key, selection_track_config)" />
+          <img class="absolute" style="top: 0; max-height: 100%"
+            x-bind:src="track_outline(selection_track_key, selection_track_config)" />
+        </div>
+        <div>
+          <template x-for="tag in get_trackdata(selection_track_key, selection_track_config).tags">
+            <div
+              class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+              <div class="mt-px" x-html="tag"></div>
+            </div>
+          </template>
+        </div>
+        <div class="" style="line-height: 1.3">
+          <span> Track: <span x-html="get_trackdata(selection_track_key, selection_track_config).name"></span>
+          </span><br />
+          <span> Length: <span
+              x-html="format_distance(get_trackdata(selection_track_key, selection_track_config).length)"></span></span><br />
+          <span> Location: <span
+              x-html="get_trackdata(selection_track_key, selection_track_config).city + ', ' + get_trackdata(selection_track_key, selection_track_config).country"></span></span><br />
+          <span> Pitboxes: <span
+              x-html="get_trackdata(selection_track_key, selection_track_config).pitboxes"></span></span><br />
+          <span> Width: <span
+              x-html="get_trackdata(selection_track_key, selection_track_config).width"></span></span><br />
+          <span> Run: <span x-html="get_trackdata(selection_track_key, selection_track_config).run"></span></span>
+        </div>
+      </div>
+    </div>
+    <div class="pl-10 leading-loose flex flex-row">
+      <div class="w-1/2">
+        <h2 class="py-4 text-xl">Difficulty</h2>
+        <p class="flex flex-col text-normal text-gray-700">
+          <span :class="loaded_difficulty.abs_allowed ? 'text-red-500' : ''">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="pr-4">ABS</span>
+          </span>
+          <span :class="loaded_difficulty.tc_allowed ? 'text-red-500' : ''">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="pr-4">TC</span>
+          </span>
+          <span :class="loaded_difficulty.stability_allowed ? 'text-red-500' : ''">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="pr-4">Stability</span>
+          </span>
+          <span :class="loaded_difficulty.autoclutch_allowed ? 'text-red-500' : ''">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="pr-4">Clutch</span>
+          </span>
+        </p>
+      </div>
+      <div class="w-1/2">
+        <h2 class="py-4 text-xl">Session</h2>
+        <p class="flex flex-col text-normal text-gray-700">
+          <span :class="loaded_session.booking_enabled ? 'text-red-500' : ''">
+            <i class="fas fa-check" x-show="loaded_session.booking_enabled"></i> <i class="fas fa-times"
+              x-show="!loaded_session.booking_enabled"></i> <span class="pr-4">Booking</span>
+          </span>
+          <span :class="loaded_session.practice_enabled ? 'text-red-500' : ''">
+            <i class="fas fa-check" x-show="loaded_session.practice_enabled"></i> <i class="fas fa-times"
+              x-show="!loaded_session.practice_enabled"></i> <span class="pr-4">Practice</span>
+          </span>
+          <span :class="loaded_session.qualifying_enabled ? 'text-red-500' : ''">
+            <i class="fas fa-check" x-show="loaded_session.qualify_enabled"></i> <i class="fas fa-times"
+              x-show="!loaded_session.qualify_enabled"></i> <span class="pr-4">Qualifying</span>
+          </span>
+          <span :class="loaded_session.race_enabled ? 'text-red-500' : ''">
+            <i class="fas fa-check" x-show="loaded_session.race_enabled"></i> <i class="fas fa-times"
+              x-show="!loaded_session.race_enabled"></i> <span class="pr-4">Race</span>
+          </span>
+        </p>
+      </div>
+    </div>
+    <div class="pl-10 leading-loose flex flex-row">
+      <div class="w-1/2">
+        <h2 class="py-4 text-xl">Class</h2>
+        <div class="flex flex-row text-normal text-gray-700">
+          <span><i class="fas fa-warehouse"></i> <span x-html="loaded_class.entries.length"></span> entries</span>
+
+        </div>
+      </div>
+      <div class="w-1/2">
+        <h2 class="py-4 text-xl">Time and Weather</h2>
+        <div x-show="loaded_time.csp_enabled"
+          class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+          <div class="mt-px">CSP</div>
+        </div>
+        <div class="flex flex-row text-normal text-gray-700" style="line-height: 1.6">
+          <span>
+            <i class="fas fa-stopwatch"></i>
+            <span class="flex flex-col mr-4">
+              <span x-show="!loaded_time.csp_enabled" x-html="loaded_time.time"></span>
+              <template x-for="w, i in loaded_time.weathers">
+                <span x-html="w.csp_time"></span>
+              </template>
+            </span>
+          </span>
+          <span>
+            <i class="fas fa-cloud-moon-rain"></i>
+            <span class="flex flex-col mr-4">
+              <template x-for="w, i in loaded_time.weathers">
+                <span x-html="w.name"></span>
+              </template>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="w-full mt-6 pl-0 lg:pl-2">
+    <p class="text-xl pb-6 flex items-center">
+      <a href="/event" class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-l-md" type="button">
+        Cancel
+      </a>
+      <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-r-md" type="submit">
+        Save
+      </button>
+    </p>
+  </div>
+  <input type="hidden" name="id" value="{{ .form.Id | derefInt }}"></input>
+</form>
+{{ template "/htm/footer.htm" }}

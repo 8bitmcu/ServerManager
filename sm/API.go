@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +19,7 @@ func API_Car_Image(c *gin.Context) {
 
 	file := filepath.Join(Dba.Basepath(), "content", "cars", car, "skins", skin, "preview.jpg")
 	if _, err := os.Stat(file); errors.Is(err, os.ErrNotExist) {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	} else {
 		c.FileAttachment(file, car+"_"+skin+".jpg")
@@ -67,7 +70,7 @@ func API_Track_Preview_Image(c *gin.Context) {
 	}
 
 	if _, err := os.Stat(file); errors.Is(err, os.ErrNotExist) {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	} else {
 		c.FileAttachment(file, fileName+".png")
@@ -90,7 +93,7 @@ func API_Track_Outline_Image(c *gin.Context) {
 	}
 
 	if _, err := os.Stat(file); errors.Is(err, os.ErrNotExist) {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	} else {
 		c.FileAttachment(file, fileName+".png")
@@ -101,13 +104,13 @@ func API_Track_Outline_Image(c *gin.Context) {
 func API_Difficulty(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 
 	data := Dba.Select_Difficulty(id)
 	if data.Id == nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -118,13 +121,13 @@ func API_Difficulty(c *gin.Context) {
 func API_Session(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 
 	data := Dba.Select_Session(id)
 	if data.Id == nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -135,13 +138,13 @@ func API_Session(c *gin.Context) {
 func API_Class(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 
 	data := Dba.Select_Class_Entries(id)
 	if data.Id == nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -152,13 +155,13 @@ func API_Class(c *gin.Context) {
 func API_Time(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 
 	data := Dba.Select_Time_Weather(id)
 	if data.Id == nil {
-		c.HTML(http.StatusNotFound, "404.htm", gin.H{})
+		NoRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -187,20 +190,40 @@ func API_Recache_Weathers(c *gin.Context) {
 	})
 }
 func API_Recache_Content(c *gin.Context) {
-	track := Parse_Tracks(Dba)
-	car := Parse_Cars(Dba)
-	weather := Parse_Weathers(Dba)
+
+	cars := 0
+	tracks := 0
+	weathers := 0
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		tracks = Parse_Tracks(Dba)
+	}()
+	go func() {
+		defer wg.Done()
+		cars = Parse_Cars(Dba)
+	}()
+	go func() {
+		defer wg.Done()
+		weathers = Parse_Weathers(Dba)
+	}()
+	wg.Wait()
+
 	c.PureJSON(http.StatusOK, gin.H{
 		"result":         "ok",
-		"tracks_total":   track,
-		"cars_total":     car,
-		"weathers_total": weather,
+		"tracks_total":   tracks,
+		"cars_total":     cars,
+		"weathers_total": weathers,
 	})
 }
 
 func API_Validate_Installpath(c *gin.Context) {
-	// TODO eventually check for server binary, based on OS
-	path := filepath.Join(c.PostForm("path"), "acs.exe")
+	binary := "acServer"
+	if runtime.GOOS == "windows" {
+		binary = "acServer.exe"
+	}
+	path := filepath.Join(c.PostForm("path"), "server", binary)
 	exists := true
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		exists = false
@@ -211,23 +234,39 @@ func API_Validate_Installpath(c *gin.Context) {
 	})
 }
 
-func API_Console_Start(c *gin.Context) {
-	Start()
+func API_Server_Start(c *gin.Context) {
+	if !Is_Running() {
+		next_event := Dba.Select_Event_Next()
+		cr := Cr.Render_Ini(*next_event.Id)
+		cr.Write_Ini()
+
+		tm := time.Now().Unix()
+		next_event.ServerCfg = &cr.ServerCfg_Result
+		next_event.EntryList = &cr.EntryList_Result
+
+
+		next_event.Started_At = &tm
+
+		Dba.Update_Event(next_event)
+
+		Start()
+	}
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
 		"text":       Get_Content(),
 	})
 }
 
-func API_Console_Stop(c *gin.Context) {
+func API_Server_Stop(c *gin.Context) {
 	Stop()
+	Dba.Update_Event_SetComplete()
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
 		"text":       Get_Content(),
 	})
 }
 
-func API_Console_Status(c *gin.Context) {
+func API_Server_Status(c *gin.Context) {
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
 		"text":       Get_Content(),

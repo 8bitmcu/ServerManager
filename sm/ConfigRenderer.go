@@ -7,6 +7,8 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"time"
@@ -33,6 +35,23 @@ func (cr ConfigRenderer) Time_To_SunAngle(time_str *string) int {
 	angle = angle + int(math.Round(float64(time.Minute())/15))*4
 
 	return angle
+}
+
+func (cr ConfigRenderer) Write_Ini() {
+	servercfg := filepath.Join(Dba.Basepath(), "server", "cfg", "server_cfg.ini")
+
+	err := os.WriteFile(servercfg, []byte(cr.ServerCfg_Result), 0644)
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	entrylist := filepath.Join(Dba.Basepath(), "server", "cfg", "entry_list.ini")
+	err = os.WriteFile(entrylist, []byte(cr.EntryList_Result), 0644)
+
+	if err != nil {
+		log.Print(err)
+	}
 }
 
 func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
@@ -160,7 +179,6 @@ func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
 	if err != nil {
 		log.Print(err)
 	}
-
 
 	if entry_list_ini == nil {
 		file := FindFile("/ini/entry_list.ini")

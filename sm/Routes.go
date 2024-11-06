@@ -47,9 +47,14 @@ func Route_Content(c *gin.Context) {
 }
 
 func Route_Index(c *gin.Context) {
+	c.Redirect(http.StatusFound, "/event")
+	return
+}
+
+func Route_Console(c *gin.Context) {
 	Stats.Refresh()
-	c.HTML(http.StatusOK, "/htm/index.htm", gin.H{
-		"page":          "index",
+	c.HTML(http.StatusOK, "/htm/console.htm", gin.H{
+		"page":          "console",
 		"config_filled": Dba.Select_Config_Filled(),
 		"stats":         Stats,
 	})
@@ -213,6 +218,42 @@ func Route_Delete_Time(c *gin.Context) {
 }
 
 func Route_Event(c *gin.Context) {
+
+	max_clients := Dba.Select_Config().Max_Clients
+	upcoming := Dba.Select_Events(false, false)
+	current := Dba.Select_Events(true, false)
+
+	started_at := ""
+	elapsed := ""
+	if len(current) > 0 {
+		t := time.Unix(*current[0].Started_At, 0)
+		started_at = t.Format("3:04 PM")
+
+		tdiff := time.Now().Sub(t)
+		elapsed = tdiff.Round(time.Second).String()
+	}
+
+	Stats.Refresh()
+	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
+		"page":          "event",
+		"track_data":    Dba.Select_Cache_Tracks(),
+		"config_filled": Dba.Select_Config_Filled(),
+		"upcoming_events": gin.H{
+			"type":        "upcoming",
+			"events":      upcoming,
+			"max_clients": max_clients,
+		},
+		"current_events": gin.H{
+			"type":        "current",
+			"events":      current,
+			"max_clients": max_clients,
+			"started_at":  started_at,
+			"elapsed":     elapsed,
+		},
+		"stats": Stats,
+	})
+}
+func Route_Event_Edit(c *gin.Context) {
 	form := User_Event{}
 
 	id, err := strconv.Atoi(c.Param("id"))
@@ -224,21 +265,22 @@ func Route_Event(c *gin.Context) {
 			return
 		}
 	}
-	if c.Request.Method == "POST" {
+	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
 		if c.PostForm("id") != "" {
 			Dba.Update_Event(form)
-		} else if c.ShouldBind(&form) == nil {
-			id := Dba.Insert_Event(form)
-			c.Redirect(http.StatusFound, fmt.Sprint("/event/", id))
+			c.Redirect(http.StatusFound, "/event")
+			return
+		} else {
+			Dba.Insert_Event(form)
+			c.Redirect(http.StatusFound, "/event")
 			return
 		}
 	}
 
 	Stats.Refresh()
-	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
+	c.HTML(http.StatusOK, "/htm/event_edit.htm", gin.H{
 		"page":          "event",
 		"form":          form,
-		"events":        Dba.Select_Events(),
 		"difficulties":  Dba.Select_DifficultyList(true),
 		"sessions":      Dba.Select_SessionList(true),
 		"times":         Dba.Select_TimeList(true),

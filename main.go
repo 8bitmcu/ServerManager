@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"html/template"
 	"log"
 	"main/sm"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -114,6 +118,9 @@ func main() {
 			}
 			return false
 		},
+		"inc": func(i int) int {
+			return i + 1
+		},
 	}
 
 	t := template.New("")
@@ -171,8 +178,10 @@ func main() {
 
 		app.GET("/event", sm.Route_Event)
 		app.POST("/event", sm.Route_Event)
-		app.GET("/event/:id", sm.Route_Event)
-		app.POST("/event/:id", sm.Route_Event)
+		app.GET("/event_edit", sm.Route_Event_Edit)
+		app.POST("/event_edit", sm.Route_Event_Edit)
+		app.GET("/event_edit/:id", sm.Route_Event_Edit)
+		app.POST("/event_edit/:id", sm.Route_Event_Edit)
 		app.GET("/event/delete/:id", sm.Route_Delete_Event)
 		app.POST("/event/delete/:id", sm.Route_Delete_Event)
 
@@ -180,6 +189,8 @@ func main() {
 		app.POST("/user", sm.Route_User)
 
 		app.GET("/admin", sm.Route_Admin)
+
+		app.GET("/console", sm.Route_Console)
 	}
 
 	api := router.Group("/api")
@@ -205,9 +216,9 @@ func main() {
 
 		api.POST("/validate/installpath", sm.API_Validate_Installpath)
 
-		api.GET("/server/start", sm.API_Console_Start)
-		api.GET("/server/stop", sm.API_Console_Stop)
-		api.GET("/server/status", sm.API_Console_Status)
+		api.GET("/server/start", sm.API_Server_Start)
+		api.GET("/server/stop", sm.API_Server_Stop)
+		api.GET("/server/status", sm.API_Server_Status)
 
 		api.GET("/server/entry_list.ini", sm.API_Entry_List)
 		api.GET("/server/server_cfg.ini", sm.API_Server_Cfg)
@@ -224,6 +235,36 @@ func main() {
 
 	sm.Stats.Update_Public_Ip()
 
-	router.Run(":3030")
+	srv := &http.Server{
+		Addr:    ":3030",
+		Handler: router.Handler(),
+	}
+
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Print("Shutting down server...")
+
+	dba.Db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Print("Server Shutdown: ", err)
+	}
+	select {
+	case <-ctx.Done():
+	}
 
 }

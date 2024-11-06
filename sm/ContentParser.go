@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
+	"io"
 	"io/fs"
 	"log"
 	"os"
@@ -20,32 +21,7 @@ func Parse_Weathers(dba Dbaccess) int {
 	r2 := regexp.MustCompile("^NAME=(.*)$")
 	r3 := regexp.MustCompile("; .*")
 
-	weathers := make([]Cache_Weather, 0)
-
-	weather_path := filepath.Join(Dba.Basepath(), "content", "weather")
-	entries, err := os.ReadDir(weather_path)
-	if err != nil {
-		log.Print(err)
-	}
-
-	for _, element := range entries {
-
-		if !element.IsDir() {
-			continue
-		}
-
-		ini_path := filepath.Join(weather_path, element.Name(), "weather.ini")
-
-		if _, err := os.Stat(ini_path); errors.Is(err, os.ErrNotExist) {
-			continue
-		}
-
-		file, err := os.Open(ini_path)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		defer file.Close()
+	parseWeather := func(element fs.DirEntry, file io.Reader) Cache_Weather {
 
 		scanner := bufio.NewScanner(file)
 
@@ -62,16 +38,50 @@ func Parse_Weathers(dba Dbaccess) int {
 			}
 		}
 
-		if name != "" {
-			key := element.Name()
-			weather := Cache_Weather{
-				Key:  &key,
-				Name: &name,
-			}
-
-			weathers = append(weathers, weather)
+		key := element.Name()
+		weather := Cache_Weather{
+			Key:  &key,
+			Name: &name,
 		}
+
+		return weather
 	}
+
+	weathers := make([]Cache_Weather, 0)
+
+	weather_path := filepath.Join(Dba.Basepath(), "content", "weather")
+	entries, err := os.ReadDir(weather_path)
+	if err != nil {
+		log.Print(err)
+	}
+
+	var wg sync.WaitGroup
+	for _, element := range entries {
+
+		if !element.IsDir() {
+			continue
+		}
+
+		ini_path := filepath.Join(weather_path, element.Name(), "weather.ini")
+
+		if _, err := os.Stat(ini_path); errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		file, err := os.Open(ini_path)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		defer file.Close()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			weathers = append(weathers, parseWeather(element, file))
+		}()
+	}
+
+	wg.Wait()
 
 	dba.Update_Cache_Weathers(weathers)
 
@@ -114,20 +124,15 @@ func Parse_Tracks(dba Dbaccess) int {
 
 	tracks := make([]Cache_Track, 0)
 	tracks_path := filepath.Join(Dba.Basepath(), "content", "tracks")
-	entries, err := os.ReadDir(tracks_path)
-	if err != nil {
-		log.Print(err)
-	}
-
-	for _, element := range entries {
+	parseTrack := func(element fs.DirEntry) {
 		if !element.IsDir() {
-			continue
+			return
 		}
 
 		// if skins is missing, assume it's a missing dlc and avoid listing/saving it
 		skins := filepath.Join(tracks_path, element.Name(), "skins")
 		if _, err := os.Stat(skins); errors.Is(err, os.ErrNotExist) {
-			continue
+			return
 		}
 
 		json_path := filepath.Join(tracks_path, element.Name(), "ui", "ui_track.json")
@@ -164,6 +169,22 @@ func Parse_Tracks(dba Dbaccess) int {
 			tracks = append(tracks, track)
 		}
 	}
+
+	entries, err := os.ReadDir(tracks_path)
+	if err != nil {
+		log.Print(err)
+	}
+
+	var wg sync.WaitGroup
+	for _, element := range entries {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			parseTrack(element)
+		}()
+	}
+	wg.Wait()
+
 	dba.Update_Cache_Tracks(tracks)
 
 	return len(tracks)
