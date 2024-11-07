@@ -219,4 +219,5 @@ type Cache_Weather struct {
 var Dba Dbaccess
 var Cr ConfigRenderer
 var Stats Server_Stats
+var Udp UDPPlugin
 var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")

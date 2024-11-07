@@ -86,6 +86,13 @@ func main() {
 	sm.Dba = dba
 	sm.Cr = sm.ConfigRenderer{}
 	sm.Stats = sm.Server_Stats{}
+	sm.Udp = sm.UdpListen()
+
+	go func() {
+		for true {
+			sm.Udp.Receive()
+		}
+	}();
 
 	router := gin.Default()
 	router.Use(gin.Recovery())
