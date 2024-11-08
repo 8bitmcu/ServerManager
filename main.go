@@ -80,12 +80,13 @@ func main() {
 	log.Print("Opening database file located at: " + db_path)
 	dba = sm.Open(db_path)
 	dba.Apply_Schema(sm.FindFile("/schema.sql"))
+	dba.Update_Event_SetComplete()
 
 	gin.SetMode(gin.ReleaseMode)
 
 	sm.Dba = dba
 	sm.Cr = sm.ConfigRenderer{}
-	sm.Stats = sm.Server_Stats{}
+	sm.Status = sm.Server_Status{}
 	sm.Udp = sm.UdpListen()
 
 	go func() {
@@ -124,6 +125,10 @@ func main() {
 				return true
 			}
 			return false
+		},
+		"toTime": func(tm int) string {
+			tdiff := time.Duration(tm) * time.Second
+			return tdiff.Round(time.Second).String()
 		},
 		"inc": func(i int) int {
 			return i + 1
@@ -240,7 +245,7 @@ func main() {
 		sm.Open_URL("http://localhost:3030")
 	}
 
-	sm.Stats.Update_Public_Ip()
+	sm.Status.Update_Public_Ip()
 
 	srv := &http.Server{
 		Addr:    ":3030",
@@ -248,16 +253,12 @@ func main() {
 	}
 
 	go func() {
-		// service connections
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
+			log.Fatal(err)
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
-	// kill (no param) default send syscall.SIGTERM
-	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
@@ -268,7 +269,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Print("Server Shutdown: ", err)
+		log.Print(err)
 	}
 	select {
 	case <-ctx.Done():

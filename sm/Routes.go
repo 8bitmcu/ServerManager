@@ -19,12 +19,12 @@ func Route_Config(c *gin.Context) {
 		Dba.Update_Config(form)
 	}
 
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/config.htm", gin.H{
 		"page":          "config",
 		"form":          Dba.Select_Config(),
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -34,7 +34,7 @@ func Route_Content(c *gin.Context) {
 		Dba.Update_Content(form)
 	}
 
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/content.htm", gin.H{
 		"page":          "content",
 		"form":          Dba.Select_Config(),
@@ -42,7 +42,7 @@ func Route_Content(c *gin.Context) {
 		"car_data":      Dba.Select_Cache_Cars(),
 		"weather_data":  Dba.Select_Cache_Weathers(),
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -52,11 +52,11 @@ func Route_Index(c *gin.Context) {
 }
 
 func Route_Console(c *gin.Context) {
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/console.htm", gin.H{
 		"page":          "console",
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -80,13 +80,13 @@ func Route_Difficulty(c *gin.Context) {
 			Dba.Update_Difficulty(form)
 		}
 	}
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/difficulty.htm", gin.H{
 		"page":          "difficulty",
 		"list":          Dba.Select_DifficultyList(false),
 		"form":          form,
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -118,14 +118,14 @@ func Route_Class(c *gin.Context) {
 			Dba.Update_Class(form)
 		}
 	}
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/class.htm", gin.H{
 		"page":          "class",
 		"list":          Dba.Select_ClassList(false),
 		"car_data":      Dba.Select_Cache_Cars(), // TODO: only select needed data
 		"form":          form,
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -156,13 +156,13 @@ func Route_Session(c *gin.Context) {
 			Dba.Update_Session(form)
 		}
 	}
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/session.htm", gin.H{
 		"page":          "session",
 		"list":          Dba.Select_SessionList(false),
 		"form":          form,
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -199,14 +199,14 @@ func Route_Time(c *gin.Context) {
 		form.Weathers = append(form.Weathers, User_Time_Weather{})
 	}
 
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/time.htm", gin.H{
 		"page":          "time",
 		"list":          Dba.Select_TimeList(false),
 		"weatherlist":   Dba.Select_Cache_Weathers(),
 		"form":          form,
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -218,6 +218,8 @@ func Route_Delete_Time(c *gin.Context) {
 }
 
 func Route_Event(c *gin.Context) {
+	Status.Refresh()
+
 
 	max_clients := Dba.Select_Config().Max_Clients
 	upcoming := Dba.Select_Events(false, false)
@@ -233,7 +235,6 @@ func Route_Event(c *gin.Context) {
 		elapsed = tdiff.Round(time.Second).String()
 	}
 
-	Stats.Refresh()
 	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
 		"page":          "event",
 		"track_data":    Dba.Select_Cache_Tracks(),
@@ -250,7 +251,7 @@ func Route_Event(c *gin.Context) {
 			"started_at":  started_at,
 			"elapsed":     elapsed,
 		},
-		"stats": Stats,
+		"status":  Status,
 	})
 }
 func Route_Event_Edit(c *gin.Context) {
@@ -277,7 +278,7 @@ func Route_Event_Edit(c *gin.Context) {
 		}
 	}
 
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusOK, "/htm/event_edit.htm", gin.H{
 		"page":          "event",
 		"form":          form,
@@ -288,7 +289,7 @@ func Route_Event_Edit(c *gin.Context) {
 		"max_clients":   Dba.Select_Config().Max_Clients,
 		"track_data":    Dba.Select_Cache_Tracks(),
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -361,7 +362,7 @@ func Route_User(c *gin.Context) {
 		"page":          "user",
 		"form":          form,
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }
 
@@ -379,15 +380,15 @@ func Route_Admin(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "/htm/admin.htm", gin.H{
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 
 }
 
 func NoRoute(c *gin.Context) {
-	Stats.Refresh()
+	Status.Refresh()
 	c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{
 		"config_filled": Dba.Select_Config_Filled(),
-		"stats":         Stats,
+		"status":        Status,
 	})
 }

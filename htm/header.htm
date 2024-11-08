@@ -64,15 +64,15 @@
         <div>
           <span>Server status: &nbsp;</span>
           <div
-              class="center relative inline-block select-none whitespace-nowrap rounded-lg {{ if .stats.Status }}bg-green-500{{ else }}bg-red-500{{ end }} py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
-            {{ if .stats.Status }}<div class="mt-px">online</div>{{ end }}
-            {{ if not .stats.Status }}<div class="mt-px">offline</div>{{ end}}
+              class="center relative inline-block select-none whitespace-nowrap rounded-lg {{ if .status.Status }}bg-green-500{{ else }}bg-red-500{{ end }} py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
+            {{ if .status.Status }}<div class="mt-px">online</div>{{ end }}
+            {{ if not .status.Status }}<div class="mt-px">offline</div>{{ end}}
           </div>
         </div>
         <div class="mt-2">
           <span>Server IP: &nbsp;</span>
           <input type="textbox" class="text-gray-700 bg-gray-200 rounded text-center" x-data="" @click="$el.select()"
-            value="{{ .stats.Public_Ip }}" style="width: 100px; font-weight: lighter" />
+            value="{{ .status.Public_Ip }}" style="width: 100px; font-weight: lighter" />
         </div>
       </div>
     </div>

@@ -52,5 +52,6 @@ func Stop() {
 	if cmd != nil && cmd.Process != nil {
 		cmd.Process.Kill()
 		cmd = nil
+		Status.Players = 0
 	}
 }

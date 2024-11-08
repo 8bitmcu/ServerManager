@@ -1,6 +1,8 @@
 package sm
 
 import (
+	"encoding/json"
+	"fmt"
 	"os/exec"
 	"runtime"
 )
@@ -23,3 +25,7 @@ func Open_URL(url string) error {
 	return exec.Command(cmd, args...).Start()
 }
 
+func Print_Interface(t interface{}) {
+	s, _ := json.MarshalIndent(t, "", "\t")
+	fmt.Print(string(s))
+}

@@ -8,12 +8,16 @@
     return {
       stop_server: function () {
         fetch("/api/server/stop").then((x) => {
-          location.reload();
+          setTimeout(function() {
+            location.reload();
+          }, 100);
         });
       },
       start_server: function () {
         fetch("/api/server/start").then((x) => {
-          location.reload();
+          setTimeout(function() {
+            location.reload();
+          }, 100);
         });
       },
     };
@@ -27,57 +31,68 @@
       <i class="fas fa-list mr-3"></i> Current Event
     </p>
 
-    {{ if .current_events.events | len }}
-    {{ template "/htm/event_table.htm" .current_events }}
-    {{ end }}
     <table class="min-w-full bg-white">
-      <thead class="bg-gray-800 text-white">
+      {{ if .current_events.events | len }}
+      {{ template "/htm/event_table.htm" .current_events }}
+      {{ end }}
+      <tfoot class="bg-gray-800 text-white">
         {{ if .current_events.events | len }}
         <tr>
-          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
-            <i class="fas fa-play mr-3"></i> Started At {{
-            .current_events.started_at }} ({{ .current_events.elapsed }} ago)
-          </th>
-          <th class="text-right py-3 px-4 uppercase font-semibold text-sm">
-            <a href="#" @click="stop_server()"><i class="fas fa-stop mr-3"></i> Stop Server</a>
-          </th>
-        </tr>
-        {{ else if .upcoming_events.events | len }}
-        <tr>
-          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
-            <a href="#" @click="start_server()"><i class="fas fa-play mr-3"></i> Start Server</a>
+          <th colspan="6" class="text-left py-3 uppercase font-semibold text-sm">
+            <div class="flex justify-between">
+              <span class="px-4">
+              <i class="fas fa-play mr-3"></i> Started At {{
+              .current_events.started_at }} ({{ .current_events.elapsed }} ago)
+              </span>
+              <span>
+                Current Session: {{ .status.Session.Name }}
+              </span>
+              <span class="px-4">
+                <i class="fas fa-users mr-3"></i> {{ .status.Players }} users online
+              </span>
+            </div>
           </th>
         </tr>
         {{ else }}
         <tr>
-          <th class="text-left py-3 px-4 uppercase font-semibold text-sm"> Add Events before starting the server </td>
+          <th class="text-left py-3 px-4 uppercase font-semibold text-sm"><i class="fas fa-info mr-3"></i> Server not running</th>
         </tr>
         {{ end }}
-      </thead>
+      </tfoot>
     </table>
 
     <p class="text-xl pb-6 flex items-center mt-12">
       <i class="fas fa-list mr-3"></i> Upcoming Events
     </p>
 
-    {{ template "/htm/event_table.htm" .upcoming_events }}
     <table class="min-w-full bg-white">
-      <thead class="bg-gray-800 text-white">
+      {{ if .upcoming_events | len }}
+      {{ template "/htm/event_table.htm" .upcoming_events }}
+      {{ end }}
+      <tfoot class="bg-gray-800 text-white">
         <tr>
-          <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+          <th colspan="7" class="text-left py-3 px-4 uppercase font-semibold text-sm">
             <i class="fas fa-info mr-3"></i> {{ .upcoming_events.events | len }}
             events in queue
           </th>
-          <th class="text-left py-3 px-4 uppercase font-semibold text-sm"></th>
         </tr>
-      </thead>
+      </tfoot>
     </table>
 
     <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
       <p class="text-xl pb-6 flex items-center">
-        <a href="/event_edit" class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-md">
+        <a href="/event_edit" class="mr-4 px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-md">
           Add new Event
         </a>
+        {{ if .status.Status }}
+        <a href="#" @click="stop_server()" class="px-4 py-1 text-white font-light tracking-wider bg-red-500 rounded-md">
+          <i class="fas fa-stop"></i> Stop Server
+        </a>
+        {{ else }}
+        <a href="#" @click="start_server()" class="px-4 py-1 text-white font-light tracking-wider bg-green-500 rounded-md">
+          <i class="fas fa-play"></i> Start Server
+        </a>
+        {{ end }}
       </p>
     </div>
   </div>

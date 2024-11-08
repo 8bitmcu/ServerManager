@@ -236,20 +236,12 @@ func API_Validate_Installpath(c *gin.Context) {
 
 func API_Server_Start(c *gin.Context) {
 	if !Is_Running() {
-		next_event := Dba.Select_Event_Next()
-		cr := Cr.Render_Ini(*next_event.Id)
-		cr.Write_Ini()
-
-		tm := time.Now().Unix()
-		next_event.ServerCfg = &cr.ServerCfg_Result
-		next_event.EntryList = &cr.EntryList_Result
-
-
-		next_event.Started_At = &tm
-
-		Dba.Update_Event(next_event)
-
+		Status.Server_ApplyTrack()
 		Start()
+		// Hang the request until the UDP Server becomes online
+		for !Udp.online {
+			time.Sleep(10 * time.Millisecond)
+		}
 	}
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
