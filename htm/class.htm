@@ -356,6 +356,23 @@
         }
       </script>
       <form id="frmUpdate" method="POST" action="/class/{{ .form.Id }}" class="w-full flex flex-col bg-white text-black">
+        <div class="w-full pl-0 lg:pl-2">
+          <div class="w-1/2 p-4 lg:p-10 leading-loose">
+            <div class="">
+              <label class="block text-sm text-gray-600 group relative" for="name">
+                Name
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Name of this class
+                  </div>
+                </div>
+              </label>
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="name" name="name"
+                type="text" required="" placeholder="Name" aria-label="Name"
+                value="{{ .form.Name }}" />
+            </div>
+          </div>
+        </div>
         <div x-data="class_data()" x-init="class_init()">
           <input type="hidden" x-model="JSON.stringify(class_cars)" name="entries" />
           <nav class="flex flex-col">

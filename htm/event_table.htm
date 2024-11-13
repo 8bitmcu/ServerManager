@@ -106,7 +106,7 @@
       <span>{{ $event.Class_Name }}</span>
       <div class="text-xs">
         <span><i class="fas fa-warehouse"></i>
-        {{ if and (gt (toInt $g.max_clients) (toInt $event.Pitboxes)) (gt (toInt $g.max_clients) (toInt $event.Entries)) }}
+        {{ if and (gt (toInt $event.Pitboxes) (toInt $g.max_clients)) (gt (toInt $event.Entries) (toInt $g.max_clients)) }}
           {{ $g.max_clients }} 
           {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
           {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}

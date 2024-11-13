@@ -12,7 +12,6 @@ type User_Config struct {
 	Password             *string `form:"password"`
 	Admin_Password       *string `form:"admin_password"`
 	Register_To_Lobby    *int    `form:"register_to_lobby"`
-	Pickup_Mode_Enabled  *int    `form:"pickup_mode_enabled"`
 	Locked_Entry_List    *int    `form:"locked_entry_list"`
 	Result_Screen_Time   *int    `form:"result_screen_time"`
 	Udp_Port             *int    `form:"udp_port"`
@@ -153,7 +152,7 @@ type User_Time_Weather struct {
 
 type User_Class struct {
 	Id      *int
-	Name    *string            `json:"name"`
+	Name    *string            `form:"name" json:"name"`
 	Entries []User_Class_Entry `json:"entries"`
 }
 

@@ -63,23 +63,6 @@
         </div>
       </div>
       <div class="mt-2">
-        <label class="block text-sm text-gray-600 group relative" for="pickup_mode_enabled">
-          Pickup Mode
-          <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
-              Flag it if you want to start a server without booking.
-            </div>
-          </div>
-        </label>
-        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-          <input type="checkbox" name="pickup_mode_enabled" id="pickup_mode_enabled" value="1" {{ if (eq (derefInt .form.Pickup_Mode_Enabled) "1") }} checked {{ end }}
-            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
-          <label for="pickup_mode_enabled"
-            class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-          <input type="hidden" value="0" name="pickup_mode_enabled" />
-        </div>
-      </div>
-      <div class="mt-2">
         <label class="block text-sm text-gray-600 group relative" for="locked_entry_list">
           Pickup Locked Entry List
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">

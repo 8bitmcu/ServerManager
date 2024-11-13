@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"html/template"
 	"log"
 	"main/sm"
@@ -64,10 +65,18 @@ func AuthenticateMiddleware(c *gin.Context) {
 func main() {
 	sm.Assets = Assets
 
-	config_folder := os.Getenv("XDG_CONFIG_HOME")
-	if runtime.GOOS == "windows" {
-		config_folder = os.Getenv("APPDATA")
+	var config_folder string
+
+	flag.StringVar(&config_folder, "p", "", "Configuration path")
+	flag.Parse()
+
+	if config_folder == "" {
+		config_folder = os.Getenv("XDG_CONFIG_HOME")
+		if runtime.GOOS == "windows" {
+			config_folder = os.Getenv("APPDATA")
+		}
 	}
+
 	sm_path := filepath.Join(config_folder, "servermanager")
 	if _, err := os.Stat(sm_path); os.IsNotExist(err) {
 		err := os.Mkdir(sm_path, os.ModePerm)
@@ -93,9 +102,9 @@ func main() {
 		for true {
 			sm.Udp.Receive()
 		}
-	}();
+	}()
 
-	router := gin.Default()
+	router := gin.New()
 	router.Use(gin.Recovery())
 
 	funcMap := template.FuncMap{

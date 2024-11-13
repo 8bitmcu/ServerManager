@@ -127,6 +127,23 @@
         }
       </script>
       <form class="flex flex-wrap bg-white text-black" method="POST">
+        <div class="w-full mt-6 pl-0 lg:pl-2">
+          <div class="w-1/2 p-4 lg:p-10 leading-loose">
+            <div class="">
+              <label class="block text-sm text-gray-600 group relative" for="name">
+                Name
+                <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                  <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                    Name of this preset
+                  </div>
+                </div>
+              </label>
+              <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="name" name="name"
+                type="text" required="" placeholder="Name" aria-label="Name"
+                value="{{ .form.Name }}" />
+            </div>
+          </div>
+        </div>
         <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
           <p class="text-xl px-6 pb-6 flex items-center">
             <i class="fas fa-list mr-3"></i> Assists

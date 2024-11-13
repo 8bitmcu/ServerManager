@@ -65,6 +65,12 @@ func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
 	class := Dba.Select_Class_Entries(*event.Class_Id)
 	track := Dba.Select_Cache_Track(*event.Cache_Track_Key, *event.Cache_Track_Config)
 
+
+	if session.Qualify_Max_Wait_Perc == nil {
+		var val = 120
+		session.Qualify_Max_Wait_Perc = &val
+	}
+
 	// csp required? build a cspstr to be concat with the track name
 	cspstr := ""
 	if cfg.Csp_Required != nil && *cfg.Csp_Required > 0 {
@@ -131,16 +137,18 @@ func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
 		strat_needed = true
 		max_clients = len(class.Entries)
 	}
+	if len(class.Entries) > max_clients {
+		strat_needed = true
+	}
 
 	// Strategy needed? re-order cars in the entry list as per selected strategy
 	if strat_needed {
 		// Random
 		if *event.Strategy == 2 {
 			rand.Shuffle(len(class.Entries), func(i, j int) { class.Entries[i], class.Entries[j] = class.Entries[j], class.Entries[i] })
-
-			// Cut the list by the max number of clients
-			class.Entries = class.Entries[:max_clients]
 		}
+		// Cut the list by the max number of clients
+		class.Entries = class.Entries[:max_clients]
 	}
 
 	funcMap := template.FuncMap{

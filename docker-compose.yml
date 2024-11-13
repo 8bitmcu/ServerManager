@@ -21,8 +21,4 @@ services:
     network_mode: host
     volumes:
       - /path/to/corsa:/corsa/:ro
-
-networks:
-  host:
-    name: host
-    external: true
+      - /data/path:/appdata/:rw

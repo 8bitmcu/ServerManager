@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS user_config (
   password TEXT,
   admin_password TEXT,
   register_to_lobby INTEGER,
-  pickup_mode_enabled INTEGER,
   locked_entry_list INTEGER,
   result_screen_time INTEGER,
   udp_port INTEGER,

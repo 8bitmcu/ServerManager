@@ -9,4 +9,4 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /usr/bin
 COPY --from=build /go/src/app/bin /go/bin
 EXPOSE 3030
-ENTRYPOINT /go/bin/sm
+ENTRYPOINT /go/bin/sm -p /appdata

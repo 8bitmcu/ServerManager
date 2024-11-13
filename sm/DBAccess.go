@@ -190,7 +190,7 @@ func (dba Dbaccess) Select_Config_Filled() bool {
 }
 
 func (dba Dbaccess) Select_Config() User_Config {
-	row := dba.Db.QueryRow("SELECT name, password, admin_password, register_to_lobby, pickup_mode_enabled, locked_entry_list, result_screen_time, udp_port, tcp_port, http_port, client_send_interval, num_threads, max_clients, welcome_message, install_path, csp_required, csp_version, csp_phycars, csp_phytracks, csp_hidepit, cfg_filled, mod_filled FROM user_config")
+	row := dba.Db.QueryRow("SELECT name, password, admin_password, register_to_lobby, locked_entry_list, result_screen_time, udp_port, tcp_port, http_port, client_send_interval, num_threads, max_clients, welcome_message, install_path, csp_required, csp_version, csp_phycars, csp_phytracks, csp_hidepit, cfg_filled, mod_filled FROM user_config")
 
 	err := row.Err()
 	if err != nil {
@@ -198,7 +198,7 @@ func (dba Dbaccess) Select_Config() User_Config {
 	}
 
 	cfg := User_Config{}
-	err = row.Scan(&cfg.Name, &cfg.Password, &cfg.Admin_Password, &cfg.Register_To_Lobby, &cfg.Pickup_Mode_Enabled, &cfg.Locked_Entry_List, &cfg.Result_Screen_Time, &cfg.Udp_Port, &cfg.Tcp_Port, &cfg.Http_Port, &cfg.Client_Send_Interval, &cfg.Num_Threads, &cfg.Max_Clients, &cfg.Welcome_Message, &cfg.Install_Path, &cfg.Csp_Required, &cfg.Csp_Version, &cfg.Csp_Phycars, &cfg.Csp_Phytracks, &cfg.Csp_Hidepit, &cfg.Cfg_Filled, &cfg.Mod_Filled)
+	err = row.Scan(&cfg.Name, &cfg.Password, &cfg.Admin_Password, &cfg.Register_To_Lobby, &cfg.Locked_Entry_List, &cfg.Result_Screen_Time, &cfg.Udp_Port, &cfg.Tcp_Port, &cfg.Http_Port, &cfg.Client_Send_Interval, &cfg.Num_Threads, &cfg.Max_Clients, &cfg.Welcome_Message, &cfg.Install_Path, &cfg.Csp_Required, &cfg.Csp_Version, &cfg.Csp_Phycars, &cfg.Csp_Phytracks, &cfg.Csp_Hidepit, &cfg.Cfg_Filled, &cfg.Mod_Filled)
 	if err != nil {
 		log.Print(err)
 	}
@@ -207,13 +207,13 @@ func (dba Dbaccess) Select_Config() User_Config {
 }
 
 func (dba Dbaccess) Update_Config(cfg User_Config) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_config SET name = ?, password = ?, admin_password = ?, register_to_lobby = ?, pickup_mode_enabled = ?, locked_entry_list = ?, result_screen_time = ?, udp_port = ?, tcp_port = ?, http_port = ?, client_send_interval = ?, num_threads = ?, max_clients = ?, welcome_message = ?, cfg_filled = 1")
+	stmt, err := dba.Db.Prepare("UPDATE user_config SET name = ?, password = ?, admin_password = ?, register_to_lobby = ?, locked_entry_list = ?, result_screen_time = ?, udp_port = ?, tcp_port = ?, http_port = ?, client_send_interval = ?, num_threads = ?, max_clients = ?, welcome_message = ?, cfg_filled = 1")
 
 	if err != nil {
 		log.Print(err)
 	}
 
-	res, err := stmt.Exec(&cfg.Name, &cfg.Password, &cfg.Admin_Password, &cfg.Register_To_Lobby, &cfg.Pickup_Mode_Enabled, &cfg.Locked_Entry_List, &cfg.Result_Screen_Time, &cfg.Udp_Port, &cfg.Tcp_Port, &cfg.Http_Port, &cfg.Client_Send_Interval, &cfg.Num_Threads, &cfg.Max_Clients, &cfg.Welcome_Message)
+	res, err := stmt.Exec(&cfg.Name, &cfg.Password, &cfg.Admin_Password, &cfg.Register_To_Lobby, &cfg.Locked_Entry_List, &cfg.Result_Screen_Time, &cfg.Udp_Port, &cfg.Tcp_Port, &cfg.Http_Port, &cfg.Client_Send_Interval, &cfg.Num_Threads, &cfg.Max_Clients, &cfg.Welcome_Message)
 	defer stmt.Close()
 	if err != nil {
 		log.Print(err)
@@ -458,11 +458,11 @@ func (dba Dbaccess) Delete_Difficulty(id int) int64 {
 }
 
 func (dba Dbaccess) Update_Difficulty(dif User_Difficulty) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_difficulty SET abs_allowed = ?, tc_allowed = ?, stability_allowed = ?, autoclutch_allowed = ?, tyre_blankets_allowed = ?, force_virtual_mirror = ?, fuel_rate = ?, damage_multiplier = ?, tyre_wear_rate = ?, allowed_tyres_out = ?, max_ballast_kg = ?, start_rule = ?, race_gas_penality_disabled = ?, dynamic_track = ?, dynamic_track_preset = ?, session_start = ?, randomness = ?, session_transfer = ?, lap_gain = ?, kick_quorum = ?, voting_quorum = ?, vote_duration = ?, blacklist_mode = ?, max_contacts_per_km = ?, filled = 1 WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_difficulty SET name = ?, abs_allowed = ?, tc_allowed = ?, stability_allowed = ?, autoclutch_allowed = ?, tyre_blankets_allowed = ?, force_virtual_mirror = ?, fuel_rate = ?, damage_multiplier = ?, tyre_wear_rate = ?, allowed_tyres_out = ?, max_ballast_kg = ?, start_rule = ?, race_gas_penality_disabled = ?, dynamic_track = ?, dynamic_track_preset = ?, session_start = ?, randomness = ?, session_transfer = ?, lap_gain = ?, kick_quorum = ?, voting_quorum = ?, vote_duration = ?, blacklist_mode = ?, max_contacts_per_km = ?, filled = 1 WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	res, err := stmt.Exec(&dif.Abs_Allowed, &dif.Tc_Allowed, &dif.Stability_Allowed, &dif.Autoclutch_Allowed, &dif.Tyre_Blankets_Allowed, &dif.Force_Virtual_Mirror, &dif.Fuel_Rate, &dif.Damage_Multiplier, &dif.Tyre_Wear_Rate, &dif.Allowed_Tyres_Out, &dif.Max_Ballast_Kg, &dif.Start_Rule, &dif.Race_Gas_Penality_Disabled, &dif.Dynamic_Track, &dif.Dynamic_Track_Preset, &dif.Session_Start, &dif.Randomness, &dif.Session_Transfer, &dif.Lap_Gain, &dif.Kick_Quorum, &dif.Vote_Duration, &dif.Vote_Duration, &dif.Blacklist_Mode, &dif.Max_Contacts_Per_Km, &dif.Id)
+	res, err := stmt.Exec(&dif.Name, &dif.Abs_Allowed, &dif.Tc_Allowed, &dif.Stability_Allowed, &dif.Autoclutch_Allowed, &dif.Tyre_Blankets_Allowed, &dif.Force_Virtual_Mirror, &dif.Fuel_Rate, &dif.Damage_Multiplier, &dif.Tyre_Wear_Rate, &dif.Allowed_Tyres_Out, &dif.Max_Ballast_Kg, &dif.Start_Rule, &dif.Race_Gas_Penality_Disabled, &dif.Dynamic_Track, &dif.Dynamic_Track_Preset, &dif.Session_Start, &dif.Randomness, &dif.Session_Transfer, &dif.Lap_Gain, &dif.Kick_Quorum, &dif.Vote_Duration, &dif.Vote_Duration, &dif.Blacklist_Mode, &dif.Max_Contacts_Per_Km, &dif.Id)
 	defer stmt.Close()
 
 	if err != nil {
@@ -505,11 +505,11 @@ func (dba Dbaccess) Delete_Session(id int) int64 {
 }
 
 func (dba Dbaccess) Update_Session(ses User_Session) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_session SET booking_enabled = ?, booking_time = ?, practice_enabled = ?, practice_time = ?, practice_is_open = ?, qualify_enabled = ?, qualify_time = ?, qualify_is_open = ?, qualify_max_wait_perc = ?, race_enabled = ?, race_time = ?, race_extra_lap = ?, race_over_time = ?, race_wait_time = ?, race_is_open = ?, reversed_grid_positions = ?, race_pit_window_start = ?, race_pit_window_end = ?, filled = 1 WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_session SET name = ?, booking_enabled = ?, booking_time = ?, practice_enabled = ?, practice_time = ?, practice_is_open = ?, qualify_enabled = ?, qualify_time = ?, qualify_is_open = ?, qualify_max_wait_perc = ?, race_enabled = ?, race_time = ?, race_extra_lap = ?, race_over_time = ?, race_wait_time = ?, race_is_open = ?, reversed_grid_positions = ?, race_pit_window_start = ?, race_pit_window_end = ?, filled = 1 WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	res, err := stmt.Exec(&ses.Booking_Enabled, &ses.Booking_Time, &ses.Practice_Enabled, &ses.Practice_Time, &ses.Practice_Is_Open, &ses.Qualify_Enabled, &ses.Qualify_Time, &ses.Qualify_Is_Open, &ses.Qualify_Max_Wait_Perc, &ses.Race_Enabled, &ses.Race_Time, &ses.Race_Extra_Lap, &ses.Race_Over_Time, &ses.Race_Wait_Time, &ses.Race_Is_Open, &ses.Reversed_Grid_Positions, &ses.Race_Pit_Window_Start, &ses.Race_Pit_Window_End, &ses.Id)
+	res, err := stmt.Exec(&ses.Name, &ses.Booking_Enabled, &ses.Booking_Time, &ses.Practice_Enabled, &ses.Practice_Time, &ses.Practice_Is_Open, &ses.Qualify_Enabled, &ses.Qualify_Time, &ses.Qualify_Is_Open, &ses.Qualify_Max_Wait_Perc, &ses.Race_Enabled, &ses.Race_Time, &ses.Race_Extra_Lap, &ses.Race_Over_Time, &ses.Race_Wait_Time, &ses.Race_Is_Open, &ses.Reversed_Grid_Positions, &ses.Race_Pit_Window_Start, &ses.Race_Pit_Window_End, &ses.Id)
 	defer stmt.Close()
 
 	if err != nil {
@@ -579,11 +579,11 @@ func (dba Dbaccess) Delete_Time(id int) int64 {
 }
 
 func (dba Dbaccess) Update_Time(time User_Time) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_time SET time = ?, time_of_day_multi = ?, csp_enabled = ?, filled = 1 WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_time SET name = ?, time = ?, time_of_day_multi = ?, csp_enabled = ?, filled = 1 WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	_, err = stmt.Exec(&time.Time, &time.Time_Of_Day_Multi, &time.Csp_Enabled, &time.Id)
+	_, err = stmt.Exec(&time.Name, &time.Time, &time.Time_Of_Day_Multi, &time.Csp_Enabled, &time.Id)
 	defer stmt.Close()
 
 	if err != nil {
@@ -629,7 +629,7 @@ func (dba Dbaccess) Select_Class_Entries(id int) User_Class {
 		log.Print(err)
 	}
 
-	stmt, err = dba.Db.Prepare("SELECT id, user_class_id, cache_car_key, skin_key, ballast FROM user_class_entry WHERE user_class_id = ? AND deleted = 0 LIMIT 1")
+	stmt, err = dba.Db.Prepare("SELECT id, user_class_id, cache_car_key, skin_key, ballast FROM user_class_entry WHERE user_class_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
@@ -679,14 +679,14 @@ func (dba Dbaccess) Delete_Class(id int) int64 {
 }
 
 func (dba Dbaccess) Update_Class(cls User_Class) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_class SET filled = 1 WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_class SET name = ?, filled = 1 WHERE id = ?")
 
 	if err != nil {
 		log.Print(err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(cls.Id)
+	_, err = stmt.Exec(cls.Name, cls.Id)
 	if err != nil {
 		log.Print(err)
 	}

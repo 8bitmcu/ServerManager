@@ -129,12 +129,6 @@ func Parse_Tracks(dba Dbaccess) int {
 			return
 		}
 
-		// if skins is missing, assume it's a missing dlc and avoid listing/saving it
-		skins := filepath.Join(tracks_path, element.Name(), "skins")
-		if _, err := os.Stat(skins); errors.Is(err, os.ErrNotExist) {
-			return
-		}
-
 		json_path := filepath.Join(tracks_path, element.Name(), "ui", "ui_track.json")
 		if _, err := os.Stat(json_path); errors.Is(err, os.ErrNotExist) {
 			// track has many configs which we need to parse
@@ -270,6 +264,9 @@ func Parse_Cars(dba Dbaccess) int {
 
 		var wg sync.WaitGroup
 		for _, skin := range skins {
+			if !skin.IsDir() {
+				continue
+			}
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -298,10 +295,13 @@ func Parse_Cars(dba Dbaccess) int {
 			continue
 		}
 
-		// if data.acd is missing, assume it's a missing dlc and avoid listing/saving it
+		// if data.acd or data dir is missing, assume it's a missing dlc and avoid listing/saving it
 		data_acd := filepath.Join(cars_path, element.Name(), "data.acd")
 		if _, err := os.Stat(data_acd); errors.Is(err, os.ErrNotExist) {
-			continue
+			data := filepath.Join(cars_path, element.Name(), "data")
+			if _, err := os.Stat(data); errors.Is(err, os.ErrNotExist) {
+				continue
+			}
 		}
 
 		wg.Add(1)
