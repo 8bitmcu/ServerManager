@@ -63,6 +63,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 }
 
 func main() {
+
 	sm.Assets = Assets
 
 	var config_folder string
@@ -230,9 +231,6 @@ func main() {
 		api.GET("/class/:id", sm.API_Class)
 		api.GET("/time/:id", sm.API_Time)
 
-		api.GET("/car/recache", sm.API_Recache_Cars)
-		api.GET("/track/recache", sm.API_Recache_Tracks)
-		api.GET("/weather/recache", sm.API_Recache_Weathers)
 		api.GET("/content/recache", sm.API_Recache_Content)
 
 		api.POST("/validate/installpath", sm.API_Validate_Installpath)
@@ -248,7 +246,6 @@ func main() {
 
 	router.NoRoute(sm.NoRoute)
 
-	log.Print("Server up and running on http://localhost:3030")
 
 	if !DEBUG {
 		sm.Open_URL("http://localhost:3030")
@@ -256,14 +253,33 @@ func main() {
 
 	sm.Status.Update_Public_Ip()
 
-	srv := &http.Server{
+	main := &http.Server{
 		Addr:    ":3030",
 		Handler: router.Handler(),
 	}
 
+	r := gin.New()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+
+	utilities := &http.Server{
+		Addr:    ":4040",
+		Handler: r.Handler(),
+	}
+
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+		log.Print("Server up and running on http://localhost:3030")
+		if err := main.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Print(err)
+		}
+	}()
+	go func() {
+		log.Print("Utilities up and running on http://localhost:4040")
+		if err := utilities.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Print(err)
 		}
 	}()
 
@@ -277,7 +293,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := main.Shutdown(ctx); err != nil {
 		log.Print(err)
 	}
 	select {

@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -169,52 +168,14 @@ func API_Time(c *gin.Context) {
 	})
 }
 
-func API_Recache_Cars(c *gin.Context) {
-	Parse_Cars(Dba)
-	c.PureJSON(http.StatusOK, gin.H{
-		"result": "ok",
-	})
-}
-
-func API_Recache_Tracks(c *gin.Context) {
-	Parse_Tracks(Dba)
-	c.PureJSON(http.StatusOK, gin.H{
-		"result": "ok",
-	})
-}
-
-func API_Recache_Weathers(c *gin.Context) {
-	Parse_Weathers(Dba)
-	c.PureJSON(http.StatusOK, gin.H{
-		"result": "ok",
-	})
-}
 func API_Recache_Content(c *gin.Context) {
 
-	cars := 0
-	tracks := 0
-	weathers := 0
-	var wg sync.WaitGroup
-	wg.Add(3)
-	go func() {
-		defer wg.Done()
-		tracks = Parse_Tracks(Dba)
-	}()
-	go func() {
-		defer wg.Done()
-		cars = Parse_Cars(Dba)
-	}()
-	go func() {
-		defer wg.Done()
-		weathers = Parse_Weathers(Dba)
-	}()
-	wg.Wait()
-
+	Parse_Content(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result":         "ok",
-		"tracks_total":   tracks,
-		"cars_total":     cars,
-		"weathers_total": weathers,
+		"tracks_total":   "5",
+		"cars_total":     "5",
+		"weathers_total": "5",
 	})
 }
 
