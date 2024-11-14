@@ -5,7 +5,6 @@ import (
 	"flag"
 	"html/template"
 	"log"
-	"main/sm"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,12 +18,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var dba sm.Dbaccess
+var Dba Dbaccess
+var Cr ConfigRenderer
+var Status Server_Status
+var Udp UDPPlugin
+
+// TODO: generate random SecretKey and storein db
+var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")
 var DEBUG bool = true
 
 func ConfigCompletedMiddlware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		config_filled := dba.Select_Config_Filled()
+		config_filled := Dba.Select_Config_Filled()
 		if !config_filled && c.Request.URL.Path != "/config" && c.Request.URL.Path != "/content" {
 			c.Redirect(http.StatusFound, "/config")
 			return
@@ -43,7 +48,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return sm.SecretKey, nil
+		return SecretKey, nil
 	})
 
 	if err != nil || !token.Valid {
@@ -63,8 +68,6 @@ func AuthenticateMiddleware(c *gin.Context) {
 }
 
 func main() {
-
-	sm.Assets = Assets
 
 	var config_folder string
 
@@ -88,20 +91,19 @@ func main() {
 
 	db_path := filepath.Join(sm_path, "smdata.db")
 	log.Print("Opening database file located at: " + db_path)
-	dba = sm.Open(db_path)
-	dba.Apply_Schema(sm.FindFile("/schema.sql"))
-	dba.Update_Event_SetComplete()
+	Dba = Open(db_path)
+	Dba.Apply_Schema(FindFile("/schema.sql"))
+	Dba.Update_Event_SetComplete()
 
 	gin.SetMode(gin.ReleaseMode)
 
-	sm.Dba = dba
-	sm.Cr = sm.ConfigRenderer{}
-	sm.Status = sm.Server_Status{}
-	sm.Udp = sm.UdpListen()
+	Cr = ConfigRenderer{}
+	Status = Server_Status{}
+	Udp = UdpListen()
 
 	go func() {
 		for true {
-			sm.Udp.Receive()
+			Udp.Receive()
 		}
 	}()
 
@@ -147,7 +149,7 @@ func main() {
 
 	t := template.New("")
 	t.Funcs(funcMap)
-	err := sm.LoadTemplate(t, ".htm")
+	err := LoadTemplate(t, ".htm")
 	if err != nil {
 		panic(err)
 	}
@@ -155,103 +157,103 @@ func main() {
 
 	router.StaticFS("/static", Assets)
 
-	router.GET("/login", sm.Route_Login)
-	router.POST("/login", sm.Route_Login)
-	router.GET("/logout", sm.Route_Logout)
+	router.GET("/login", Route_Login)
+	router.POST("/login", Route_Login)
+	router.GET("/logout", Route_Logout)
 
 	app := router.Group("/")
 	app.Use(ConfigCompletedMiddlware())
 	{
-		app.GET("/", sm.Route_Index)
+		app.GET("/", Route_Index)
 
-		app.GET("/config", sm.Route_Config)
-		app.POST("/config", sm.Route_Config)
+		app.GET("/config", Route_Config)
+		app.POST("/config", Route_Config)
 
-		app.GET("/content", sm.Route_Content)
-		app.POST("/content", sm.Route_Content)
+		app.GET("/content", Route_Content)
+		app.POST("/content", Route_Content)
 
-		app.GET("/difficulty", sm.Route_Difficulty)
-		app.POST("/difficulty", sm.Route_Difficulty)
-		app.GET("/difficulty/:id", sm.Route_Difficulty)
-		app.POST("/difficulty/:id", sm.Route_Difficulty)
-		app.GET("/difficulty/delete/:id", sm.Route_Delete_Difficulty)
-		app.POST("/difficulty/delete/:id", sm.Route_Delete_Difficulty)
+		app.GET("/difficulty", Route_Difficulty)
+		app.POST("/difficulty", Route_Difficulty)
+		app.GET("/difficulty/:id", Route_Difficulty)
+		app.POST("/difficulty/:id", Route_Difficulty)
+		app.GET("/difficulty/delete/:id", Route_Delete_Difficulty)
+		app.POST("/difficulty/delete/:id", Route_Delete_Difficulty)
 
-		app.GET("/class", sm.Route_Class)
-		app.POST("/class", sm.Route_Class)
-		app.GET("/class/:id", sm.Route_Class)
-		app.POST("/class/:id", sm.Route_Class)
-		app.GET("/class/delete/:id", sm.Route_Delete_Class)
-		app.POST("/class/delete/:id", sm.Route_Delete_Class)
+		app.GET("/class", Route_Class)
+		app.POST("/class", Route_Class)
+		app.GET("/class/:id", Route_Class)
+		app.POST("/class/:id", Route_Class)
+		app.GET("/class/delete/:id", Route_Delete_Class)
+		app.POST("/class/delete/:id", Route_Delete_Class)
 
-		app.GET("/session", sm.Route_Session)
-		app.POST("/session", sm.Route_Session)
-		app.GET("/session/:id", sm.Route_Session)
-		app.POST("/session/:id", sm.Route_Session)
-		app.GET("/session/delete/:id", sm.Route_Delete_Session)
-		app.POST("/session/delete/:id", sm.Route_Delete_Session)
+		app.GET("/session", Route_Session)
+		app.POST("/session", Route_Session)
+		app.GET("/session/:id", Route_Session)
+		app.POST("/session/:id", Route_Session)
+		app.GET("/session/delete/:id", Route_Delete_Session)
+		app.POST("/session/delete/:id", Route_Delete_Session)
 
-		app.GET("/time", sm.Route_Time)
-		app.POST("/time", sm.Route_Time)
-		app.GET("/time/:id", sm.Route_Time)
-		app.POST("/time/:id", sm.Route_Time)
-		app.GET("/time/delete/:id", sm.Route_Delete_Time)
-		app.POST("/time/delete/:id", sm.Route_Delete_Time)
+		app.GET("/time", Route_Time)
+		app.POST("/time", Route_Time)
+		app.GET("/time/:id", Route_Time)
+		app.POST("/time/:id", Route_Time)
+		app.GET("/time/delete/:id", Route_Delete_Time)
+		app.POST("/time/delete/:id", Route_Delete_Time)
 
-		app.GET("/event", sm.Route_Event)
-		app.POST("/event", sm.Route_Event)
-		app.GET("/event_edit", sm.Route_Event_Edit)
-		app.POST("/event_edit", sm.Route_Event_Edit)
-		app.GET("/event_edit/:id", sm.Route_Event_Edit)
-		app.POST("/event_edit/:id", sm.Route_Event_Edit)
-		app.GET("/event/delete/:id", sm.Route_Delete_Event)
-		app.POST("/event/delete/:id", sm.Route_Delete_Event)
+		app.GET("/event", Route_Event)
+		app.POST("/event", Route_Event)
+		app.GET("/event_edit", Route_Event_Edit)
+		app.POST("/event_edit", Route_Event_Edit)
+		app.GET("/event_edit/:id", Route_Event_Edit)
+		app.POST("/event_edit/:id", Route_Event_Edit)
+		app.GET("/event/delete/:id", Route_Delete_Event)
+		app.POST("/event/delete/:id", Route_Delete_Event)
 
-		app.GET("/user", sm.Route_User)
-		app.POST("/user", sm.Route_User)
+		app.GET("/user", Route_User)
+		app.POST("/user", Route_User)
 
-		app.GET("/admin", sm.Route_Admin)
+		app.GET("/admin", Route_Admin)
 
-		app.GET("/console", sm.Route_Console)
+		app.GET("/console", Route_Console)
 	}
 
 	api := router.Group("/api")
 	api.Use(AuthenticateMiddleware)
 	{
-		api.GET("/car/:key", sm.API_Car)
-		api.GET("/car/image/:car/:skin", sm.API_Car_Image)
+		api.GET("/car/:key", API_Car)
+		api.GET("/car/image/:car/:skin", API_Car_Image)
 
-		api.GET("/track/preview/:track/:config", sm.API_Track_Preview_Image)
-		api.GET("/track/preview/:track", sm.API_Track_Preview_Image)
-		api.GET("/track/outline/:track/:config", sm.API_Track_Outline_Image)
-		api.GET("/track/outline/:track", sm.API_Track_Outline_Image)
+		api.GET("/track/preview/:track/:config", API_Track_Preview_Image)
+		api.GET("/track/preview/:track", API_Track_Preview_Image)
+		api.GET("/track/outline/:track/:config", API_Track_Outline_Image)
+		api.GET("/track/outline/:track", API_Track_Outline_Image)
 
-		api.GET("/difficulty/:id", sm.API_Difficulty)
-		api.GET("/session/:id", sm.API_Session)
-		api.GET("/class/:id", sm.API_Class)
-		api.GET("/time/:id", sm.API_Time)
+		api.GET("/difficulty/:id", API_Difficulty)
+		api.GET("/session/:id", API_Session)
+		api.GET("/class/:id", API_Class)
+		api.GET("/time/:id", API_Time)
 
-		api.GET("/content/recache", sm.API_Recache_Content)
+		api.GET("/content/recache", API_Recache_Content)
 
-		api.POST("/validate/installpath", sm.API_Validate_Installpath)
+		api.POST("/validate/installpath", API_Validate_Installpath)
 
-		api.GET("/server/start", sm.API_Server_Start)
-		api.GET("/server/stop", sm.API_Server_Stop)
-		api.GET("/server/status", sm.API_Server_Status)
+		api.GET("/server/start", API_Server_Start)
+		api.GET("/server/stop", API_Server_Stop)
+		api.GET("/server/status", API_Server_Status)
 
-		api.GET("/server/entry_list.ini", sm.API_Entry_List)
-		api.GET("/server/server_cfg.ini", sm.API_Server_Cfg)
+		api.GET("/server/entry_list.ini", API_Entry_List)
+		api.GET("/server/server_cfg.ini", API_Server_Cfg)
 
 	}
 
-	router.NoRoute(sm.NoRoute)
+	router.NoRoute(NoRoute)
 
 
 	if !DEBUG {
-		sm.Open_URL("http://localhost:3030")
+		Open_URL("http://localhost:3030")
 	}
 
-	sm.Status.Update_Public_Ip()
+	Status.Update_Public_Ip()
 
 	main := &http.Server{
 		Addr:    ":3030",
@@ -289,7 +291,7 @@ func main() {
 
 	log.Print("Shutting down server...")
 
-	dba.Db.Close()
+	Dba.Db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

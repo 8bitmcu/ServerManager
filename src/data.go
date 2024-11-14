@@ -1,4 +1,4 @@
-package sm
+package main
 
 type Users struct {
 	Name             *string `form:"name"`
@@ -215,8 +215,3 @@ type Cache_Weather struct {
 	Name *string `json:"name"`
 }
 
-var Dba Dbaccess
-var Cr ConfigRenderer
-var Status Server_Status
-var Udp UDPPlugin
-var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")

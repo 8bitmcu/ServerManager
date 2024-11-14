@@ -1,4 +1,4 @@
-package sm
+package main
 
 import (
 	"html/template"
@@ -7,8 +7,6 @@ import (
 
 	"github.com/jessevdk/go-assets"
 )
-
-var Assets *assets.FileSystem
 
 func LoadTemplate(t *template.Template, ext string) error {
 	for name, file := range Assets.Files {

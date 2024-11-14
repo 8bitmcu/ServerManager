@@ -3,5 +3,5 @@ node_modules/*
 css/main.css
 go.sum
 bin/*
-assets.go
-*syso
+src/assets.go
+*.syso
