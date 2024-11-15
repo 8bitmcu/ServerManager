@@ -22,6 +22,9 @@ var Dba Dbaccess
 var Cr ConfigRenderer
 var Status Server_Status
 var Udp UDPPlugin
+var ConfigFolder string
+var TempFolder string
+var Zf ZipFile
 
 // TODO: generate random SecretKey and storein db
 var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")
@@ -69,27 +72,37 @@ func AuthenticateMiddleware(c *gin.Context) {
 
 func main() {
 
-	var config_folder string
-
-	flag.StringVar(&config_folder, "p", "", "Configuration path")
+	flag.StringVar(&ConfigFolder, "p", "", "Configuration path")
 	flag.Parse()
 
-	if config_folder == "" {
-		config_folder = os.Getenv("XDG_CONFIG_HOME")
+	if ConfigFolder == "" {
+		ConfigFolder = os.Getenv("XDG_CONFIG_HOME")
 		if runtime.GOOS == "windows" {
-			config_folder = os.Getenv("APPDATA")
+			ConfigFolder = os.Getenv("APPDATA")
 		}
 	}
 
-	sm_path := filepath.Join(config_folder, "servermanager")
-	if _, err := os.Stat(sm_path); os.IsNotExist(err) {
-		err := os.Mkdir(sm_path, os.ModePerm)
+	ConfigFolder = filepath.Join(ConfigFolder, "servermanager")
+	if _, err := os.Stat(ConfigFolder); os.IsNotExist(err) {
+		err := os.Mkdir(ConfigFolder, os.ModePerm)
 		if err != nil {
 			log.Print(err)
 		}
 	}
 
-	db_path := filepath.Join(sm_path, "smdata.db")
+	TempFolder = "/tmp"
+	if runtime.GOOS == "windows" {
+		TempFolder = os.Getenv("TEMP")
+	}
+	TempFolder = filepath.Join(TempFolder, "servermanager")
+	if _, err := os.Stat(TempFolder); os.IsNotExist(err) {
+		err := os.Mkdir(TempFolder, os.ModePerm)
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
+	db_path := filepath.Join(ConfigFolder, "smdata.db")
 	log.Print("Opening database file located at: " + db_path)
 	Dba = Open(db_path)
 	Dba.Apply_Schema(FindFile("/schema.sql"))
@@ -99,6 +112,7 @@ func main() {
 
 	Cr = ConfigRenderer{}
 	Status = Server_Status{}
+	Zf = ZipFile{}
 	Udp = UdpListen()
 
 	go func() {
@@ -151,7 +165,7 @@ func main() {
 	t.Funcs(funcMap)
 	err := LoadTemplate(t, ".htm")
 	if err != nil {
-		panic(err)
+		log.Print(err)
 	}
 	router.SetHTMLTemplate(t)
 
@@ -247,7 +261,6 @@ func main() {
 	}
 
 	router.NoRoute(NoRoute)
-
 
 	if !DEBUG {
 		Open_URL("http://localhost:3030")

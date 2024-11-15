@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,14 +17,19 @@ func API_Car_Image(c *gin.Context) {
 	car := c.Param("car")
 	skin := c.Param("skin")
 
-	file := filepath.Join(Dba.Basepath(), "content", "cars", car, "skins", skin, "preview.jpg")
-	if _, err := os.Stat(file); errors.Is(err, os.ErrNotExist) {
-		NoRoute(c)
-		return
+	var zf ZipFile
+	zi := zf.FindZipFile("cars/" + car + "/skins/" + skin + "/preview.jpg")
+	if zi != nil {
+		r, err := zi.Open()
+		if err != nil {
+			log.Print(err)
+		}
+		defer r.Close()
+		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/jpg", r, nil)
 	} else {
-		c.FileAttachment(file, car+"_"+skin+".jpg")
-		return
+		NoRoute(c)
 	}
+	zf.Close()
 }
 
 func API_Car(c *gin.Context) {
@@ -58,46 +64,48 @@ func API_Track_Preview_Image(c *gin.Context) {
 	track := c.Param("track")
 	config := c.Param("config")
 
-	file := ""
-	fileName := ""
+	filePath := "tracks/" + track + "/preview.png"
 	if config != "" {
-		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", config, "preview.png")
-		fileName = track + "_" + config
-	} else {
-		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", "preview.png")
-		fileName = track
+		filePath = "tracks/" + track + "/" + config + "/preview.png"
 	}
 
-	if _, err := os.Stat(file); errors.Is(err, os.ErrNotExist) {
-		NoRoute(c)
-		return
+	var zf ZipFile
+	zi := zf.FindZipFile(filePath)
+	if zi != nil {
+		r, err := zi.Open()
+		if err != nil {
+			log.Print(err)
+		}
+		defer r.Close()
+		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/png", r, nil)
 	} else {
-		c.FileAttachment(file, fileName+".png")
-		return
+		NoRoute(c)
 	}
+	zf.Close()
 }
 
 func API_Track_Outline_Image(c *gin.Context) {
 	track := c.Param("track")
 	config := c.Param("config")
 
-	file := ""
-	fileName := ""
+	filePath := "tracks/" + track + "/outline.png"
 	if config != "" {
-		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", config, "outline.png")
-		fileName = track + "_" + config
-	} else {
-		file = filepath.Join(Dba.Basepath(), "content", "tracks", track, "ui", "outline.png")
-		fileName = track
+		filePath = "tracks/" + track + "/" + config + "/outline.png"
 	}
 
-	if _, err := os.Stat(file); errors.Is(err, os.ErrNotExist) {
-		NoRoute(c)
-		return
+	var zf ZipFile
+	zi := zf.FindZipFile(filePath)
+	if zi != nil {
+		r, err := zi.Open()
+		if err != nil {
+			log.Print(err)
+		}
+		defer r.Close()
+		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/png", r, nil)
 	} else {
-		c.FileAttachment(file, fileName+".png")
-		return
+		NoRoute(c)
 	}
+	zf.Close()
 }
 
 func API_Difficulty(c *gin.Context) {
@@ -231,14 +239,14 @@ func API_Entry_List(c *gin.Context) {
 	id := c.Query("id")
 	idInt, _ := strconv.Atoi(id)
 
-	res := Cr.Render_Ini(idInt)
-	c.String(http.StatusOK, res.EntryList_Result)
+	Cr.Render_Ini(idInt)
+	c.String(http.StatusOK, Cr.EntryList_Result)
 }
 
 func API_Server_Cfg(c *gin.Context) {
 	id := c.Query("id")
 	idInt, _ := strconv.Atoi(id)
 
-	res := Cr.Render_Ini(idInt)
-	c.String(http.StatusOK, res.ServerCfg_Result)
+	Cr.Render_Ini(idInt)
+	c.String(http.StatusOK, Cr.ServerCfg_Result)
 }

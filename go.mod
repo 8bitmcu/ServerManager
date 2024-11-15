@@ -54,6 +54,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sorairolake/lzip-go v0.3.5 // indirect
+	github.com/spkg/zipfs v0.7.1 // indirect
 	github.com/therootcompany/xz v1.0.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect

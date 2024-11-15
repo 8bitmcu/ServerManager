@@ -8,6 +8,7 @@ import (
 	"github.com/jessevdk/go-assets"
 )
 
+// Load templates from the embedded assets file
 func LoadTemplate(t *template.Template, ext string) error {
 	for name, file := range Assets.Files {
 		if file.IsDir() || !strings.HasSuffix(name, ext) {
@@ -25,6 +26,7 @@ func LoadTemplate(t *template.Template, ext string) error {
 	return nil
 }
 
+// Find a file in the embedded assets file
 func FindFile(filePath string) *assets.File {
 	for _, file := range Assets.Files {
 		if file.Path == filePath {

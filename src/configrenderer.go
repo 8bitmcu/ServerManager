@@ -14,18 +14,19 @@ import (
 	"time"
 )
 
-var server_cfg_ini *template.Template
-var entry_list_ini *template.Template
-
 type ConfigRenderer struct {
+	server_cfg_ini   *template.Template
+	entry_list_ini   *template.Template
 	ServerCfg_Result string
 	EntryList_Result string
+	Class            User_Class
+	Track            Cache_Track
 }
 
 // 8:00 AM = -80
 // 18:00 PM = 80
 // increment of 8 every 30 minutes
-func (cr ConfigRenderer) Time_To_SunAngle(time_str *string) int {
+func (cr *ConfigRenderer) Time_To_SunAngle(time_str *string) int {
 	time, err := time.Parse("15:04", *time_str)
 	if err != nil {
 		log.Print(err)
@@ -37,24 +38,31 @@ func (cr ConfigRenderer) Time_To_SunAngle(time_str *string) int {
 	return angle
 }
 
-func (cr ConfigRenderer) Write_Ini() {
-	servercfg := filepath.Join(Dba.Basepath(), "server", "cfg", "server_cfg.ini")
-
-	err := os.WriteFile(servercfg, []byte(cr.ServerCfg_Result), 0644)
-
+func (cr *ConfigRenderer) Write_Ini() {
+	servercfg := filepath.Join(TempFolder, "cfg", "server_cfg.ini")
+	err := os.MkdirAll(servercfg, os.ModePerm)
 	if err != nil {
 		log.Print(err)
 	}
 
-	entrylist := filepath.Join(Dba.Basepath(), "server", "cfg", "entry_list.ini")
-	err = os.WriteFile(entrylist, []byte(cr.EntryList_Result), 0644)
+	err = os.WriteFile(servercfg, []byte(cr.ServerCfg_Result), 0644)
+	if err != nil {
+		log.Print(err)
+	}
 
+	entrylist := filepath.Join(TempFolder, "cfg", "entry_list.ini")
+	err = os.MkdirAll(entrylist, os.ModePerm)
+	if err != nil {
+		log.Print(err)
+	}
+
+	err = os.WriteFile(entrylist, []byte(cr.EntryList_Result), 0644)
 	if err != nil {
 		log.Print(err)
 	}
 }
 
-func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
+func (cr *ConfigRenderer) Render_Ini(event_id int) {
 	r := regexp.MustCompile("\\d{1,3}")
 
 	event := Dba.Select_Event(event_id)
@@ -64,7 +72,6 @@ func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
 	session := Dba.Select_Session(*event.Session_Id)
 	class := Dba.Select_Class_Entries(*event.Class_Id)
 	track := Dba.Select_Cache_Track(*event.Cache_Track_Key, *event.Cache_Track_Config)
-
 
 	if session.Qualify_Max_Wait_Perc == nil {
 		var val = 120
@@ -157,13 +164,13 @@ func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
 		},
 	}
 
-	if server_cfg_ini == nil {
+	if Cr.server_cfg_ini == nil {
 		file := FindFile("/ini/server_cfg.ini")
 		tmplStr, err := io.ReadAll(file)
 		if err != nil {
 			log.Print(err)
 		}
-		server_cfg_ini, err = template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
+		Cr.server_cfg_ini, err = template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
 		if err != nil {
 			log.Print(err)
 		}
@@ -183,31 +190,31 @@ func (cr ConfigRenderer) Render_Ini(event_id int) ConfigRenderer {
 	}
 
 	var b bytes.Buffer
-	err := server_cfg_ini.Execute(&b, data)
+	err := Cr.server_cfg_ini.Execute(&b, data)
 	if err != nil {
 		log.Print(err)
 	}
 
-	if entry_list_ini == nil {
+	if Cr.entry_list_ini == nil {
 		file := FindFile("/ini/entry_list.ini")
 		tmplStr, err := io.ReadAll(file)
 		if err != nil {
 			log.Print(err)
 		}
-		entry_list_ini, err = template.New("entry_list.ini").Funcs(funcMap).Parse(string(tmplStr))
+		Cr.entry_list_ini, err = template.New("entry_list.ini").Funcs(funcMap).Parse(string(tmplStr))
 		if err != nil {
 			log.Print(err)
 		}
 	}
 
 	var b2 bytes.Buffer
-	err = entry_list_ini.Execute(&b2, class)
+	err = Cr.entry_list_ini.Execute(&b2, class)
 	if err != nil {
 		log.Print(err)
 	}
 
 	cr.ServerCfg_Result = b.String()
 	cr.EntryList_Result = b2.String()
-
-	return cr
+	cr.Class = class
+	cr.Track = track
 }
