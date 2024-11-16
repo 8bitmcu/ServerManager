@@ -67,19 +67,40 @@ func (status Server_Status) Server_ApplyTrack() {
 	if runtime.GOOS == "windows" {
 		exec = "acServer.exe"
 	}
-	Zf.ExtractFileToFolder(Zf.FindZipFile(exec), TempFolder)
+	Zf.ExtractFile(Zf.FindZipFile(exec), TempFolder)
 
 	// Extract cars
 	for _, e := range Cr.Class.Entries {
-		Zf.ExtractFilesToFolder(Zf.FindZipFiles("cars/"+*e.Cache_Car_Key+"/"), filepath.Join(TempFolder, "content"))
+		Zf.ExtractFiles(Zf.FindZipFiles("cars/"+*e.Cache_Car_Key+"/"), filepath.Join(TempFolder, "content"))
 	}
 
 	// Extract track
-	// TODO: CSP compensation
-	Zf.ExtractFilesToFolder(Zf.FindZipFiles("tracks/"+*Cr.Track.Key+"/"), filepath.Join(TempFolder, "content"))
+	if *Cr.Track.Config == "" {
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/models.ini"), filepath.Join(TempFolder, "content"))
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/data/drs_zones.ini"), filepath.Join(TempFolder, "content"))
+
+		if Cr.Csp_Required {
+			Zf.ExtractFileToSubfolder(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/data/surfaces.ini"), filepath.Join(TempFolder, "content", "tracks", "csp", *Cr.Track.Key, *Cr.Track.Config, "data"))
+		} else {
+			Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/data/surfaces.ini"), filepath.Join(TempFolder, "content"))
+		}
+	} else {
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/models_"+*Cr.Track.Config+".ini"), filepath.Join(TempFolder, "content"))
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/"+*Cr.Track.Config+"/data/drs_zones.ini"), filepath.Join(TempFolder, "content"))
+
+		if Cr.Csp_Required {
+			Zf.ExtractFileToSubfolder(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/"+*Cr.Track.Config+"/data/surfaces.ini"), filepath.Join(TempFolder, "content", "tracks", "csp", *Cr.Track.Key, *Cr.Track.Config, "data"))
+		} else {
+			Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/"+*Cr.Track.Config+"/data/surfaces.ini"), filepath.Join(TempFolder, "content"))
+		}
+	}
+
+	if Cr.Csp_Required {
+		// move surfaces.ini into csp folder
+	}
 
 	// Extract surfaces.ini
-	Zf.ExtractFileToFolder(Zf.FindZipFile("/system/data/surfaces.ini"), filepath.Join(TempFolder, "system", "data", "surfaces.ini"))
+	Zf.ExtractFile(Zf.FindZipFile("system/data/surfaces.ini"), filepath.Join(TempFolder))
 
 	Zf.Close()
 

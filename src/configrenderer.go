@@ -21,6 +21,7 @@ type ConfigRenderer struct {
 	EntryList_Result string
 	Class            User_Class
 	Track            Cache_Track
+	Csp_Required     bool
 }
 
 // 8:00 AM = -80
@@ -39,24 +40,18 @@ func (cr *ConfigRenderer) Time_To_SunAngle(time_str *string) int {
 }
 
 func (cr *ConfigRenderer) Write_Ini() {
-	servercfg := filepath.Join(TempFolder, "cfg", "server_cfg.ini")
-	err := os.MkdirAll(servercfg, os.ModePerm)
+	cfgfolder := filepath.Join(TempFolder, "cfg")
+	err := os.MkdirAll(cfgfolder, os.ModePerm)
 	if err != nil {
 		log.Print(err)
 	}
 
-	err = os.WriteFile(servercfg, []byte(cr.ServerCfg_Result), 0644)
+	err = os.WriteFile(filepath.Join(cfgfolder, "server_cfg.ini"), []byte(cr.ServerCfg_Result), 0644)
 	if err != nil {
 		log.Print(err)
 	}
 
-	entrylist := filepath.Join(TempFolder, "cfg", "entry_list.ini")
-	err = os.MkdirAll(entrylist, os.ModePerm)
-	if err != nil {
-		log.Print(err)
-	}
-
-	err = os.WriteFile(entrylist, []byte(cr.EntryList_Result), 0644)
+	err = os.WriteFile(filepath.Join(cfgfolder, "entry_list.ini"), []byte(cr.EntryList_Result), 0644)
 	if err != nil {
 		log.Print(err)
 	}
@@ -81,6 +76,7 @@ func (cr *ConfigRenderer) Render_Ini(event_id int) {
 	// csp required? build a cspstr to be concat with the track name
 	cspstr := ""
 	if cfg.Csp_Required != nil && *cfg.Csp_Required > 0 {
+		Cr.Csp_Required = true
 		csp_letter := ""
 
 		if *cfg.Csp_Phycars > 0 && *cfg.Csp_Phytracks > 0 && *cfg.Csp_Hidepit > 0 {

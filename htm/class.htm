@@ -1,36 +1,6 @@
 {{ template "/htm/header.htm" . }}
 
-<script>
-  function reload_content() {
-    return {
-      content_total: {{ .car_data | len }},
-      loading: false,
-
-      load_content: function () {
-        this.loading = true;
-        fetch("/api/car/recache")
-          .then((response) => response.json())
-          .then((json) => {
-            this.loading = false;
-            if (json.result == 'ok') {
-              location.reload();
-            }
-          });
-        }
-      }
-    }
-</script>
 <h1 class="text-3xl text-black">Car Classes</h1>
-<div class="flex flex-row bp-6" x-data="reload_content()">
-  <p class="pr-4" style="align-self: center">
-    <span x-html="content_total"></span> cars loaded
-  </p>
-  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" :disabled="loading"
-    @click="load_content()">
-    <span class="pr-2">Reload Content</span>
-    <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
-  </button>
-</div>
 <div class="flex flex-wrap">
   <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
@@ -287,7 +257,11 @@
               if (!car_key || !skin_key) return "";
               return "/api/car/image/" + car_key + "/" + skin_key;
             },
-
+            random_skin: function(car) {
+              let skins = this.car_getdata(car.cache_car_key).skins;
+              let rand = Math.floor(Math.random()*skins.length);
+              car.skin_key = skins[rand].key;
+            },
             // details panel shown at the bottom
             details: {specs: {}, tags: []},
             details_car: {},
@@ -378,7 +352,10 @@
           <nav class="flex flex-col">
             <div class="w-full flex px-6 py-6" x-show="skinpicker_car.uid">
               <div class="w-full rounded-lg bg-gray-100">
-                <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
+                <div class="w-full flex flex-row justify-between">
+                  <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
+                  <h2 class="px-6 py-4 text-xl cursor-pointer" @click="skinpicker_car = {}"><i class="fas fa-times-circle"></i></h2>
+                </div>
                 <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
                   <template x-for="skin in car_getdata(skinpicker_car.cache_car_key).skins">
                     <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
@@ -392,7 +369,10 @@
 
             <div class="w-full flex px-6 py-6" x-show="search_car.uid">
               <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
-                <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+                <div class="w-full flex flex-row justify-between">
+                  <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+                  <h2 class="px-6 py-4 text-xl cursor-pointer" @click="search_car = {}"><i class="fas fa-times-circle"></i></h2>
+                </div>
                 <table class="w-full text-left border-collapse">
                   <thead class="bg-gray-100" style="position: sticky; top: 0">
                     <tr>
@@ -550,6 +530,9 @@
                             :selected="car.skin_key == skin.key"></option>
                         </template>
                       </select>
+                      <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_skin(car)">
+                        <i class="fas fa-random"></i>
+                      </button>
                       <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
                         :class="skinpicker_car.uid == car.uid ? 'text-red-500' : ''" type="button"
                         @click="skinpicker_show(car)">

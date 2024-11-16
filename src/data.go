@@ -21,6 +21,8 @@ type User_Config struct {
 	Num_Threads          *int    `form:"num_threads"`
 	Max_Clients          *int    `form:"max_clients"`
 	Welcome_Message      *string `form:"welcome_message"`
+	Append_Eventname     *int    `form:"append_eventname"`
+	Append_Modlinks      *int    `form:"append_modlinks"`
 	Install_Path         *string `form:"install_path"`
 	Csp_Required         *int    `form:"csp_required"`
 	Csp_Version          *int    `form:"csp_version"`
@@ -33,6 +35,7 @@ type User_Config struct {
 
 type User_Event struct {
 	Id                 *int `form:"id"`
+	Event_Category_Id  *int `form:"event_category_id"`
 	Race_Laps          *int `form:"race_laps"`
 	Strategy           *int `form:"strategy"`
 	Track_Name         *string
@@ -69,6 +72,12 @@ type User_Event struct {
 	EntryList          *string
 	Started_At         *int64
 	Finished           *int
+}
+
+type User_Event_Category struct {
+	Id     *int
+	Name   *string `form:"name"`
+	Events []User_Event
 }
 
 type User_Difficulty struct {
@@ -214,4 +223,3 @@ type Cache_Weather struct {
 	Key  *string `json:"key"`
 	Name *string `json:"name"`
 }
-

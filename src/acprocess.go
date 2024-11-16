@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -16,8 +17,14 @@ func Start() {
 		binary = "acServer.exe"
 	}
 
-	cmd = exec.Command(filepath.Join(Dba.Basepath(), "server", binary))
-	cmd.Dir = filepath.Join(Dba.Basepath(), "server")
+	fpath := filepath.Join(TempFolder, binary)
+	cmd = exec.Command(fpath)
+
+	if runtime.GOOS != "windows" {
+		os.Chmod(fpath, 0755)
+	}
+
+	cmd.Dir = TempFolder
 	var stdOut, _ = cmd.StdoutPipe()
 	cmd.Start()
 

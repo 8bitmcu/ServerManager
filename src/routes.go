@@ -217,45 +217,58 @@ func Route_Delete_Time(c *gin.Context) {
 	return
 }
 
-func Route_Event(c *gin.Context) {
+func Route_Event_Category(c *gin.Context) {
+	form := User_Event_Category{}
 	Status.Refresh()
 
+	id, err := strconv.Atoi(c.Param("id"))
+	if id > 0 && err == nil {
+		form = Dba.Select_Category_Events(id)
 
-	max_clients := Dba.Select_Config().Max_Clients
-	upcoming := Dba.Select_Events(false, false)
-	current := Dba.Select_Events(true, false)
-
-	started_at := ""
-	elapsed := ""
-	if len(current) > 0 {
-		t := time.Unix(*current[0].Started_At, 0)
-		started_at = t.Format("3:04 PM")
-
-		tdiff := time.Now().Sub(t)
-		elapsed = tdiff.Round(time.Second).String()
+		if form.Id == nil {
+			NoRoute(c)
+			return
+		}
+	}
+	if c.Request.Method == "POST" {
+		if c.PostForm("category_name") != "" {
+			id := Dba.Insert_Event_Category(c.PostForm("category_name"))
+			c.Redirect(http.StatusFound, fmt.Sprint("/event_cat/", id))
+			return
+		} else if c.ShouldBind(&form) == nil {
+			Dba.Update_Event_Category(form)
+		}
 	}
 
-	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
-		"page":          "event",
+	max_clients := Dba.Select_Config().Max_Clients
+
+	c.HTML(http.StatusOK, "/htm/event_cat.htm", gin.H{
+		"page":          "event_cat",
+		"list":          Dba.Select_Event_CategoryList(false),
+		"form":          form,
 		"track_data":    Dba.Select_Cache_Tracks(),
 		"config_filled": Dba.Select_Config_Filled(),
-		"upcoming_events": gin.H{
-			"type":        "upcoming",
-			"events":      upcoming,
-			"max_clients": max_clients,
-		},
-		"current_events": gin.H{
-			"type":        "current",
-			"events":      current,
-			"max_clients": max_clients,
-			"started_at":  started_at,
-			"elapsed":     elapsed,
-		},
-		"status":  Status,
+		"max_clients":   max_clients,
+		"status":        Status,
 	})
 }
-func Route_Event_Edit(c *gin.Context) {
+
+func Route_Delete_Event_Category(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	Dba.Delete_Event_Category(id)
+	c.Redirect(http.StatusFound, "/event_cat")
+	return
+}
+
+func Route_Event(c *gin.Context) {
 	form := User_Event{}
+
+	category_id, err := strconv.Atoi(c.Param("category_id"))
+	if category_id <= 0 || err != nil {
+		NoRoute(c)
+		return
+	}
+	form.Event_Category_Id = &category_id
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if id > 0 && err == nil {
@@ -269,17 +282,17 @@ func Route_Event_Edit(c *gin.Context) {
 	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
 		if c.PostForm("id") != "" {
 			Dba.Update_Event(form)
-			c.Redirect(http.StatusFound, "/event")
+			c.Redirect(http.StatusFound, "/event_cat/" + strconv.Itoa(category_id))
 			return
 		} else {
 			Dba.Insert_Event(form)
-			c.Redirect(http.StatusFound, "/event")
+			c.Redirect(http.StatusFound, "/event_cat/" + strconv.Itoa(category_id))
 			return
 		}
 	}
 
 	Status.Refresh()
-	c.HTML(http.StatusOK, "/htm/event_edit.htm", gin.H{
+	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
 		"page":          "event",
 		"form":          form,
 		"difficulties":  Dba.Select_DifficultyList(true),
@@ -295,8 +308,10 @@ func Route_Event_Edit(c *gin.Context) {
 
 func Route_Delete_Event(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
+	evt := Dba.Select_Event(id)
+	cat_id := *evt.Event_Category_Id
 	Dba.Delete_Event(id)
-	c.Redirect(http.StatusFound, "/event")
+	c.Redirect(http.StatusFound, "/event_cat/" + strconv.Itoa(cat_id))
 	return
 }
 

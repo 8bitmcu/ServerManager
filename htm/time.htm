@@ -1,34 +1,6 @@
 {{ template "/htm/header.htm" . }}
 
-<script>
-  function reload_content() {
-    return {
-      content_total: {{ .weatherlist | len }},
-      loading: false,
-
-      load_content: function () {
-        this.loading = true;
-        this.content_loaded = false;
-        fetch("/api/weather/recache")
-          .then((response) => response.json())
-          .then((json) => {
-            this.loading = false;
-            if (json.result == 'ok') {
-              location.reload();
-            }
-          });
-      }
-    }
-  }
-</script>
 <h1 class="text-3xl text-black">Time and Weather</h1>
-<div class="flex flex-row bp-6" x-data="reload_content()">
-  <p class="pr-4" style="align-self: center"><span x-html="content_total"></span> weathers loaded</p>
-  <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center" @click="load_content()" :disabled="loading">
-    <span class="pr-2">Reload Content</span>
-    <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
-  </button>
-</div>
 <div class="flex flex-wrap">
   <div class="w-full my-6 pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
@@ -102,6 +74,7 @@
       <script>
         function csp_timeweather() {
           return {
+            weatherlist: {{ .weatherlist }},
             time_of_day_multi: {{ .form.Time_Of_Day_Multi | derefInt }},
             time_of_day: {{ .form.Time | derefStr }},
             csp_enabled: {{ .form.Csp_Enabled | toJsBool }},
@@ -122,7 +95,11 @@
               this.items = this.items.filter((item, idx) => {
                 return index !== idx
               })
-            }
+            },
+            random_weather: function(time) {
+              let rand = Math.floor(Math.random()*this.weatherlist.length);
+              time.graphics = this.weatherlist[rand].key;
+            },
           }
         }
       </script>
@@ -261,13 +238,18 @@
                       </div>
                     </div>
                   </label>
-                  <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8"
-                    x-model="time.graphics" required>
-                    <option value="">Select ...</option>
-                    {{range $val := .weatherlist }}
-                    <option value="{{  $val.Key }}">{{ $val.Name }}</option>
-                    {{ end }}
-                  </select>
+                  <div class="flex flex-row">
+                    <select class="w-full text-gray-700 bg-gray-200 rounded-l py-3 px-4 pr-8"
+                      x-model="time.graphics" required>
+                      <option value="">Select ...</option>
+                      {{range $val := .weatherlist }}
+                      <option value="{{  $val.Key }}">{{ $val.Name }}</option>
+                      {{ end }}
+                    </select>
+                    <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_weather(time)">
+                      <i class="fas fa-random"></i>
+                    </button>
+                  </div>
                 </div>
                 <div class="inline-block mt-2 w-1/2 pr-1">
                   <label class="block text-sm text-gray-600 group relative" for="base_temperature_ambient">

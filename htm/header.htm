@@ -56,7 +56,7 @@
 </head>
 
 <body class="bg-gray-100 flex">
-  <aside class="relative bg-red-500 h-screen w-96 hidden sm:block shadow-xl">
+  <aside class="relative bg-red-500 h-screen w-70 hidden sm:block shadow-xl">
     <div class="p-6">
       <div class="text-white text-3xl font-semibold text-center">ServerManager</div>
       <div
@@ -78,51 +78,51 @@
     </div>
     <nav class="text-white text-base font-semibold pt-3">
       {{ if .config_filled }}
-      <a href="/"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "event") }}bg-red-900{{ end }}">
+      <a href="/event_cat"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "event_cat") }}bg-red-900{{ end }}">
         <i class="fas fa-flag-checkered mr-3"></i>
         Events
       </a>
       <a href="/class"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "class") }}bg-red-900{{ end }}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "class") }}bg-red-900{{ end }}">
         <i class="fas fa-car mr-3"></i>
         Car Classes
       </a>
       <a href="/time"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "time") }}bg-red-900{{ end }}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "time") }}bg-red-900{{ end }}">
         <i class="fas fa-cloud-moon-rain mr-3"></i>
-        Time and Weather Presets
+        Time &amp; Weather Presets
       </a>
       <a href="/session"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "session") }}bg-red-900{{ end }}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "session") }}bg-red-900{{ end }}">
         <i class="fas fa-calendar-check mr-3"></i>
         Session Presets
       </a>
       <a href="/difficulty"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "difficulty") }}bg-red-900{{ end }}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "difficulty") }}bg-red-900{{ end }}">
         <i class="fas fa-road mr-3"></i>
         Difficulty Presets
       </a>
       {{ end }}
       <a href="/config"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "config") }}bg-red-900{{ end }}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "config") }}bg-red-900{{ end }}">
         <i class="fas fa-server mr-3"></i>
         Server Configuration
       </a>
       <a href="/content"
-        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "content") }}bg-red-900{{ end }}">
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "content") }}bg-red-900{{ end }}">
         <i class="fas fa-cog mr-3"></i>
         Content and Mods
       </a>
       {{ if .config_filled }}
-      <a href="/console" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item {{ if (eq .page "console") }}bg-red-900{{ end }}">
+      <a href="/console" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "console") }}bg-red-900{{ end }}">
         <i class="fas fa-terminal mr-3"></i>
         Server Console
       </a>
       {{ end }}
     </nav>
     <div class="absolute w-full bottom-0 flex items-center justify-center py-4">
-      <img src="/static/img/corsa_logo.png" style="margin: auto; width: 80%" />
+      <img src="/static/img/corsa_logo.png" style="margin: auto; width: 90%" />
     </div>
   </aside>
 
@@ -159,7 +159,7 @@
         {{ if .config_filled }}
         <a href="/" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
           <i class="fas fa-flag-checkered mr-3"></i>
-          Events
+          Event Categories
         </a>
         <a href="/class" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
           <i class="fas fa-car mr-3"></i>

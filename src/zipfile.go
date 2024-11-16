@@ -65,7 +65,7 @@ func (zf *ZipFile) FindZipFiles(filePath string) []*zip.File {
 }
 
 // Extract a zip item to a given folder
-func (zf *ZipFile) ExtractFileToFolder(f *zip.File, filePath string) {
+func (zf *ZipFile) ExtractFile(f *zip.File, filePath string) {
 	if f == nil {
 		return
 	}
@@ -98,9 +98,41 @@ func (zf *ZipFile) ExtractFileToFolder(f *zip.File, filePath string) {
 	}
 }
 
-func (zf *ZipFile) ExtractFilesToFolder(zi []*zip.File, filePath string) {
+func (zf *ZipFile) ExtractFileToSubfolder(f *zip.File, filePath string) {
+	if f == nil {
+		return
+	}
+	if f.FileInfo().IsDir() {
+		if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
+			log.Print(err)
+		}
+		return
+	}
+
+	if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
+		log.Print(err)
+	}
+
+	destinationFile, err := os.OpenFile(filepath.Join(filePath, filepath.Base(f.Name)), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+	if err != nil {
+		log.Print(err)
+	}
+	defer destinationFile.Close()
+
+	zippedFile, err := f.Open()
+	if err != nil {
+		log.Print(err)
+	}
+	defer zippedFile.Close()
+
+	if _, err := io.Copy(destinationFile, zippedFile); err != nil {
+		log.Print(err)
+	}
+}
+
+func (zf *ZipFile) ExtractFiles(zi []*zip.File, filePath string) {
 	for _, z := range zi {
-		zf.ExtractFileToFolder(z, filePath)
+		zf.ExtractFile(z, filePath)
 	}
 }
 

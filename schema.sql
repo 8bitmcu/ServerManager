@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS user_config (
   max_clients INTEGER,
   welcome_message TEXT,
 
+  append_eventname INTEGER,
+  append_modlinks INTEGER,
+
   install_path TEXT,
   csp_required INTEGER,
   csp_phycars INTEGER,
@@ -142,6 +145,7 @@ CREATE TABLE IF NOT EXISTS user_class_entry (
 
 CREATE TABLE IF NOT EXISTS user_event (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_category_id INTEGER NOT NULL,
   cache_track_key TEXT NOT NULL,
   cache_track_config TEXT NOT NULL,
   difficulty_id INTEGER NOT NULL,
@@ -158,6 +162,14 @@ CREATE TABLE IF NOT EXISTS user_event (
   entrylist TEXT,
 
   finished INTEGER DEFAULT 0,
+  deleted INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS user_event_category (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+
+  filled INTEGER DEFAULT 0,
   deleted INTEGER DEFAULT 0
 );
 

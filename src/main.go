@@ -26,6 +26,7 @@ var ConfigFolder string
 var TempFolder string
 var Zf ZipFile
 
+// TODO: checksuming is failing when CSP is enabled
 // TODO: generate random SecretKey and storein db
 var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")
 var DEBUG bool = true
@@ -214,12 +215,16 @@ func main() {
 		app.GET("/time/delete/:id", Route_Delete_Time)
 		app.POST("/time/delete/:id", Route_Delete_Time)
 
-		app.GET("/event", Route_Event)
-		app.POST("/event", Route_Event)
-		app.GET("/event_edit", Route_Event_Edit)
-		app.POST("/event_edit", Route_Event_Edit)
-		app.GET("/event_edit/:id", Route_Event_Edit)
-		app.POST("/event_edit/:id", Route_Event_Edit)
+		app.GET("/event_cat", Route_Event_Category)
+		app.POST("/event_cat", Route_Event_Category)
+		app.GET("/event_cat/:id", Route_Event_Category)
+		app.POST("/event_cat/:id", Route_Event_Category)
+		app.GET("/event_cat/delete/:id", Route_Delete_Event_Category)
+		app.POST("/event_cat/delete/:id", Route_Delete_Event_Category)
+		app.GET("/event/:category_id", Route_Event)
+		app.POST("/event/:category_id", Route_Event)
+		app.GET("/event/:category_id/:id", Route_Event)
+		app.POST("/event/:category_id/:id", Route_Event)
 		app.GET("/event/delete/:id", Route_Delete_Event)
 		app.POST("/event/delete/:id", Route_Delete_Event)
 
