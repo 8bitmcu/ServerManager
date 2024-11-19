@@ -220,7 +220,6 @@ func API_Server_Start(c *gin.Context) {
 
 func API_Server_Stop(c *gin.Context) {
 	Stop()
-	Dba.Update_Event_SetComplete()
 	c.PureJSON(http.StatusOK, gin.H{
 		"is_running": Is_Running(),
 		"text":       Get_Content(),

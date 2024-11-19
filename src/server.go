@@ -49,16 +49,9 @@ func (status Server_Status) Update_Public_Ip() {
 }
 
 func (status Server_Status) Server_ApplyTrack() {
-	Dba.Update_Event_SetComplete()
 	next_event := Dba.Select_Event_Next()
 	Cr.Render_Ini(*next_event.Id)
 	Cr.Write_Ini()
-
-	tm := time.Now().Unix()
-	next_event.ServerCfg = &Cr.ServerCfg_Result
-	next_event.EntryList = &Cr.EntryList_Result
-
-	next_event.Started_At = &tm
 
 	//Dba.Update_Event(next_event)
 

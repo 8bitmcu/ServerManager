@@ -78,10 +78,15 @@
     </div>
     <nav class="text-white text-base font-semibold pt-3">
       {{ if .config_filled }}
+      <a href="/queue"
+        class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "queue") }}bg-red-900{{ end }}">
+        <i class="fas fa-clipboard-list mr-3"></i>
+        Queue
+      </a>
       <a href="/event_cat"
         class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "event_cat") }}bg-red-900{{ end }}">
         <i class="fas fa-flag-checkered mr-3"></i>
-        Events
+        Event Categories
       </a>
       <a href="/class"
         class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "class") }}bg-red-900{{ end }}">
@@ -115,9 +120,9 @@
         Content and Mods
       </a>
       {{ if .config_filled }}
-      <a href="/console" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "console") }}bg-red-900{{ end }}">
+      <a href="/server" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-4 nav-item {{ if (eq .page "server") }}bg-red-900{{ end }}">
         <i class="fas fa-terminal mr-3"></i>
-        Server Console
+        Server Status
       </a>
       {{ end }}
     </nav>
@@ -157,7 +162,11 @@
       <nav :class="isOpen ? 'flex': 'hidden'" class="flex flex-col pt-4">
 
         {{ if .config_filled }}
-        <a href="/" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+        <a href="/queue" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+          <i class="fas fa-clipboard-list mr-3"></i>
+          Queue
+        </a>
+        <a href="/event_cat" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
           <i class="fas fa-flag-checkered mr-3"></i>
           Event Categories
         </a>
@@ -187,9 +196,9 @@
           Content and Mods
         </a>
         {{ if .config_filled }}
-        <a href="/console" class="flex items-center opacity-75 hover:opacity-100 text-white py-2 pl-4 nav-item">
+        <a href="/server" class="flex items-center opacity-75 hover:opacity-100 text-white py-2 pl-4 nav-item">
           <i class="fas fa-terminal mr-3"></i>
-          Server Console
+          Server Status
         </a>
         {{ end }}
       </nav>

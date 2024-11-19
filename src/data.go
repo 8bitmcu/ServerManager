@@ -33,9 +33,19 @@ type User_Config struct {
 	Mod_Filled           *int
 }
 
+type Server_Event struct {
+	Id         *int
+	User_Event User_Event
+	ServerCfg  *string
+	EntryList  *string
+	Started_At *int
+	Finished   *int
+}
+
 type User_Event struct {
 	Id                 *int `form:"id"`
 	Event_Category_Id  *int `form:"event_category_id"`
+	Category_Name      *string
 	Race_Laps          *int `form:"race_laps"`
 	Strategy           *int `form:"strategy"`
 	Track_Name         *string
@@ -68,10 +78,12 @@ type User_Event struct {
 	Session_Id         *int    `form:"session"`
 	Class_Id           *int    `form:"class"`
 	Time_Id            *int    `form:"time"`
-	ServerCfg          *string
-	EntryList          *string
-	Started_At         *int64
-	Finished           *int
+}
+
+type User_Event_List struct {
+	Id                *int    `json:"id"`
+	Event_Category_Id *int    `json:"event_category_id"`
+	Track_Name        *string `json:"track_name"`
 }
 
 type User_Event_Category struct {

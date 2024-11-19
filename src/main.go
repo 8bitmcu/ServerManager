@@ -107,7 +107,6 @@ func main() {
 	log.Print("Opening database file located at: " + db_path)
 	Dba = Open(db_path)
 	Dba.Apply_Schema(FindFile("/schema.sql"))
-	Dba.Update_Event_SetComplete()
 
 	gin.SetMode(gin.ReleaseMode)
 
@@ -221,6 +220,7 @@ func main() {
 		app.POST("/event_cat/:id", Route_Event_Category)
 		app.GET("/event_cat/delete/:id", Route_Delete_Event_Category)
 		app.POST("/event_cat/delete/:id", Route_Delete_Event_Category)
+
 		app.GET("/event/:category_id", Route_Event)
 		app.POST("/event/:category_id", Route_Event)
 		app.GET("/event/:category_id/:id", Route_Event)
@@ -228,12 +228,17 @@ func main() {
 		app.GET("/event/delete/:id", Route_Delete_Event)
 		app.POST("/event/delete/:id", Route_Delete_Event)
 
+		app.GET("/queue", Route_Queue)
+		app.POST("/queue", Route_Queue)
+		app.GET("/queue/delete/:id", Route_Delete_Queue)
+		app.POST("/queue/delete/:id", Route_Delete_Queue)
+
 		app.GET("/user", Route_User)
 		app.POST("/user", Route_User)
 
 		app.GET("/admin", Route_Admin)
 
-		app.GET("/console", Route_Console)
+		app.GET("/server", Route_Server)
 	}
 
 	api := router.Group("/api")

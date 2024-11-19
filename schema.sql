@@ -1,3 +1,41 @@
+-- Enable FKs
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS cache_track (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL,
+  config TEXT NOT NULL,
+  name TEXT NOT NULL,
+  desc TEXT,
+  tags TEXT,
+  country TEXT,
+  city TEXT,
+  length INTEGER,
+  width INTEGER,
+  pitboxes INTEGER,
+  run TEXT
+);
+
+CREATE TABLE IF NOT EXISTS cache_car (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL,
+  name TEXT NOT NULL,
+  brand TEXT,
+  desc TEXT,
+  tags TEXT,
+  class TEXT,
+  specs TEXT,
+  torque TEXT,
+  power TEXT,
+  skins TEXT
+);
+
+CREATE TABLE IF NOT EXISTS cache_weather (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL,
+  name TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS user_config (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT,
@@ -65,8 +103,7 @@ CREATE TABLE IF NOT EXISTS user_difficulty (
   blacklist_mode INTEGER,
   max_contacts_per_km INTEGER,
 
-  filled INTEGER DEFAULT 0,
-  deleted INTEGER DEFAULT 0
+  filled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_time (
@@ -76,8 +113,7 @@ CREATE TABLE IF NOT EXISTS user_time (
   time_of_day_multi INTEGER,
   csp_enabled INTEGER,
 
-  filled INTEGER DEFAULT 0,
-  deleted INTEGER DEFAULT 0
+  filled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_time_weather (
@@ -96,7 +132,8 @@ CREATE TABLE IF NOT EXISTS user_time_weather (
   csp_time_of_day_multi INTEGER,
   csp_date TEXT,
 
-  deleted INTEGER DEFAULT 0
+  FOREIGN KEY (user_time_id) REFERENCES user_time(id) ON DELETE RESTRICT,
+  FOREIGN KEY (graphics) REFERENCES cache_weather(key) ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS user_session (
@@ -121,16 +158,14 @@ CREATE TABLE IF NOT EXISTS user_session (
   race_pit_window_start INTEGER,
   race_pit_window_end INTEGER,
 
-  filled INTEGER DEFAULT 0,
-  deleted INTEGER DEFAULT 0
+  filled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_class (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
 
-  filled INTEGER DEFAULT 0,
-  deleted INTEGER DEFAULT 0
+  filled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_class_entry (
@@ -140,7 +175,15 @@ CREATE TABLE IF NOT EXISTS user_class_entry (
   skin_key TEXT NOT NULL,
   ballast INTEGER,
 
-  deleted INTEGER DEFAULT 0
+  FOREIGN KEY (user_class_id) REFERENCES user_class(id) ON DELETE RESTRICT,
+  FOREIGN KEY (cache_car_key) REFERENCES cache_car(key) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS user_event_category (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+
+  filled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_event (
@@ -156,57 +199,29 @@ CREATE TABLE IF NOT EXISTS user_event (
   race_laps INTEGER,
   strategy INTEGER,
 
-  started_at INTEGER,
+  FOREIGN KEY (event_category_id) REFERENCES user_event_category(id) ON DELETE RESTRICT,
+  FOREIGN KEY (cache_track_key, cache_track_config) REFERENCES cache_track(key, config) ON DELETE RESTRICT,
+  FOREIGN KEY (difficulty_id) REFERENCES user_difficulty(id) ON DELETE RESTRICT,
+  FOREIGN KEY (session_id) REFERENCES user_session(id) ON DELETE RESTRICT,
+  FOREIGN KEY (class_id) REFERENCES user_class(id) ON DELETE RESTRICT,
+  FOREIGN KEY (time_id) REFERENCES user_time(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS server_event (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_event_id INTEGER NOT NULL,
 
   servercfg TEXT,
   entrylist TEXT,
 
+  started_at INTEGER,
   finished INTEGER DEFAULT 0,
-  deleted INTEGER DEFAULT 0
+  orderby INTEGER,
+
+  FOREIGN KEY (user_event_id) REFERENCES user_event(id) ON DELETE RESTRICT
 );
 
-CREATE TABLE IF NOT EXISTS user_event_category (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
 
-  filled INTEGER DEFAULT 0,
-  deleted INTEGER DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS cache_track (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  key TEXT NOT NULL,
-  config TEXT NOT NULL,
-  name TEXT NOT NULL,
-  desc TEXT,
-  tags TEXT,
-  country TEXT,
-  city TEXT,
-  length INTEGER,
-  width INTEGER,
-  pitboxes INTEGER,
-  run TEXT
-);
-
-CREATE TABLE IF NOT EXISTS cache_car (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  key TEXT NOT NULL,
-  name TEXT NOT NULL,
-  brand TEXT,
-  desc TEXT,
-  tags TEXT,
-  class TEXT,
-  specs TEXT,
-  torque TEXT,
-  power TEXT,
-  skins TEXT
-);
-
-CREATE TABLE IF NOT EXISTS cache_weather (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  key TEXT NOT NULL,
-  name TEXT NOT NULL
-);
 
 
 -- INDEXES
@@ -225,7 +240,8 @@ ON users (name);
 
 
 -- DEFAULT VALUES
-INSERT OR IGNORE INTO user_config (id, name, udp_port, tcp_port, http_port, client_send_interval, num_threads) VALUES (1, 'AC Server', 9600, 9600, 8081, 18, 2);
+INSERT OR IGNORE INTO user_config (id, name, udp_port, tcp_port, http_port, client_send_interval, num_threads) VALUES (1, 'SM Server', 9600, 9600, 8081, 18, 2);
 
 -- DEFAULT USERNAME admin PASSWORD admin
-INSERT OR IGNORE INTO users (id, name, password) VALUES (1, 'admin', '$2a$08$BvgMQY6H60BhcK9wM79RBu9IlURIP26BWYcCiWJjs06L1yEdkUif2')
+INSERT OR IGNORE INTO users (id, name, password) VALUES (1, 'admin', '$2a$08$BvgMQY6H60BhcK9wM79RBu9IlURIP26BWYcCiWJjs06L1yEdkUif2');
+

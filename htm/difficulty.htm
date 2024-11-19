@@ -566,7 +566,7 @@
               Save
             </button>
             <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="button"
-              @click="document.getElementById('frmDelete').submit()">
+              @click="confirm('Are you sure?') && document.getElementById('frmDelete').submit()">
               Delete
             </button>
           </p>

@@ -16,7 +16,7 @@ type Dbaccess struct {
 }
 
 func Open(name string) Dbaccess {
-	db, err := sql.Open("sqlite3", name)
+	db, err := sql.Open("sqlite3", "file:"+name+"?_foreign_keys=on")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,9 +63,7 @@ func (dba Dbaccess) Table_Exists(tablename string) int {
 func (dba Dbaccess) Select_DropDownList(filled bool, tableName string) []DropDown_List {
 	where := ""
 	if filled {
-		where = " WHERE filled = 1 AND deleted = 0"
-	} else {
-		where = " WHERE deleted = 0"
+		where = " WHERE filled = 1"
 	}
 	rows, err := dba.Db.Query("SELECT id, name from " + tableName + where + " ORDER BY name")
 
@@ -95,8 +93,8 @@ func (dba Dbaccess) Select_DropDownList(filled bool, tableName string) []DropDow
 	return ddl
 }
 
-func (dba Dbaccess) Delete_From(id int, tableName string) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE " + tableName + " SET deleted = 1 WHERE id = ?")
+func (dba Dbaccess) Delete_From(id int, tableName string) (int64, error) {
+	stmt, err := dba.Db.Prepare("DELETE FROM " + tableName + " WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
@@ -104,7 +102,7 @@ func (dba Dbaccess) Delete_From(id int, tableName string) int64 {
 	defer stmt.Close()
 
 	if err != nil {
-		log.Print(err)
+		return 0, err
 	}
 
 	affected, err := res.RowsAffected()
@@ -112,7 +110,7 @@ func (dba Dbaccess) Delete_From(id int, tableName string) int64 {
 		log.Print(err)
 	}
 
-	return affected
+	return affected, nil
 }
 
 func (dba Dbaccess) Insert_Name_Into(name string, tableName string) int64 {
@@ -248,14 +246,124 @@ func (dba Dbaccess) Update_Content(cfg User_Config) int64 {
 	return affected
 }
 
+func (dba Dbaccess) Select_Server_Events() []Server_Event {
+	rows, err := dba.Db.Query(`
+SELECT
+	s.id as id,
+	t.name as track_name,
+	d.name as difficulty_name,
+	e.name as session_name,
+	c.name as class_name,
+	tw.name as time_name,
+	ct.name as category_name,
+	s.started_at as started_at,
+	s.finished as finished
+FROM server_event s
+JOIN user_event u
+	on s.user_event_id = u.id
+JOIN user_event_category ct
+	on u.event_category_id = ct.id
+JOIN cache_track t
+	on u.cache_track_key = t.key
+	AND u.cache_track_config = t.config
+JOIN user_difficulty d
+	on u.difficulty_id = d.id
+JOIN user_session e
+	on u.session_id = e.id
+JOIN user_class c
+	on u.class_id = c.id
+JOIN user_time tw
+	on u.time_id = tw.id
+ORDER BY orderby ASC`)
+
+	defer rows.Close()
+
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	list := make([]Server_Event, 0)
+	for rows.Next() {
+		se := Server_Event{}
+		err = rows.Scan(&se.Id, &se.User_Event.Track_Name, &se.User_Event.Difficulty_Name, &se.User_Event.Session_Name, &se.User_Event.Class_Name, &se.User_Event.Time_Name, &se.User_Event.Category_Name, &se.Started_At, &se.Finished)
+		if err != nil {
+			log.Print(err)
+		}
+
+		list = append(list, se)
+	}
+
+	return list
+}
+
+func (dba Dbaccess) Insert_Server_Event(event int) int64 {
+	sql := "INSERT INTO server_event (user_event_id) VALUES (?)"
+
+	stmt, err := dba.Db.Prepare(sql)
+	if err != nil {
+		log.Print(err)
+	}
+	res, err := stmt.Exec(event)
+	defer stmt.Close()
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		log.Print(err)
+	}
+
+	return affected
+}
+
+func (dba Dbaccess) Insert_Server_Event_Category(category int) int64 {
+	sql := "INSERT INTO server_event (user_event_id) SELECT id FROM user_event WHERE event_category_id = ?"
+
+	stmt, err := dba.Db.Prepare(sql)
+	if err != nil {
+		log.Print(err)
+	}
+	res, err := stmt.Exec(category)
+	defer stmt.Close()
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		log.Print(err)
+	}
+
+	return affected
+}
+
+func (dba Dbaccess) Delete_Server_Event(id int) (int64, error) {
+	stmt, err := dba.Db.Prepare("DELETE FROM server_event WHERE id = ?")
+	if err != nil {
+		log.Print(err)
+	}
+	_, err = stmt.Exec(id)
+	defer stmt.Close()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return 0, nil
+}
+
 func (dba Dbaccess) Select_Event(id int) User_Event {
 	evt := User_Event{}
-	stmt, err := dba.Db.Prepare("SELECT id, event_category_id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy, started_at, finished, servercfg, entrylist FROM user_event WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, event_category_id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy FROM user_event WHERE id = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(id).Scan(&evt.Id, &evt.Event_Category_Id, &evt.Cache_Track_Key, &evt.Cache_Track_Config, &evt.Difficulty_Id, &evt.Session_Id, &evt.Class_Id, &evt.Time_Id, &evt.Race_Laps, &evt.Strategy, &evt.Started_At, &evt.Finished, &evt.ServerCfg, &evt.EntryList)
+	err = stmt.QueryRow(id).Scan(&evt.Id, &evt.Event_Category_Id, &evt.Cache_Track_Key, &evt.Cache_Track_Config, &evt.Difficulty_Id, &evt.Session_Id, &evt.Class_Id, &evt.Time_Id, &evt.Race_Laps, &evt.Strategy)
 	if err != nil {
 		log.Print(err)
 	}
@@ -263,19 +371,38 @@ func (dba Dbaccess) Select_Event(id int) User_Event {
 	return evt
 }
 
-func (dba Dbaccess) Select_Event_Next() User_Event {
-	evt := User_Event{}
-	row := dba.Db.QueryRow("SELECT id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy, started_at, finished, servercfg, entrylist FROM user_event WHERE started_at IS NULL AND finished != 1 AND deleted = 0 LIMIT 1")
-	err := row.Err()
+func (dba Dbaccess) Select_EventList() []User_Event_List {
+	rows, err := dba.Db.Query("SELECT s.id, t.name, s.event_category_id from user_event s JOIN cache_track t on s.cache_track_key = t.key AND s.cache_track_config = t.config")
+
+	defer rows.Close()
+
+	err = rows.Err()
 	if err != nil {
-		log.Print(err)
-	}
-	err = row.Scan(&evt.Id, &evt.Cache_Track_Key, &evt.Cache_Track_Config, &evt.Difficulty_Id, &evt.Session_Id, &evt.Class_Id, &evt.Time_Id, &evt.Race_Laps, &evt.Strategy, &evt.Started_At, &evt.Finished, &evt.ServerCfg, &evt.EntryList)
-	if err != nil {
-		log.Print(err)
+		log.Fatal(err)
 	}
 
-	return evt
+	ddl := make([]User_Event_List, 0)
+	for rows.Next() {
+		item := User_Event_List{}
+		err = rows.Scan(&item.Id, &item.Track_Name, &item.Event_Category_Id)
+		if err != nil {
+			log.Print(err)
+		}
+
+		ddl = append(ddl, item)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return ddl
+}
+
+func (dba Dbaccess) Select_Event_Next() User_Event {
+	// TODO
+	return User_Event{}
 }
 
 func (dba Dbaccess) Insert_Event(evt User_Event) int64 {
@@ -299,11 +426,11 @@ func (dba Dbaccess) Insert_Event(evt User_Event) int64 {
 }
 
 func (dba Dbaccess) Update_Event(evt User_Event) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE user_event SET cache_track_key = ?, cache_track_config = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ?, started_at = ?, servercfg = ?, entrylist = ? WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE user_event SET cache_track_key = ?, cache_track_config = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ? WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	res, err := stmt.Exec(evt.Cache_Track_Key, evt.Cache_Track_Config, evt.Difficulty_Id, evt.Session_Id, evt.Class_Id, evt.Time_Id, evt.Race_Laps, evt.Strategy, evt.Started_At, evt.ServerCfg, evt.EntryList, evt.Id)
+	res, err := stmt.Exec(evt.Cache_Track_Key, evt.Cache_Track_Config, evt.Difficulty_Id, evt.Session_Id, evt.Class_Id, evt.Time_Id, evt.Race_Laps, evt.Strategy, evt.Id)
 	defer stmt.Close()
 
 	if err != nil {
@@ -318,27 +445,13 @@ func (dba Dbaccess) Update_Event(evt User_Event) int64 {
 	return affected
 }
 
-func (dba Dbaccess) Update_Event_SetComplete() int64 {
-	res, err := dba.Db.Exec("UPDATE user_event SET finished = 1 WHERE started_at IS NOT NULL")
-	if err != nil {
-		log.Print(err)
-	}
-
-	affected, err := res.RowsAffected()
-	if err != nil {
-		log.Print(err)
-	}
-
-	return affected
-}
-
-func (dba Dbaccess) Delete_Event(id int) int64 {
+func (dba Dbaccess) Delete_Event(id int) (int64, error) {
 	return dba.Delete_From(id, "user_event")
 }
 
 func (dba Dbaccess) Select_Category_Events(id int) User_Event_Category {
 	cat := User_Event_Category{}
-	stmt, err := dba.Db.Prepare("SELECT id, name FROM user_event_category WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, name FROM user_event_category WHERE id = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
@@ -384,8 +497,7 @@ SELECT
 		on a.graphics = b.key
 	WHERE user_time_id = tw.id) as graphics,
 	(SELECT COUNT (*) FROM user_time_weather WHERE user_time_id = tw.id) as trunc_weather,
-	tw.csp_enabled as csp_weather,
-	s.started_at as started_at
+	tw.csp_enabled as csp_weather
 FROM user_event s
 JOIN cache_track t
 	on s.cache_track_key = t.key
@@ -400,7 +512,7 @@ JOIN user_class_entry ce
 	on s.class_id = ce.user_class_id
 JOIN user_time tw
 	on s.time_id = tw.id
-WHERE s.deleted = 0 AND s.event_category_id = ?
+WHERE s.event_category_id = ?
 GROUP BY s.id`
 
 	rows, err := dba.Db.Query(query, id)
@@ -413,7 +525,7 @@ GROUP BY s.id`
 
 	for rows.Next() {
 		evt := User_Event{}
-		err = rows.Scan(&evt.Id, &evt.Race_Laps, &evt.Strategy, &evt.Track_Name, &evt.Track_Length, &evt.Pitboxes, &evt.Difficulty_Name, &evt.Abs_Allowed, &evt.Tc_Allowed, &evt.Stability_Allowed, &evt.Autoclutch_Allowed, &evt.Session_Name, &evt.Booking_Enabled, &evt.Booking_Time, &evt.Practice_Enabled, &evt.Practice_Time, &evt.Qualify_Enabled, &evt.Qualify_Time, &evt.Race_Enabled, &evt.Race_Time, &evt.Class_Name, &evt.Entries, &evt.Time_Name, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.Csp_Weather, &evt.Started_At)
+		err = rows.Scan(&evt.Id, &evt.Race_Laps, &evt.Strategy, &evt.Track_Name, &evt.Track_Length, &evt.Pitboxes, &evt.Difficulty_Name, &evt.Abs_Allowed, &evt.Tc_Allowed, &evt.Stability_Allowed, &evt.Autoclutch_Allowed, &evt.Session_Name, &evt.Booking_Enabled, &evt.Booking_Time, &evt.Practice_Enabled, &evt.Practice_Time, &evt.Qualify_Enabled, &evt.Qualify_Time, &evt.Race_Enabled, &evt.Race_Time, &evt.Class_Name, &evt.Entries, &evt.Time_Name, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.Csp_Weather)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -457,13 +569,13 @@ func (dba Dbaccess) Update_Event_Category(cat User_Event_Category) int64 {
 	return affected
 }
 
-func (dba Dbaccess) Delete_Event_Category(id int) int64 {
+func (dba Dbaccess) Delete_Event_Category(id int) (int64, error) {
 	return dba.Delete_From(id, "user_event_category")
 }
 
 func (dba Dbaccess) Select_Difficulty(id int) User_Difficulty {
 	dif := User_Difficulty{}
-	stmt, err := dba.Db.Prepare("SELECT id, name, abs_allowed, tc_allowed, stability_allowed, autoclutch_allowed, tyre_blankets_allowed, force_virtual_mirror, fuel_rate, damage_multiplier, tyre_wear_rate, allowed_tyres_out, max_ballast_kg, start_rule, race_gas_penality_disabled, dynamic_track, dynamic_track_preset, session_start, randomness, session_transfer, lap_gain, kick_quorum, vote_duration, voting_quorum, blacklist_mode, max_contacts_per_km FROM user_difficulty WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, name, abs_allowed, tc_allowed, stability_allowed, autoclutch_allowed, tyre_blankets_allowed, force_virtual_mirror, fuel_rate, damage_multiplier, tyre_wear_rate, allowed_tyres_out, max_ballast_kg, start_rule, race_gas_penality_disabled, dynamic_track, dynamic_track_preset, session_start, randomness, session_transfer, lap_gain, kick_quorum, vote_duration, voting_quorum, blacklist_mode, max_contacts_per_km FROM user_difficulty WHERE id = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
@@ -484,7 +596,7 @@ func (dba Dbaccess) Insert_Difficulty(difficulty_name string) int64 {
 	return dba.Insert_Name_Into(difficulty_name, "user_difficulty")
 }
 
-func (dba Dbaccess) Delete_Difficulty(id int) int64 {
+func (dba Dbaccess) Delete_Difficulty(id int) (int64, error) {
 	return dba.Delete_From(id, "user_difficulty")
 }
 
@@ -510,7 +622,7 @@ func (dba Dbaccess) Update_Difficulty(dif User_Difficulty) int64 {
 
 func (dba Dbaccess) Select_Session(id int) User_Session {
 	ses := User_Session{}
-	stmt, err := dba.Db.Prepare("SELECT id, name, booking_enabled, booking_time, practice_enabled, practice_time, practice_is_open, qualify_enabled, qualify_time, qualify_is_open, qualify_max_wait_perc, race_enabled, race_time, race_extra_lap, race_over_time, race_wait_time, race_is_open, reversed_grid_positions, race_pit_window_start, race_pit_window_end FROM user_session WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, name, booking_enabled, booking_time, practice_enabled, practice_time, practice_is_open, qualify_enabled, qualify_time, qualify_is_open, qualify_max_wait_perc, race_enabled, race_time, race_extra_lap, race_over_time, race_wait_time, race_is_open, reversed_grid_positions, race_pit_window_start, race_pit_window_end FROM user_session WHERE id = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
@@ -531,7 +643,7 @@ func (dba Dbaccess) Insert_Session(difficulty_name string) int64 {
 	return dba.Insert_Name_Into(difficulty_name, "user_session")
 }
 
-func (dba Dbaccess) Delete_Session(id int) int64 {
+func (dba Dbaccess) Delete_Session(id int) (int64, error) {
 	return dba.Delete_From(id, "user_session")
 }
 
@@ -557,7 +669,7 @@ func (dba Dbaccess) Update_Session(ses User_Session) int64 {
 
 func (dba Dbaccess) Select_Time_Weather(id int) User_Time {
 	time := User_Time{}
-	stmt, err := dba.Db.Prepare("SELECT id, name, time, time_of_day_multi, csp_enabled FROM user_time WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, name, time, time_of_day_multi, csp_enabled FROM user_time WHERE id = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
@@ -567,7 +679,7 @@ func (dba Dbaccess) Select_Time_Weather(id int) User_Time {
 		log.Print(err)
 	}
 
-	stmt, err = dba.Db.Prepare("SELECT a.id, name, user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction, csp_time, csp_time_of_day_multi, csp_date FROM user_time_weather a JOIN cache_weather b on a.graphics = b.key WHERE user_time_id = ? AND deleted = 0")
+	stmt, err = dba.Db.Prepare("SELECT a.id, name, user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction, csp_time, csp_time_of_day_multi, csp_date FROM user_time_weather a JOIN cache_weather b on a.graphics = b.key WHERE user_time_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
@@ -592,10 +704,14 @@ func (dba Dbaccess) Insert_Time(time_name string) int64 {
 	return dba.Insert_Name_Into(time_name, "user_time")
 }
 
-func (dba Dbaccess) Delete_Time(id int) int64 {
-	rows := dba.Delete_From(id, "user_time")
+func (dba Dbaccess) Delete_Time(id int) (int64, error) {
+	rows, err := dba.Delete_From(id, "user_time")
 
-	stmt, err := dba.Db.Prepare("UPDATE user_time_weather SET deleted = 1 WHERE user_time_id = ?")
+	if err != nil {
+		return 0, err
+	}
+
+	stmt, err := dba.Db.Prepare("DELETE FROM user_time_weather WHERE user_time_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
@@ -606,7 +722,7 @@ func (dba Dbaccess) Delete_Time(id int) int64 {
 		log.Print(err)
 	}
 
-	return rows
+	return rows, err
 }
 
 func (dba Dbaccess) Update_Time(time User_Time) int64 {
@@ -650,7 +766,7 @@ func (dba Dbaccess) Update_Time(time User_Time) int64 {
 
 func (dba Dbaccess) Select_Class_Entries(id int) User_Class {
 	cls := User_Class{}
-	stmt, err := dba.Db.Prepare("SELECT id, name FROM user_class WHERE id = ? AND deleted = 0 LIMIT 1")
+	stmt, err := dba.Db.Prepare("SELECT id, name FROM user_class WHERE id = ? LIMIT 1")
 	if err != nil {
 		log.Print(err)
 	}
@@ -692,10 +808,14 @@ func (dba Dbaccess) Insert_Class(time_name string) int64 {
 	return dba.Insert_Name_Into(time_name, "user_class")
 }
 
-func (dba Dbaccess) Delete_Class(id int) int64 {
-	dba.Delete_From(id, "user_class")
+func (dba Dbaccess) Delete_Class(id int) (int64, error) {
+	_, err := dba.Delete_From(id, "user_class")
 
-	stmt, err := dba.Db.Prepare("UPDATE user_class_entry SET deleted = 1 WHERE user_class_id = ?")
+	if err != nil {
+		return 0, err
+	}
+
+	stmt, err := dba.Db.Prepare("DELETE FROM user_class_entry WHERE user_class_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
@@ -706,7 +826,7 @@ func (dba Dbaccess) Delete_Class(id int) int64 {
 		log.Print(err)
 	}
 
-	return 1
+	return 1, nil
 }
 
 func (dba Dbaccess) Update_Class(cls User_Class) int64 {

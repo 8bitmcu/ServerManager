@@ -1,0 +1,174 @@
+{{template "/htm/header.htm" . }}
+<script>
+  function queue() {
+    return {
+      category_list: {{ .event_cat }},
+      event_list: {{ .event_list }},
+
+      category: "",
+      evnt: "",
+
+      random_category: function() {
+        let rand = Math.floor(Math.random()*this.category_list.length);
+        this.category = this.category_list[rand].id;
+        this.evnt = "";
+      },
+      category_changed: function(val) {
+        this.evnt = "";
+      },
+      submit_category: function() {
+        if (document.getElementById("category").checkValidity()) {
+          document.getElementById("event").value = ""
+          document.getElementById('frm').submit()
+        } else {
+          document.getElementById("category").reportValidity()
+        }
+      },
+
+      get_events: function() {
+        return this.event_list.filter(x => x.event_category_id == this.category)
+      },
+      random_event: function() {
+        let events = this.get_events();
+
+        if (events.length == 0) 
+          return;
+        let rand = Math.floor(Math.random()*events.length);
+        this.evnt = events[rand].id;
+      }
+    }
+  }
+</script>
+<h1 class="text-3xl text-black pb-6">Queue</h1>
+<form id="frm" class="w-full overflow-x-hidden flex flex-col" x-data="queue()" method="POST">
+  <main class="w-full flex-grow">
+    <div class="flex flex-wrap mt-6">
+      <div class="w-full pr-0">
+        <table class="min-w-full bg-white">
+          <thead>
+            <tr class="bg-gray-800 text-white">
+              <th colspan="8" class="text-center py-4 uppercase pl-4 font-semibold text-sm">
+                Server Queue
+              </th>
+            </tr>
+            <tr class="bg-gray-700 text-white">
+              <th class="text-left py-3 uppercase pl-4 font-semibold text-sm"> # </th>
+              <th class="text-left py-3 uppercase font-semibold text-sm"> Category </th>
+              <th class="text-left py-3 uppercase font-semibold text-sm"> Track </th>
+              <th class="text-left py-3 uppercase font-semibold text-sm"> Difficulty </th>
+              <th class="text-left py-3 uppercase font-semibold text-sm"> Session </th>
+              <th class="text-left py-3 uppercase font-semibold text-sm"> Class </th>
+              <th class="text-left py-3 uppercase font-semibold text-sm"> Time and Weather </th>
+              <th class="text-left py-3 uppercase font-semibold text-sm"> Action </th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-700">
+            {{ $i := 1 }}
+            {{range $val := .server_events }}
+            <tr class="even:bg-gray-200 {{ if (eq (derefInt $val.Finished ) "1") }}text-gray-400{{ end }}{{ if (and (gt (derefInt $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) }}font-semibold{{end}}">
+              <td class="py-2 pl-4">
+                {{ if (and (gt (derefInt $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) }}
+                <i class="fas fa-play"></i>
+                {{ else if (eq (derefInt $val.Finished ) "0") }}
+                  {{ $i }}
+                  {{ $i = (inc $i) }}
+                {{ end }}
+              </td>
+              <td class="py-2">{{ $val.User_Event.Category_Name }}</td>
+              <td class="py-2">{{ $val.User_Event.Track_Name }}</td>
+              <td class="py-2">{{ $val.User_Event.Difficulty_Name }}</td>
+              <td class="py-2">{{ $val.User_Event.Session_Name }}</td>
+              <td class="py-2">{{ $val.User_Event.Class_Name }}</td>
+              <td class="py-2">{{ $val.User_Event.Time_Name }}</td>
+              <td class="py-2">
+                {{ if (and (gt (derefInt $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) }}
+                <a href="#">Skip Event</a>
+                {{ else if (eq (derefInt $val.Finished ) "0") }}
+                <a class="mr-4" href="#">Up</a>
+                <a class="mr-4" href="#">Down</a>
+                <a href="/queue/delete/{{ $val.Id }}" onclick="return confirm('Are you sure?')" >Remove</a>
+                {{ end }}
+              </td>
+            </tr>
+            {{ end }}
+          </tbody>
+          <tfoot class="bg-gray-700 text-white">
+            <tr>
+              <td colspan="8" class="py-3 uppercase px-4 font-semibold text-sm text-right">
+                <button class="px-4 py-1 text-white font-light tracking-wider bg-red-700 rounded-md"><i class="fas fa-stop"></i> Stop Server</button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+
+
+        <div class="flex flex-wrap bg-white text-black">
+          <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
+            <p class="text-xl px-6 pb-6 flex items-center">
+              <i class="fas fa-list mr-3"></i> Add to Queue
+            </p>
+            <div class="p-4 lg:p-10 leading-loose">
+              <div class="">
+                <label class="block text-sm text-gray-600 group relative" for="category">
+                  Category
+                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                      # TODO: caption
+                    </div>
+                  </div>
+                </label>
+                <div class="flex flex-row">
+                  <select class="w-full text-gray-700 bg-gray-200 rounded-l py-3 px-4 pr-8" id="category" name="category" 
+                    x-model="category" @change="category_changed($event.target.value)" required="">
+                    <option value="">Select...</option>
+                    {{range $val := .event_cat }}
+                    <option value="{{  $val.Id }}">{{ $val.Name }}</option>
+                    {{ end }}
+                  </select>
+                  <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_category()">
+                    <i class="fas fa-random"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm text-gray-600 group relative" for="evnt">
+                  Event
+                  <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
+                    <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                      # TODO: caption
+                    </div>
+                  </div>
+                </label>
+                <div class="flex flex-row">
+                  <select class="w-full text-gray-700 bg-gray-200 rounded-l py-3 px-4 pr-8" id="event" name="event"
+                    x-model="evnt" required="">
+                    <option value="" :selected="evnt == ''">Select...</option>
+                    <template x-for="evt in get_events()">
+                      <option x-bind:value="evt.id" x-text="evt.track_name" :selected="evt.id == evnt"></option>
+                    </template>
+                  </select>
+                  <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_event()">
+                    <i class="fas fa-random"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mt-6 flex flex-row">
+                <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="button" @click="submit_category()">
+                  Add all from Category
+                </button>
+                <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-r-md" type="submit">
+                  Add single Event
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </main>
+</form>
+
+{{template "/htm/footer.htm"}}

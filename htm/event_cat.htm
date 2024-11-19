@@ -118,116 +118,120 @@
               </th>
             </tr>
           </thead>
-          <tbody class="text-gray-700">
-            {{$g := . }}
-            {{range $i, $event := .form.Events }}
-            <tr class="even:bg-gray-100">
-              <td class="text-left whitespace-nowrap pl-4 align-baseline">
-                <span>{{ $event.Track_Name }}</span>
-                <div class="text-xs">
-                  <i class="fas fa-route"></i>
-                  <span class="pr-2" x-html="format_distance({{ $event.Track_Length }})"></span>
-                  <span>{{ $event.Pitboxes }} pitboxes</span>
-                </div>
-              </td>
-              <td class="text-left whitespace-nowrap align-baseline">
-                <span>{{ $event.Difficulty_Name }}</span>
-                <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row">
-                  <span class="{{ if not (eq (derefInt $event.Abs_Allowed) "0") }}text-red-500{{ end }}" >
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="pr-4">ABS</span>
-                  </span>
-                  <span class="{{ if not (eq (derefInt $event.Tc_Allowed) "0") }}text-red-500{{ end }}" >
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="pr-4">TC</span>
-                  </span>
-                  <span class="{{ if not (eq (derefInt $event.Stability_Allowed) "0") }}text-red-500{{ end }}" >
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="pr-4">Stability</span>
-                  </span>
-                  <span class="{{ if not (eq (derefInt $event.Autoclutch_Allowed) "0") }}text-red-500{{ end }}" >
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="pr-4">Clutch</span>
-                  </span>
-                </div>
-              </td>
-              <td class="text-left whitespace-nowrap align-baseline py-3">
-                <span>{{ $event.Session_Name }}</span>
-                <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row whitespace-nowrap">
-                  <div class="flex flex-col">
-                    <span class="{{ if (eq (derefInt $event.Booking_Enabled) "1") }}text-red-500{{ end }}" >
-                      <i class="fas {{ if (eq (derefInt $event.Booking_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Booking</span>
-                    </span>
-                    {{ if (eq (derefInt $event.Booking_Enabled) "1") }}
-                    <span class="pr-2">{{ $event.Booking_Time }} minutes</span>
-                    {{ end }}
+            <tbody class="text-gray-700">
+              {{$g := . }}
+              {{range $i, $event := .form.Events }}
+              <tr class="even:bg-gray-100">
+                <td class="pl-4 text-left whitespace-nowrap align-baseline">
+                  <span>{{ $event.Track_Name }}</span>
+                  <div class="text-xs">
+                    <i class="fas fa-route"></i>
+                    <span class="pr-2" x-html="format_distance({{ $event.Track_Length }})"></span>
+                    <span>{{ $event.Pitboxes }} pitboxes</span>
                   </div>
-                  <div class="flex flex-col">
-                    <span class="{{ if (eq (derefInt $event.Practice_Enabled) "1") }}text-red-500{{ end }}" >
-                      <i class="fas {{ if (eq (derefInt $event.Practice_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Practice</span>
+                </td>
+                <td class="text-left whitespace-nowrap align-baseline">
+                  <span>{{ $event.Difficulty_Name }}</span>
+                  <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row">
+                    <span class="{{ if not (eq (derefInt $event.Abs_Allowed) "0") }}text-red-500{{ end }}" >
+                      <i class="fas fa-exclamation-circle"></i>
+                      <span class="pr-4">ABS</span>
                     </span>
-                    {{ if (eq (derefInt $event.Practice_Enabled) "1") }}
-                    <span class="pr-2">{{ $event.Practice_Time }} minutes</span>
-                    {{ end }}
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="{{ if (eq (derefInt $event.Qualify_Enabled) "1") }}text-red-500{{ end }}" >
-                      <i class="fas {{ if (eq (derefInt $event.Qualify_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Qualifying</span>
+                    <span class="{{ if not (eq (derefInt $event.Tc_Allowed) "0") }}text-red-500{{ end }}" >
+                      <i class="fas fa-exclamation-circle"></i>
+                      <span class="pr-4">TC</span>
                     </span>
-                    {{ if (eq (derefInt $event.Qualify_Enabled) "1") }}
-                    <span class="pr-2">{{ $event.Qualify_Time }} minutes</span>
-                    {{ end }}
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="{{ if (eq (derefInt $event.Race_Enabled) "1") }}text-red-500{{ end }}" >
-                      <i class="fas {{ if (eq (derefInt $event.Race_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Race</span>
+                    <span class="{{ if not (eq (derefInt $event.Stability_Allowed) "0") }}text-red-500{{ end }}" >
+                      <i class="fas fa-exclamation-circle"></i>
+                      <span class="pr-4">Stability</span>
                     </span>
-                    {{ if and (gt (toInt $event.Race_Laps) 0) (eq (derefInt $event.Race_Enabled) "1") }}
-                    <span class="pr-2">{{ $event.Race_Laps }} laps</span>
-                    {{ else if (eq (derefInt $event.Race_Enabled) "1") }}
-                    <span class="pr-2">{{ $event.Race_Time }} minutes</span>
-                    {{ end }}
+                    <span class="{{ if not (eq (derefInt $event.Autoclutch_Allowed) "0") }}text-red-500{{ end }}" >
+                      <i class="fas fa-exclamation-circle"></i>
+                      <span class="pr-4">Clutch</span>
+                    </span>
                   </div>
-                </div>
-              </td>
-              <td class="text-left whitespace-nowrap align-baseline">
-                <span>{{ $event.Class_Name }}</span>
-                <div class="text-xs">
-                  <span><i class="fas fa-warehouse"></i>
-                  {{ if and (gt (toInt $event.Pitboxes) (toInt $g.max_clients)) (gt (toInt $event.Entries) (toInt $g.max_clients)) }}
-                    {{ $g.max_clients }} 
-                    {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
-                    {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
-                    entries of {{ $event.Entries }}
-                  {{ else if (gt (toInt $event.Entries) (toInt $event.Pitboxes)) }}
-                    {{ $event.Pitboxes }}
-                    {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
-                    {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
-                    entries of {{ $event.Entries }}
+                </td>
+                <td class="text-left whitespace-nowrap align-baseline py-3">
+                  <span>{{ $event.Session_Name }}</span>
+                  <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row whitespace-nowrap">
+                    <div class="flex flex-col">
+                      <span class="{{ if (eq (derefInt $event.Booking_Enabled) "1") }}text-red-500{{ end }}" >
+                        <i class="fas {{ if (eq (derefInt $event.Booking_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Booking</span>
+                      </span>
+                      {{ if (eq (derefInt $event.Booking_Enabled) "1") }}
+                      <span class="pr-2">{{ $event.Booking_Time }} minutes</span>
+                      {{ end }}
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="{{ if (eq (derefInt $event.Practice_Enabled) "1") }}text-red-500{{ end }}" >
+                        <i class="fas {{ if (eq (derefInt $event.Practice_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Practice</span>
+                      </span>
+                      {{ if (eq (derefInt $event.Practice_Enabled) "1") }}
+                      <span class="pr-2">{{ $event.Practice_Time }} minutes</span>
+                      {{ end }}
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="{{ if (eq (derefInt $event.Qualify_Enabled) "1") }}text-red-500{{ end }}" >
+                        <i class="fas {{ if (eq (derefInt $event.Qualify_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Qualifying</span>
+                      </span>
+                      {{ if (eq (derefInt $event.Qualify_Enabled) "1") }}
+                      <span class="pr-2">{{ $event.Qualify_Time }} minutes</span>
+                      {{ end }}
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="{{ if (eq (derefInt $event.Race_Enabled) "1") }}text-red-500{{ end }}" >
+                        <i class="fas {{ if (eq (derefInt $event.Race_Enabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Race</span>
+                      </span>
+                      {{ if and (gt (toInt $event.Race_Laps) 0) (eq (derefInt $event.Race_Enabled) "1") }}
+                      <span class="pr-2">{{ $event.Race_Laps }} laps</span>
+                      {{ else if (eq (derefInt $event.Race_Enabled) "1") }}
+                      <span class="pr-2">{{ $event.Race_Time }} minutes</span>
+                      {{ end }}
+                    </div>
+                  </div>
+                </td>
+                <td class="text-left whitespace-nowrap align-baseline">
+                  <span>{{ $event.Class_Name }}</span>
+                  <div class="text-xs">
+                    <span><i class="fas fa-warehouse"></i>
+                    {{ if and (gt (toInt $event.Pitboxes) (toInt $g.max_clients)) (gt (toInt $event.Entries) (toInt $g.max_clients)) }}
+                      {{ $g.max_clients }} 
+                      {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
+                      {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
+                      entries of {{ $event.Entries }}
+                    {{ else if (gt (toInt $event.Entries) (toInt $event.Pitboxes)) }}
+                      {{ $event.Pitboxes }}
+                      {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
+                      {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
+                      entries of {{ $event.Entries }}
+                    {{ else }}
+                      all {{ $event.Entries }} entries
+                    {{ end }}
+                    </span>
+                  </div>
+                </td>
+                <td class="text-left whitespace-nowrap flex flex-col align-baseline">
+                  <span>{{ $event.Time_Name }} {{ if (gt (toInt $event.Csp_Weather) 0) }} (CSP) {{end}}</span>
+                  {{ if (gt (toInt $event.TruncWeather) 1) }}
+                  <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> 1 of {{ $event.TruncWeather }} entries</span>
                   {{ else }}
-                    all {{ $event.Entries }} entries
+                  <span class="text-xs mr-4"><i class="fas fa-stopwatch"></i> {{ $event.Time }} </span>
+                  <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> {{ $event.Graphics }}</span>
                   {{ end }}
-                  </span>
-                </div>
-              </td>
-              <td class="text-left whitespace-nowrap flex flex-col align-baseline">
-                <span>{{ $event.Time_Name }} {{ if (gt (toInt $event.Csp_Weather) 0) }} (CSP) {{end}}</span>
-                {{ if (gt (toInt $event.TruncWeather) 1) }}
-                <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> 1 of {{ $event.TruncWeather }} entries</span>
-                {{ else }}
-                <span class="text-xs mr-4"><i class="fas fa-stopwatch"></i> {{ $event.Time }} </span>
-                <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> {{ $event.Graphics }}</span>
-                {{ end }}
-              </td>
-              <td class="text-left whitespace-nowrap">
-                <a href="/event/{{ $g.form.Id }}/{{ $event.Id }}"><button class="px-4 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button">
-                    Edit</button></a><a href="/event/delete/{{ $event.Id }}" @click="return confirm('Are you sure?')"><button class="text-white px-4 py-1 tracking-wider bg-red-900 rounded-r-md" type="button">
-                  Remove
-                  </button></a>
-              </td>
-            </tr>
-            {{ end }}
-          </tbody>
+                </td>
+                <td class="text-left whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <a href="/event/{{ $g.form.Id }}/{{ $event.Id }}">
+                      Edit
+                    </a>
+                    <a href="/event/delete/{{ $event.Id }}" @click="return confirm('Are you sure?')">
+                      Remove
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {{ end }}
+            </tbody>
           <tfoot>
             <tr>
               <td colspan="6">
