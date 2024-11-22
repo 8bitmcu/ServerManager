@@ -181,9 +181,9 @@ func API_Recache_Content(c *gin.Context) {
 	Parse_Content(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result":         "ok",
-		"tracks_total":   "5",
-		"cars_total":     "5",
-		"weathers_total": "5",
+		"tracks_total":   len(Dba.Select_Cache_Tracks()),
+		"cars_total":     len(Dba.Select_Cache_Cars()),
+		"weathers_total": len(Dba.Select_Cache_Weathers()),
 	})
 }
 
@@ -208,7 +208,10 @@ func API_Server_Start(c *gin.Context) {
 		Status.Server_ApplyTrack()
 		Start()
 		// Hang the request until the UDP Server becomes online
-		for !Udp.online {
+		for start := time.Now(); time.Since(start) < time.Minute; {
+			if Udp.online {
+				break
+			}
 			time.Sleep(10 * time.Millisecond)
 		}
 	}
@@ -249,3 +252,22 @@ func API_Server_Cfg(c *gin.Context) {
 	Cr.Render_Ini(idInt)
 	c.String(http.StatusOK, Cr.ServerCfg_Result)
 }
+
+func API_Queue_MoveUp(c *gin.Context) {
+	id := c.Param("id")
+	idInt, _ := strconv.Atoi(id)
+
+	Dba.Update_ServerEvent_MoveUp(idInt)
+
+	c.String(http.StatusOK, "ok")
+}
+
+func API_Queue_MoveDown(c *gin.Context) {
+	id := c.Param("id")
+	idInt, _ := strconv.Atoi(id)
+
+	Dba.Update_ServerEvent_MoveDown(idInt)
+
+	c.String(http.StatusOK, "ok")
+}
+

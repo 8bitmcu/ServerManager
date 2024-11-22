@@ -188,7 +188,7 @@ func (dba Dbaccess) Select_Config_Filled() bool {
 }
 
 func (dba Dbaccess) Select_Config() User_Config {
-	row := dba.Db.QueryRow("SELECT name, password, admin_password, register_to_lobby, locked_entry_list, result_screen_time, udp_port, tcp_port, http_port, client_send_interval, num_threads, max_clients, welcome_message, append_eventname, append_modlinks, install_path, csp_required, csp_version, csp_phycars, csp_phytracks, csp_hidepit, cfg_filled, mod_filled FROM user_config")
+	row := dba.Db.QueryRow("SELECT name, password, admin_password, register_to_lobby, locked_entry_list, result_screen_time, udp_port, tcp_port, http_port, client_send_interval, num_threads, max_clients, welcome_message, append_eventname, append_modlinks, install_path, csp_required, csp_version, csp_phycars, csp_phytracks, csp_hidepit, cfg_filled, mod_filled, secret_key FROM user_config")
 
 	err := row.Err()
 	if err != nil {
@@ -196,7 +196,7 @@ func (dba Dbaccess) Select_Config() User_Config {
 	}
 
 	cfg := User_Config{}
-	err = row.Scan(&cfg.Name, &cfg.Password, &cfg.Admin_Password, &cfg.Register_To_Lobby, &cfg.Locked_Entry_List, &cfg.Result_Screen_Time, &cfg.Udp_Port, &cfg.Tcp_Port, &cfg.Http_Port, &cfg.Client_Send_Interval, &cfg.Num_Threads, &cfg.Max_Clients, &cfg.Welcome_Message, &cfg.Append_Eventname, &cfg.Append_Modlinks, &cfg.Install_Path, &cfg.Csp_Required, &cfg.Csp_Version, &cfg.Csp_Phycars, &cfg.Csp_Phytracks, &cfg.Csp_Hidepit, &cfg.Cfg_Filled, &cfg.Mod_Filled)
+	err = row.Scan(&cfg.Name, &cfg.Password, &cfg.Admin_Password, &cfg.Register_To_Lobby, &cfg.Locked_Entry_List, &cfg.Result_Screen_Time, &cfg.Udp_Port, &cfg.Tcp_Port, &cfg.Http_Port, &cfg.Client_Send_Interval, &cfg.Num_Threads, &cfg.Max_Clients, &cfg.Welcome_Message, &cfg.Append_Eventname, &cfg.Append_Modlinks, &cfg.Install_Path, &cfg.Csp_Required, &cfg.Csp_Version, &cfg.Csp_Phycars, &cfg.Csp_Phytracks, &cfg.Csp_Hidepit, &cfg.Cfg_Filled, &cfg.Mod_Filled, &cfg.Secret_Key)
 	if err != nil {
 		log.Print(err)
 	}
@@ -246,10 +246,19 @@ func (dba Dbaccess) Update_Content(cfg User_Config) int64 {
 	return affected
 }
 
-func (dba Dbaccess) Select_Server_Events() []Server_Event {
+func (dba Dbaccess) Select_Server_Events(notfinished bool) []Server_Event {
+
+	orderby := " ORDER BY orderby ASC"
+
+	where := ""
+	if notfinished {
+		where = " WHERE finished = 0"
+	}
+
 	rows, err := dba.Db.Query(`
 SELECT
 	s.id as id,
+	u.id as event_id,
 	t.name as track_name,
 	d.name as difficulty_name,
 	e.name as session_name,
@@ -273,8 +282,7 @@ JOIN user_session e
 JOIN user_class c
 	on u.class_id = c.id
 JOIN user_time tw
-	on u.time_id = tw.id
-ORDER BY orderby ASC`)
+	on u.time_id = tw.id` + where + orderby)
 
 	defer rows.Close()
 
@@ -286,7 +294,7 @@ ORDER BY orderby ASC`)
 	list := make([]Server_Event, 0)
 	for rows.Next() {
 		se := Server_Event{}
-		err = rows.Scan(&se.Id, &se.User_Event.Track_Name, &se.User_Event.Difficulty_Name, &se.User_Event.Session_Name, &se.User_Event.Class_Name, &se.User_Event.Time_Name, &se.User_Event.Category_Name, &se.Started_At, &se.Finished)
+		err = rows.Scan(&se.Id, &se.User_Event.Id, &se.User_Event.Track_Name, &se.User_Event.Difficulty_Name, &se.User_Event.Session_Name, &se.User_Event.Class_Name, &se.User_Event.Time_Name, &se.User_Event.Category_Name, &se.Started_At, &se.Finished)
 		if err != nil {
 			log.Print(err)
 		}
@@ -298,7 +306,7 @@ ORDER BY orderby ASC`)
 }
 
 func (dba Dbaccess) Insert_Server_Event(event int) int64 {
-	sql := "INSERT INTO server_event (user_event_id) VALUES (?)"
+	sql := "INSERT INTO server_event (user_event_id, orderby) SELECT ?, (SELECT ifnull(MAX(orderby)+1, 1) FROM server_event)"
 
 	stmt, err := dba.Db.Prepare(sql)
 	if err != nil {
@@ -320,13 +328,57 @@ func (dba Dbaccess) Insert_Server_Event(event int) int64 {
 }
 
 func (dba Dbaccess) Insert_Server_Event_Category(category int) int64 {
-	sql := "INSERT INTO server_event (user_event_id) SELECT id FROM user_event WHERE event_category_id = ?"
-
-	stmt, err := dba.Db.Prepare(sql)
+	stmt, err := dba.Db.Prepare("SELECT id FROM user_event WHERE event_category_id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	res, err := stmt.Exec(category)
+	defer stmt.Close()
+	rows, err := stmt.Query(category)
+	if err != nil {
+		log.Print(err)
+	}
+
+	var ids []int
+	for rows.Next() {
+		var id int
+		err = rows.Scan(&id)
+		if err != nil {
+			log.Print(err)
+		}
+		ids = append(ids, id)
+	}
+
+	for _, id := range ids {
+		stmt, err := dba.Db.Prepare("INSERT INTO server_event (user_event_id, orderby) VALUES (?, (SELECT ifnull(MAX(orderby)+1, 1) FROM server_event))")
+		if err != nil {
+			log.Print(err)
+		}
+		res, err := stmt.Exec(id)
+		defer stmt.Close()
+
+		if err != nil {
+			log.Print(err)
+		}
+
+		_, err = res.RowsAffected()
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	return 0
+}
+
+func (dba Dbaccess) Update_Server_Event(se Server_Event) int64 {
+	stmt, err := dba.Db.Prepare("UPDATE server_event SET started_at = ?, servercfg = ?, entrylist = ? WHERE id = ?")
+	if err != nil {
+		log.Print(err)
+	}
+	res, err := stmt.Exec(se.Started_At, se.ServerCfg, se.EntryList, se.Id)
 	defer stmt.Close()
 
 	if err != nil {
@@ -339,6 +391,75 @@ func (dba Dbaccess) Insert_Server_Event_Category(category int) int64 {
 	}
 
 	return affected
+}
+
+func (dba Dbaccess) Update_ServerEvent_MoveUp(id int) {
+	stmt, err := dba.Db.Prepare("SELECT id, MAX(orderby) as orderby FROM server_event WHERE orderby < (SELECT orderby FROM server_event WHERE id = ?)")
+	if err != nil {
+		log.Print(err)
+	}
+	defer stmt.Close()
+	var oldid int
+	var orderby int
+	err = stmt.QueryRow(id).Scan(&oldid, &orderby)
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	log.Print("old id", oldid)
+	log.Print("id", id)
+
+	stmt, err = dba.Db.Prepare("UPDATE server_event SET orderby = ? WHERE id = ?;")
+	defer stmt.Close()
+	res, err := stmt.Exec(orderby, id)
+	if err != nil {
+		log.Print(err)
+	}
+
+	stmt, err = dba.Db.Prepare("UPDATE server_event SET orderby = ? WHERE id = ?;")
+	defer stmt.Close()
+	res, err = stmt.Exec(orderby+1, oldid)
+	if err != nil {
+		log.Print(err)
+	}
+	_, err = res.RowsAffected()
+	if err != nil {
+		log.Print(err)
+	}
+}
+
+func (dba Dbaccess) Update_ServerEvent_MoveDown(id int) {
+	stmt, err := dba.Db.Prepare("SELECT id, MIN(orderby) as orderby FROM server_event WHERE orderby > (SELECT orderby FROM server_event WHERE id = ?)")
+	if err != nil {
+		log.Print(err)
+	}
+	defer stmt.Close()
+	var oldid int
+	var orderby int
+	err = stmt.QueryRow(id).Scan(&oldid, &orderby)
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	stmt, err = dba.Db.Prepare("UPDATE server_event SET orderby = ? WHERE id = ?;")
+	defer stmt.Close()
+	res, err := stmt.Exec(orderby, id)
+	if err != nil {
+		log.Print(err)
+	}
+
+	stmt, err = dba.Db.Prepare("UPDATE server_event SET orderby = ? WHERE id = ?;")
+	defer stmt.Close()
+	res, err = stmt.Exec(orderby-1, oldid)
+	if err != nil {
+		log.Print(err)
+	}
+	_, err = res.RowsAffected()
+	if err != nil {
+		log.Print(err)
+	}
 }
 
 func (dba Dbaccess) Delete_Server_Event(id int) (int64, error) {
@@ -400,11 +521,6 @@ func (dba Dbaccess) Select_EventList() []User_Event_List {
 	return ddl
 }
 
-func (dba Dbaccess) Select_Event_Next() User_Event {
-	// TODO
-	return User_Event{}
-}
-
 func (dba Dbaccess) Insert_Event(evt User_Event) int64 {
 	stmt, err := dba.Db.Prepare("INSERT INTO user_event (event_category_id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
@@ -449,7 +565,7 @@ func (dba Dbaccess) Delete_Event(id int) (int64, error) {
 	return dba.Delete_From(id, "user_event")
 }
 
-func (dba Dbaccess) Select_Category_Events(id int) User_Event_Category {
+func (dba Dbaccess) Select_Event_Category(id int) User_Event_Category {
 	cat := User_Event_Category{}
 	stmt, err := dba.Db.Prepare("SELECT id, name FROM user_event_category WHERE id = ? LIMIT 1")
 	if err != nil {
@@ -460,6 +576,12 @@ func (dba Dbaccess) Select_Category_Events(id int) User_Event_Category {
 	if err != nil {
 		log.Print(err)
 	}
+
+	return cat
+}
+
+func (dba Dbaccess) Select_Category_Events(id int) User_Event_Category {
+	cat := dba.Select_Event_Category(id)
 
 	query := `
 SELECT

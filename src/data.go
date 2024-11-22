@@ -31,6 +31,7 @@ type User_Config struct {
 	Csp_Hidepit          *int    `form:"csp_hidepit"`
 	Cfg_Filled           *int
 	Mod_Filled           *int
+	Secret_Key           *string
 }
 
 type Server_Event struct {
@@ -38,7 +39,7 @@ type Server_Event struct {
 	User_Event User_Event
 	ServerCfg  *string
 	EntryList  *string
-	Started_At *int
+	Started_At *int64
 	Finished   *int
 }
 

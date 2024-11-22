@@ -9,6 +9,8 @@
       evnt: "",
 
       random_category: function() {
+        if (this.category_list.length == 0) 
+          return
         let rand = Math.floor(Math.random()*this.category_list.length);
         this.category = this.category_list[rand].id;
         this.evnt = "";
@@ -35,7 +37,32 @@
           return;
         let rand = Math.floor(Math.random()*events.length);
         this.evnt = events[rand].id;
-      }
+      },
+
+      loading: false,
+      server_start: function() {
+        this.loading = true;
+        fetch("/api/server/start").then(x => {
+          window.location=window.location;
+        })
+      },
+      server_stop: function() {
+        this.loading = true;
+        fetch("/api/server/stop").then(x => {
+          window.location=window.location;
+        })
+      },
+
+      move_up: function(id) {
+        fetch("/api/queue/moveup/" + id).then(x => {
+          window.location=window.location;
+        })
+      },
+      move_down: function(id) {
+        fetch("/api/queue/movedown/" + id).then(x => {
+          window.location=window.location;
+        })
+      },
     }
   }
 </script>
@@ -64,10 +91,12 @@
           </thead>
           <tbody class="text-gray-700">
             {{ $i := 1 }}
-            {{range $val := .server_events }}
-            <tr class="even:bg-gray-200 {{ if (eq (derefInt $val.Finished ) "1") }}text-gray-400{{ end }}{{ if (and (gt (derefInt $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) }}font-semibold{{end}}">
+            {{ $s := .status.Status }}
+            {{ $len := .server_events | len }}
+            {{range $idx, $val := .server_events }}
+            <tr class="even:bg-gray-200 {{ if (eq (derefInt $val.Finished ) "1") }}text-gray-400{{ end }}{{ if (and (and (gt (derefInt64 $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) $s) }}font-semibold{{end}}">
               <td class="py-2 pl-4">
-                {{ if (and (gt (derefInt $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) }}
+                {{ if (and (and (gt (derefInt64 $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) $s) }}
                 <i class="fas fa-play"></i>
                 {{ else if (eq (derefInt $val.Finished ) "0") }}
                   {{ $i }}
@@ -81,24 +110,53 @@
               <td class="py-2">{{ $val.User_Event.Class_Name }}</td>
               <td class="py-2">{{ $val.User_Event.Time_Name }}</td>
               <td class="py-2">
-                {{ if (and (gt (derefInt $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) }}
+                {{ if (and (and (gt (derefInt64 $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) $s) }}
+                {{ if (not (eq (inc $idx) $len)) }}
                 <a href="#">Skip Event</a>
+                {{ end }}
                 {{ else if (eq (derefInt $val.Finished ) "0") }}
-                <a class="mr-4" href="#">Up</a>
-                <a class="mr-4" href="#">Down</a>
+                <button class="mr-4" @click="move_up({{ $val.Id }})" {{ if (eq $i 2 )}}disabled{{ end }}>Up</button>
+                <button class="mr-4" @click="move_down({{ $val.Id }})" {{ if (eq (inc $idx) $len )}}disabled{{ end }}>Down</button>
                 <a href="/queue/delete/{{ $val.Id }}" onclick="return confirm('Are you sure?')" >Remove</a>
                 {{ end }}
               </td>
             </tr>
             {{ end }}
+            {{ if (eq (len .server_events) 0) }}
+            <tr class="text-center">
+              <td colspan="8" class="py-6">
+                <i class="fas fa-info-circle"></i>
+                Add events to the queue to begin
+              </td>
+            </tr>
+            {{ end}}
           </tbody>
+          {{ if (gt (len .server_events) 0) }}
           <tfoot class="bg-gray-700 text-white">
             <tr>
-              <td colspan="8" class="py-3 uppercase px-4 font-semibold text-sm text-right">
-                <button class="px-4 py-1 text-white font-light tracking-wider bg-red-700 rounded-md"><i class="fas fa-stop"></i> Stop Server</button>
+              <td colspan="8" class="py-3 uppercase px-4 font-semibold text-sm">
+                <div class="flex flex-row justify-end">
+                  {{ if not .status.Status }}
+                    <button class="bg-green-700 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
+                      type="button" @click="server_start()" :disabled="loading">
+                      <i class="fas fa-play"></i>
+                      <span class="px-4">Start Server</span>
+                      <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading"></div>
+                    </button>
+                  {{ end }}
+                  {{ if .status.Status }}
+                    <button class="bg-red-700 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
+                      type="button" @click="server_stop()" :disabled="loading">
+                      <i class="fas fa-stop"></i>
+                      <span class="px-4">Stop Server</span>
+                      <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading"></div>
+                    </button>
+                  {{ end }}
+                </div>
               </td>
             </tr>
           </tfoot>
+          {{ end }}
         </table>
 
 

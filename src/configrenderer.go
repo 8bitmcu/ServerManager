@@ -61,6 +61,7 @@ func (cr *ConfigRenderer) Render_Ini(event_id int) {
 	r := regexp.MustCompile("\\d{1,3}")
 
 	event := Dba.Select_Event(event_id)
+	event_cat := Dba.Select_Event_Category(*event.Event_Category_Id)
 	tm := Dba.Select_Time_Weather(*event.Time_Id)
 	diff := Dba.Select_Difficulty(*event.Difficulty_Id)
 	cfg := Dba.Select_Config()
@@ -183,6 +184,7 @@ func (cr *ConfigRenderer) Render_Ini(event_id int) {
 		"max_clients": max_clients,
 		"sunangle":    cr.Time_To_SunAngle(tm.Time),
 		"cspstr":      cspstr,
+		"name":        event_cat.Name,
 	}
 
 	var b bytes.Buffer

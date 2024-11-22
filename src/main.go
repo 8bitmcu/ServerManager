@@ -24,11 +24,10 @@ var Status Server_Status
 var Udp UDPPlugin
 var ConfigFolder string
 var TempFolder string
+var SecretKey []byte
 var Zf ZipFile
 
 // TODO: checksuming is failing when CSP is enabled
-// TODO: generate random SecretKey and storein db
-var SecretKey = []byte("XBLn0dUoXPVk742lkRVILa82hbRXz6Tx")
 var DEBUG bool = true
 
 func ConfigCompletedMiddlware() gin.HandlerFunc {
@@ -107,6 +106,7 @@ func main() {
 	log.Print("Opening database file located at: " + db_path)
 	Dba = Open(db_path)
 	Dba.Apply_Schema(FindFile("/schema.sql"))
+	SecretKey = []byte(*Dba.Select_Config().Secret_Key)
 
 	gin.SetMode(gin.ReleaseMode)
 
@@ -121,7 +121,14 @@ func main() {
 		}
 	}()
 
-	router := gin.New()
+
+	var router *gin.Engine
+	if DEBUG {
+		router = gin.Default()
+	} else {
+		router = gin.New()
+	}
+
 	router.Use(gin.Recovery())
 
 	funcMap := template.FuncMap{
@@ -136,6 +143,12 @@ func main() {
 				return ""
 			}
 			return strconv.Itoa(*t)
+		},
+		"derefInt64": func(t *int64) string {
+			if t == nil {
+				return ""
+			}
+			return strconv.FormatInt(*t, 10)
 		},
 		"toInt": func(t *int) int {
 			if t == nil {
@@ -268,6 +281,8 @@ func main() {
 		api.GET("/server/entry_list.ini", API_Entry_List)
 		api.GET("/server/server_cfg.ini", API_Server_Cfg)
 
+		api.GET("/queue/moveup/:id", API_Queue_MoveUp)
+		api.GET("/queue/movedown/:id", API_Queue_MoveDown)
 	}
 
 	router.NoRoute(NoRoute)
@@ -283,27 +298,9 @@ func main() {
 		Handler: router.Handler(),
 	}
 
-	r := gin.New()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
-	utilities := &http.Server{
-		Addr:    ":4040",
-		Handler: r.Handler(),
-	}
-
 	go func() {
 		log.Print("Server up and running on http://localhost:3030")
 		if err := main.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Print(err)
-		}
-	}()
-	go func() {
-		log.Print("Utilities up and running on http://localhost:4040")
-		if err := utilities.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Print(err)
 		}
 	}()

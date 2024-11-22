@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS user_config (
   csp_hidepit INTEGER,
   csp_version INTEGER,
 
+  secret_key TEXT,
   cfg_filled INTEGER DEFAULT 0,
   mod_filled INTEGER DEFAULT 0
 );
@@ -240,7 +241,7 @@ ON users (name);
 
 
 -- DEFAULT VALUES
-INSERT OR IGNORE INTO user_config (id, name, udp_port, tcp_port, http_port, client_send_interval, num_threads) VALUES (1, 'SM Server', 9600, 9600, 8081, 18, 2);
+INSERT OR IGNORE INTO user_config (id, name, udp_port, tcp_port, http_port, client_send_interval, num_threads, secret_key) VALUES (1, 'SM Server', 9600, 9600, 8081, 18, 2, hex(randomblob(16)));
 
 -- DEFAULT USERNAME admin PASSWORD admin
 INSERT OR IGNORE INTO users (id, name, password) VALUES (1, 'admin', '$2a$08$BvgMQY6H60BhcK9wM79RBu9IlURIP26BWYcCiWJjs06L1yEdkUif2');

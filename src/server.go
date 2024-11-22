@@ -49,11 +49,24 @@ func (status Server_Status) Update_Public_Ip() {
 }
 
 func (status Server_Status) Server_ApplyTrack() {
-	next_event := Dba.Select_Event_Next()
-	Cr.Render_Ini(*next_event.Id)
+	next_events := Dba.Select_Server_Events(true)
+
+	if len(next_events) < 0 {
+		log.Print("No events in queue")
+		return
+	}
+	next_event := next_events[0]
+
+	Cr.Render_Ini(*next_event.User_Event.Id)
 	Cr.Write_Ini()
 
-	//Dba.Update_Event(next_event)
+	tm := time.Now().Unix()
+	next_event.Started_At = &tm
+
+	next_event.ServerCfg = &Cr.ServerCfg_Result
+	next_event.EntryList = &Cr.EntryList_Result
+
+	Dba.Update_Server_Event(next_event)
 
 	// Populate TempFolder
 	exec := "acServer"
@@ -86,10 +99,6 @@ func (status Server_Status) Server_ApplyTrack() {
 		} else {
 			Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/"+*Cr.Track.Config+"/data/surfaces.ini"), filepath.Join(TempFolder, "content"))
 		}
-	}
-
-	if Cr.Csp_Required {
-		// move surfaces.ini into csp folder
 	}
 
 	// Extract surfaces.ini

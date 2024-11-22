@@ -38,7 +38,7 @@ func Route_Content(c *gin.Context) {
 	c.HTML(http.StatusOK, "/htm/content.htm", gin.H{
 		"page":          "content",
 		"form":          Dba.Select_Config(),
-		"track_data":    Dba.Select_Cache_Tracks(), // TODO: we only need a list at this point
+		"track_data":    Dba.Select_Cache_Tracks(),
 		"car_data":      Dba.Select_Cache_Cars(),
 		"weather_data":  Dba.Select_Cache_Weathers(),
 		"config_filled": Dba.Select_Config_Filled(),
@@ -82,7 +82,7 @@ func Route_Queue(c *gin.Context) {
 		"config_filled": Dba.Select_Config_Filled(),
 		"event_cat":     Dba.Select_Event_CategoryList(false),
 		"event_list":    Dba.Select_EventList(),
-		"server_events": Dba.Select_Server_Events(),
+		"server_events": Dba.Select_Server_Events(false),
 		"status":        Status,
 	})
 }
@@ -172,7 +172,7 @@ func Route_Class(c *gin.Context) {
 	c.HTML(http.StatusOK, "/htm/class.htm", gin.H{
 		"page":          "class",
 		"list":          Dba.Select_ClassList(false),
-		"car_data":      Dba.Select_Cache_Cars(), // TODO: only select needed data
+		"car_data":      Dba.Select_Cache_Cars(),
 		"form":          form,
 		"config_filled": Dba.Select_Config_Filled(),
 		"status":        Status,
