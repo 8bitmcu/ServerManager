@@ -283,6 +283,8 @@ func main() {
 
 		api.GET("/queue/moveup/:id", API_Queue_MoveUp)
 		api.GET("/queue/movedown/:id", API_Queue_MoveDown)
+		api.GET("/queue/skipevent", API_Queue_SkipEvent)
+		api.GET("/queue/clearcompleted", API_Queue_ClearCompleted)
 	}
 
 	router.NoRoute(NoRoute)

@@ -374,11 +374,11 @@ func (dba Dbaccess) Insert_Server_Event_Category(category int) int64 {
 }
 
 func (dba Dbaccess) Update_Server_Event(se Server_Event) int64 {
-	stmt, err := dba.Db.Prepare("UPDATE server_event SET started_at = ?, servercfg = ?, entrylist = ? WHERE id = ?")
+	stmt, err := dba.Db.Prepare("UPDATE server_event SET started_at = ?, servercfg = ?, entrylist = ?, finished = ? WHERE id = ?")
 	if err != nil {
 		log.Print(err)
 	}
-	res, err := stmt.Exec(se.Started_At, se.ServerCfg, se.EntryList, se.Id)
+	res, err := stmt.Exec(se.Started_At, se.ServerCfg, se.EntryList, se.Finished, se.Id)
 	defer stmt.Close()
 
 	if err != nil {
@@ -460,6 +460,21 @@ func (dba Dbaccess) Update_ServerEvent_MoveDown(id int) {
 	if err != nil {
 		log.Print(err)
 	}
+}
+
+func (dba Dbaccess) Delete_Server_Events_Completed() (int64, error) {
+	stmt, err := dba.Db.Prepare("DELETE FROM server_event WHERE finished = 1")
+	if err != nil {
+		log.Print(err)
+	}
+	_, err = stmt.Exec()
+	defer stmt.Close()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return 0, nil
 }
 
 func (dba Dbaccess) Delete_Server_Event(id int) (int64, error) {
@@ -992,11 +1007,6 @@ func (dba Dbaccess) Update_Class(cls User_Class) int64 {
 }
 
 func (dba Dbaccess) Update_Cache_Cars(cars []Cache_Car) int64 {
-	_, err := dba.Db.Exec("DELETE FROM cache_car")
-	if err != nil {
-		log.Print(err)
-	}
-
 	for _, car := range cars {
 		stmt, err := dba.Db.Prepare("INSERT INTO cache_car (key, name, brand, desc, tags, class, specs, torque, power, skins) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
@@ -1035,8 +1045,17 @@ func (dba Dbaccess) Update_Cache_Cars(cars []Cache_Car) int64 {
 		_, err = stmt.Exec(&car.Key, &car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins)
 		defer stmt.Close()
 
+		// err is assumed to be FK error
 		if err != nil {
-			log.Print(err)
+			stmt, err = dba.Db.Prepare("UPDATE cache_car SET name = ?, brand = ?, desc = ?, tags = ?, class = ?, specs = ?, torque = ?, power = ?, skins = ? WHERE key = ?")
+			if err != nil {
+				log.Print(err)
+			}
+			_, err = stmt.Exec(&car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins, &car.Key)
+			defer stmt.Close()
+			if err != nil {
+				log.Print(err)
+			}
 		}
 	}
 
@@ -1134,11 +1153,6 @@ func (dba Dbaccess) Select_Cache_Car(car_key string) Cache_Car {
 }
 
 func (dba Dbaccess) Update_Cache_Tracks(tracks []Cache_Track) int64 {
-	_, err := dba.Db.Exec("DELETE FROM cache_track")
-	if err != nil {
-		log.Print(err)
-	}
-
 	for _, track := range tracks {
 
 		tagsRes, err := json.Marshal(&track.Tags)
@@ -1154,8 +1168,18 @@ func (dba Dbaccess) Update_Cache_Tracks(tracks []Cache_Track) int64 {
 		_, err = stmt.Exec(&track.Key, &track.Config, &track.Name, &track.Desc, tags, &track.Country, &track.City, &track.Length, &track.Width, &track.Pitboxes, &track.Run)
 		defer stmt.Close()
 
+		// err is assumed to be FK error
 		if err != nil {
-			log.Print(err)
+			stmt, err := dba.Db.Prepare("UPDATE cache_track SET name = ?, desc = ?, tags = ?, country = ?, city = ?, length = ?, width = ?, pitboxes = ?, run = ? WHERE key = ? AND config = ?")
+			if err != nil {
+				log.Print(err)
+			}
+			_, err = stmt.Exec(&track.Name, &track.Desc, tags, &track.Country, &track.City, &track.Length, &track.Width, &track.Pitboxes, &track.Run, &track.Key, &track.Config)
+			defer stmt.Close()
+
+			if err != nil {
+				log.Print(err)
+			}
 		}
 	}
 
@@ -1226,11 +1250,6 @@ func (dba Dbaccess) Select_Cache_Track(track_key string, track_config string) Ca
 }
 
 func (dba Dbaccess) Update_Cache_Weathers(weathers []Cache_Weather) int64 {
-	_, err := dba.Db.Exec("DELETE FROM cache_weather")
-	if err != nil {
-		log.Print(err)
-	}
-
 	for _, w := range weathers {
 		stmt, err := dba.Db.Prepare("INSERT INTO cache_weather (key, name) VALUES (?, ?)")
 		if err != nil {
@@ -1239,8 +1258,18 @@ func (dba Dbaccess) Update_Cache_Weathers(weathers []Cache_Weather) int64 {
 		_, err = stmt.Exec(&w.Key, &w.Name)
 		defer stmt.Close()
 
+		// err is assumed to be FK error
 		if err != nil {
-			log.Print(err)
+			stmt, err := dba.Db.Prepare("UPDATE cache_weather set name = ? WHERE key = ?")
+			if err != nil {
+				log.Print(err)
+			}
+			_, err = stmt.Exec(&w.Key, &w.Name)
+			defer stmt.Close()
+
+			if err != nil {
+				log.Print(err)
+			}
 		}
 	}
 

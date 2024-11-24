@@ -22,6 +22,8 @@ type ConfigRenderer struct {
 	Class            User_Class
 	Track            Cache_Track
 	Csp_Required     bool
+	Max_Clients      int
+	Server_Event     Server_Event
 }
 
 // 8:00 AM = -80
@@ -215,4 +217,5 @@ func (cr *ConfigRenderer) Render_Ini(event_id int) {
 	cr.EntryList_Result = b2.String()
 	cr.Class = class
 	cr.Track = track
+	cr.Max_Clients = max_clients
 }

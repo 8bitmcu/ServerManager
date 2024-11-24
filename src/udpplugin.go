@@ -6,7 +6,6 @@ import (
 	"math"
 	"net"
 	"strconv"
-	"time"
 
 	"golang.org/x/text/encoding/unicode/utf32"
 )
@@ -287,19 +286,8 @@ func (udp UDPPlugin) Receive() {
 		log.Print("ACSP_END_SESSION: " + file)
 
 		if Status.Session.Current_session_index == Status.Session.Session_count-1 {
-			// This was the last session, let's kill the server and change track
-			log.Print("Kicking players")
-			Udp.Write_KickUser(0)
-			time.Sleep(2 * time.Second)
-
-			// TODO: kick all players
-
-
-			log.Print("Track change")
-			Stop()
-			Status.Server_ApplyTrack()
-			Start()
-
+			log.Print("UDP Plugin triggers Server Change Track")
+			Status.Server_ChangeTrack()
 		}
 
 	case ACSP_CLIENT_EVENT:

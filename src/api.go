@@ -271,3 +271,12 @@ func API_Queue_MoveDown(c *gin.Context) {
 	c.String(http.StatusOK, "ok")
 }
 
+func API_Queue_SkipEvent(c *gin.Context) {
+	Status.Server_ChangeTrack()
+	c.String(http.StatusOK, "ok")
+}
+
+func API_Queue_ClearCompleted(c *gin.Context) {
+	Dba.Delete_Server_Events_Completed()
+	c.String(http.StatusOK, "ok")
+}

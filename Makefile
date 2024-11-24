@@ -1,12 +1,12 @@
 build:
-	go-assets-builder schema.sql favicon.ico ini htm img css -o src/assets.go
 	npx tailwindcss -i ./css/input.css -o ./css/main.css --minify
+	go-assets-builder schema.sql favicon.ico ini htm img css -o src/assets.go
 	cd src; CGO_ENABLED=1 go build -o ../bin/sm -ldflags="-w -s" .
 
 buildwin:
+	npx tailwindcss -i ./css/input.css -o ./css/main.css --minify
 	go-assets-builder schema.sql favicon.ico ini htm img css -o src/assets.go
 	go-winres make
-	npx tailwindcss -i ./css/input.css -o ./css/main.css --minify
 	cd src; CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -o ../bin/sm.exe -ldflags='-w -s' .
 	upx -9 bin/sm.exe
 

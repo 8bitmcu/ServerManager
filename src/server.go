@@ -21,7 +21,6 @@ var Public_Ip string
 func (stats Server_Status) Refresh() {
 	Status.Status = Is_Running()
 	Status.Public_Ip = Public_Ip
-
 }
 
 func (status Server_Status) Update_Public_Ip() {
@@ -48,15 +47,35 @@ func (status Server_Status) Update_Public_Ip() {
 	}()
 }
 
-func (status Server_Status) Server_ApplyTrack() {
+func (status Server_Status) Server_ChangeTrack() {
+	log.Print("Kicking players for track change")
+	// Haven't found a cleaner way to notify the users the track is about to change but to kick them
+	for i := range Cr.Max_Clients {
+		Udp.Write_KickUser(i)
+	}
+	time.Sleep(3 * time.Second)
+
+	Stop()
+	val := 1
+	Cr.Server_Event.Finished = &val
+	Dba.Update_Server_Event(Cr.Server_Event)
+	if Status.Server_ApplyTrack() {
+		Start()
+	} else {
+		log.Print("End")
+	}
+}
+
+func (status Server_Status) Server_ApplyTrack() bool {
 	next_events := Dba.Select_Server_Events(true)
 
 	if len(next_events) < 0 {
 		log.Print("No events in queue")
-		return
+		return false
 	}
 	next_event := next_events[0]
 
+	Cr.Server_Event = next_event
 	Cr.Render_Ini(*next_event.User_Event.Id)
 	Cr.Write_Ini()
 
@@ -106,4 +125,5 @@ func (status Server_Status) Server_ApplyTrack() {
 
 	Zf.Close()
 
+	return true
 }

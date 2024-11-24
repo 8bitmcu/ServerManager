@@ -40,6 +40,7 @@
       },
 
       loading: false,
+      skipping: false,
       server_start: function() {
         this.loading = true;
         fetch("/api/server/start").then(x => {
@@ -63,6 +64,22 @@
           window.location=window.location;
         })
       },
+
+      skip_event: function() {
+        this.skipping = true;
+        if (!confirm("Are you sure?"))
+          return
+        fetch("/api/queue/skipevent").then(x => {
+          window.location=window.location;
+        })
+      },
+      clear_completed: function() {
+        if (!confirm("Are you sure?"))
+          return
+        fetch("/api/queue/clearcompleted").then(x => {
+          window.location=window.location;
+        })
+      }
     }
   }
 </script>
@@ -93,6 +110,7 @@
             {{ $i := 1 }}
             {{ $s := .status.Status }}
             {{ $len := .server_events | len }}
+            {{ $hasNonFinished := 0 }}
             {{range $idx, $val := .server_events }}
             <tr class="even:bg-gray-200 {{ if (eq (derefInt $val.Finished ) "1") }}text-gray-400{{ end }}{{ if (and (and (gt (derefInt64 $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) $s) }}font-semibold{{end}}">
               <td class="py-2 pl-4">
@@ -112,9 +130,11 @@
               <td class="py-2">
                 {{ if (and (and (gt (derefInt64 $val.Started_At ) "0") (eq (derefInt $val.Finished ) "0")) $s) }}
                 {{ if (not (eq (inc $idx) $len)) }}
-                <a href="#">Skip Event</a>
+                <button @click="skip_event()" :disabled="skipping" x-show="!skipping">Skip Event</button>
+                <span x-show="skipping">Skipping...</span>
                 {{ end }}
                 {{ else if (eq (derefInt $val.Finished ) "0") }}
+                {{ $hasNonFinished = (inc $hasNonFinished) }}
                 <button class="mr-4" @click="move_up({{ $val.Id }})" {{ if (eq $i 2 )}}disabled{{ end }}>Up</button>
                 <button class="mr-4" @click="move_down({{ $val.Id }})" {{ if (eq (inc $idx) $len )}}disabled{{ end }}>Down</button>
                 <a href="/queue/delete/{{ $val.Id }}" onclick="return confirm('Are you sure?')" >Remove</a>
@@ -134,9 +154,18 @@
           {{ if (gt (len .server_events) 0) }}
           <tfoot class="bg-gray-700 text-white">
             <tr>
-              <td colspan="8" class="py-3 uppercase px-4 font-semibold text-sm">
+              <td colspan="4" class="py-3 uppercase px-4 font-semibold text-sm">
+                <div class="flex flex-row">
+                  <button class="bg-blue-700 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
+                    type="button" @click="clear_completed()" :disabled="loading">
+                    <i class="fas fa-trash"></i>
+                    <span class="px-4">Clear Completed</span>
+                  </button>
+                </div>
+              </td>
+              <td colspan="4" class="py-3 uppercase px-4 font-semibold text-sm">
                 <div class="flex flex-row justify-end">
-                  {{ if not .status.Status }}
+                  {{ if (and (not .status.Status) $hasNonFinished) }}
                     <button class="bg-green-700 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
                       type="button" @click="server_start()" :disabled="loading">
                       <i class="fas fa-play"></i>
