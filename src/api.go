@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func API_Car_Image(c *gin.Context) {
+func apiCarImage(c *gin.Context) {
 	car := c.Param("car")
 	skin := c.Param("skin")
 
@@ -27,40 +27,40 @@ func API_Car_Image(c *gin.Context) {
 		defer r.Close()
 		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/jpg", r, nil)
 	} else {
-		NoRoute(c)
+		noRoute(c)
 	}
 	zf.Close()
 }
 
-func API_Car(c *gin.Context) {
+func apiCar(c *gin.Context) {
 	key := c.Param("key")
 
-	car_data := Dba.Select_Cache_Car(key)
+	cardata := Dba.selectCacheCar(key)
 
 	var power []any
 	var torque []any
 	var labels []any
 
-	for _, l := range car_data.Power {
+	for _, l := range cardata.Power {
 		labels = append(labels, l[0])
 	}
-	for _, p := range car_data.Power {
+	for _, p := range cardata.Power {
 		power = append(power, p[1])
 	}
-	for _, t := range car_data.Torque {
+	for _, t := range cardata.Torque {
 		torque = append(torque, t[1])
 	}
 
 	c.PureJSON(http.StatusOK, gin.H{
 		"key":    key,
-		"desc":   car_data.Desc,
+		"desc":   cardata.Desc,
 		"power":  power,
 		"torque": torque,
 		"labels": labels,
 	})
 }
 
-func API_Track_Preview_Image(c *gin.Context) {
+func apiTrackPreviewImage(c *gin.Context) {
 	track := c.Param("track")
 	config := c.Param("config")
 
@@ -79,12 +79,12 @@ func API_Track_Preview_Image(c *gin.Context) {
 		defer r.Close()
 		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/png", r, nil)
 	} else {
-		NoRoute(c)
+		noRoute(c)
 	}
 	zf.Close()
 }
 
-func API_Track_Outline_Image(c *gin.Context) {
+func apiTrackOutlineImage(c *gin.Context) {
 	track := c.Param("track")
 	config := c.Param("config")
 
@@ -103,21 +103,21 @@ func API_Track_Outline_Image(c *gin.Context) {
 		defer r.Close()
 		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/png", r, nil)
 	} else {
-		NoRoute(c)
+		noRoute(c)
 	}
 	zf.Close()
 }
 
-func API_Difficulty(c *gin.Context) {
+func apiDifficulty(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 
-	data := Dba.Select_Difficulty(id)
+	data := Dba.selectDifficulty(id)
 	if data.Id == nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -125,16 +125,16 @@ func API_Difficulty(c *gin.Context) {
 	})
 }
 
-func API_Session(c *gin.Context) {
+func apiSession(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 
-	data := Dba.Select_Session(id)
+	data := Dba.selectSession(id)
 	if data.Id == nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -142,16 +142,16 @@ func API_Session(c *gin.Context) {
 	})
 }
 
-func API_Class(c *gin.Context) {
+func apiClass(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 
-	data := Dba.Select_Class_Entries(id)
+	data := Dba.selectClassEntries(id)
 	if data.Id == nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -159,16 +159,16 @@ func API_Class(c *gin.Context) {
 	})
 }
 
-func API_Time(c *gin.Context) {
+func apiTime(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 
-	data := Dba.Select_Time_Weather(id)
+	data := Dba.selectTimeWeather(id)
 	if data.Id == nil {
-		NoRoute(c)
+		noRoute(c)
 		return
 	}
 	c.PureJSON(http.StatusOK, gin.H{
@@ -176,18 +176,18 @@ func API_Time(c *gin.Context) {
 	})
 }
 
-func API_Recache_Content(c *gin.Context) {
+func apiRecacheContent(c *gin.Context) {
 
-	Parse_Content(Dba)
+	parseContent(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result":         "ok",
-		"tracks_total":   len(Dba.Select_Cache_Tracks()),
-		"cars_total":     len(Dba.Select_Cache_Cars()),
-		"weathers_total": len(Dba.Select_Cache_Weathers()),
+		"tracks_total":   len(Dba.selectCacheTracks()),
+		"cars_total":     len(Dba.selectCacheCars()),
+		"weathers_total": len(Dba.selectCacheWeathers()),
 	})
 }
 
-func API_Validate_Installpath(c *gin.Context) {
+func apiValidateInstallpath(c *gin.Context) {
 	binary := "acServer"
 	if runtime.GOOS == "windows" {
 		binary = "acServer.exe"
@@ -203,10 +203,10 @@ func API_Validate_Installpath(c *gin.Context) {
 	})
 }
 
-func API_Server_Start(c *gin.Context) {
-	if !Is_Running() {
-		Status.Server_ApplyTrack()
-		Start()
+func apiServerStart(c *gin.Context) {
+	if !isRunning() {
+		Status.serverApplyTrack()
+		start()
 		// Hang the request until the UDP Server becomes online
 		for start := time.Now(); time.Since(start) < time.Minute; {
 			if Udp.online {
@@ -216,67 +216,67 @@ func API_Server_Start(c *gin.Context) {
 		}
 	}
 	c.PureJSON(http.StatusOK, gin.H{
-		"is_running": Is_Running(),
-		"text":       Get_Content(),
+		"is_running": isRunning(),
+		"text":       getContent(),
 	})
 }
 
-func API_Server_Stop(c *gin.Context) {
-	Stop()
+func apiServerStop(c *gin.Context) {
+	stop()
 	c.PureJSON(http.StatusOK, gin.H{
-		"is_running": Is_Running(),
-		"text":       Get_Content(),
+		"is_running": isRunning(),
+		"text":       getContent(),
 	})
 }
 
-func API_Server_Status(c *gin.Context) {
+func apiServerStatus(c *gin.Context) {
 	c.PureJSON(http.StatusOK, gin.H{
-		"is_running": Is_Running(),
-		"text":       Get_Content(),
+		"is_running": isRunning(),
+		"text":       getContent(),
 	})
 }
 
 // Warning: non determistic as some of the items can be randomized/shuffled.
-func API_Entry_List(c *gin.Context) {
+func apiEntryList(c *gin.Context) {
 	id := c.Query("id")
 	idInt, _ := strconv.Atoi(id)
 
-	Cr.Render_Ini(idInt)
-	c.String(http.StatusOK, Cr.EntryList_Result)
+	Cr.renderIni(idInt)
+	c.String(http.StatusOK, Cr.entryListResult)
 }
 
-func API_Server_Cfg(c *gin.Context) {
+func apiServerCfg(c *gin.Context) {
 	id := c.Query("id")
 	idInt, _ := strconv.Atoi(id)
 
-	Cr.Render_Ini(idInt)
-	c.String(http.StatusOK, Cr.ServerCfg_Result)
+	Cr.renderIni(idInt)
+	c.String(http.StatusOK, Cr.serverCfgResult)
 }
 
-func API_Queue_MoveUp(c *gin.Context) {
+func apiQueueMoveUp(c *gin.Context) {
 	id := c.Param("id")
 	idInt, _ := strconv.Atoi(id)
 
-	Dba.Update_ServerEvent_MoveUp(idInt)
+	Dba.updateServerEventMoveUp(idInt)
 
 	c.String(http.StatusOK, "ok")
 }
 
-func API_Queue_MoveDown(c *gin.Context) {
+func apiQueueMoveDown(c *gin.Context) {
 	id := c.Param("id")
 	idInt, _ := strconv.Atoi(id)
 
-	Dba.Update_ServerEvent_MoveDown(idInt)
+	Dba.updateServerEventMoveDown(idInt)
 
 	c.String(http.StatusOK, "ok")
 }
 
-func API_Queue_SkipEvent(c *gin.Context) {
-	Status.Server_ChangeTrack()
+func apiQueueSkipEvent(c *gin.Context) {
+	Status.serverChangeTrack()
 	c.String(http.StatusOK, "ok")
 }
 
-func API_Queue_ClearCompleted(c *gin.Context) {
-	Dba.Delete_Server_Events_Completed()
+func apiQueueClearCompleted(c *gin.Context) {
+	Dba.deleteServerEventsCompleted()
 	c.String(http.StatusOK, "ok")
 }

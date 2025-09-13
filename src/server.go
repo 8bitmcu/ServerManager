@@ -9,21 +9,21 @@ import (
 	"time"
 )
 
-type Server_Status struct {
-	Status    bool   `json:"status"`
-	Public_Ip string `json:"public_ip"`
-	Players   int    `json:"players"`
-	Session   SessionInfo
+type ServerStatus struct {
+	Status   bool   `json:"status"`
+	PublicIp string `json:"public_ip"`
+	Players  int    `json:"players"`
+	Session  SessionInfo
 }
 
-var Public_Ip string
+var publicIp string
 
-func (stats Server_Status) Refresh() {
-	Status.Status = Is_Running()
-	Status.Public_Ip = Public_Ip
+func (stats ServerStatus) refresh() {
+	Status.Status = isRunning()
+	Status.PublicIp = publicIp
 }
 
-func (status Server_Status) Update_Public_Ip() {
+func (status ServerStatus) updatePublicIp() {
 	ticker := time.NewTicker(5 * time.Minute)
 	quit := make(chan struct{})
 	go func() {
@@ -38,7 +38,7 @@ func (status Server_Status) Update_Public_Ip() {
 				if err != nil {
 					log.Print(err)
 				}
-				Public_Ip = string(ip)
+				publicIp = string(ip)
 			case <-quit:
 				ticker.Stop()
 				return
@@ -47,45 +47,45 @@ func (status Server_Status) Update_Public_Ip() {
 	}()
 }
 
-func (status Server_Status) Server_ChangeTrack() {
+func (status ServerStatus) serverChangeTrack() {
 	log.Print("Kicking players for track change")
 	// Haven't found a cleaner way to notify the users the track is about to change but to kick them
-	for i := range Cr.Max_Clients {
-		Udp.Write_KickUser(i)
+	for i := range Cr.maxClients {
+		Udp.WriteKickUser(i)
 	}
 	time.Sleep(3 * time.Second)
 
-	Stop()
+	stop()
 	val := 1
-	Cr.Server_Event.Finished = &val
-	Dba.Update_Server_Event(Cr.Server_Event)
-	if Status.Server_ApplyTrack() {
-		Start()
+	Cr.serverEvent.Finished = &val
+	Dba.updateServerEvent(Cr.serverEvent)
+	if Status.serverApplyTrack() {
+		start()
 	} else {
 		log.Print("End")
 	}
 }
 
-func (status Server_Status) Server_ApplyTrack() bool {
-	next_events := Dba.Select_Server_Events(true)
+func (status ServerStatus) serverApplyTrack() bool {
+	nextevents := Dba.selectServerEvents(true)
 
-	if len(next_events) < 0 {
+	if len(nextevents) == 0 {
 		log.Print("No events in queue")
 		return false
 	}
-	next_event := next_events[0]
+	nextevent := nextevents[0]
 
-	Cr.Server_Event = next_event
-	Cr.Render_Ini(*next_event.User_Event.Id)
-	Cr.Write_Ini()
+	Cr.serverEvent = nextevent
+	Cr.renderIni(*nextevent.UserEvent.Id)
+	Cr.writeIni()
 
 	tm := time.Now().Unix()
-	next_event.Started_At = &tm
+	nextevent.StartedAt = &tm
 
-	next_event.ServerCfg = &Cr.ServerCfg_Result
-	next_event.EntryList = &Cr.EntryList_Result
+	nextevent.ServerCfg = &Cr.serverCfgResult
+	nextevent.EntryList = &Cr.entryListResult
 
-	Dba.Update_Server_Event(next_event)
+	Dba.updateServerEvent(nextevent)
 
 	// Populate TempFolder
 	exec := "acServer"
@@ -95,28 +95,28 @@ func (status Server_Status) Server_ApplyTrack() bool {
 	Zf.ExtractFile(Zf.FindZipFile(exec), TempFolder)
 
 	// Extract cars
-	for _, e := range Cr.Class.Entries {
-		Zf.ExtractFiles(Zf.FindZipFiles("cars/"+*e.Cache_Car_Key+"/"), filepath.Join(TempFolder, "content"))
+	for _, e := range Cr.class.Entries {
+		Zf.ExtractFiles(Zf.FindZipFiles("cars/"+*e.CacheCarKey+"/"), filepath.Join(TempFolder, "content"))
 	}
 
 	// Extract track
-	if *Cr.Track.Config == "" {
-		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/models.ini"), filepath.Join(TempFolder, "content"))
-		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/data/drs_zones.ini"), filepath.Join(TempFolder, "content"))
+	if *Cr.track.Config == "" {
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/models.ini"), filepath.Join(TempFolder, "content"))
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/data/drs_zones.ini"), filepath.Join(TempFolder, "content"))
 
-		if Cr.Csp_Required {
-			Zf.ExtractFileToSubfolder(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/data/surfaces.ini"), filepath.Join(TempFolder, "content", "tracks", "csp", *Cr.Track.Key, *Cr.Track.Config, "data"))
+		if Cr.cspRequired {
+			Zf.ExtractFileToSubfolder(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/data/surfaces.ini"), filepath.Join(TempFolder, "content", "tracks", "csp", *Cr.track.Key, *Cr.track.Config, "data"))
 		} else {
-			Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/data/surfaces.ini"), filepath.Join(TempFolder, "content"))
+			Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/data/surfaces.ini"), filepath.Join(TempFolder, "content"))
 		}
 	} else {
-		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/models_"+*Cr.Track.Config+".ini"), filepath.Join(TempFolder, "content"))
-		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/"+*Cr.Track.Config+"/data/drs_zones.ini"), filepath.Join(TempFolder, "content"))
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/models_"+*Cr.track.Config+".ini"), filepath.Join(TempFolder, "content"))
+		Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/"+*Cr.track.Config+"/data/drs_zones.ini"), filepath.Join(TempFolder, "content"))
 
-		if Cr.Csp_Required {
-			Zf.ExtractFileToSubfolder(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/"+*Cr.Track.Config+"/data/surfaces.ini"), filepath.Join(TempFolder, "content", "tracks", "csp", *Cr.Track.Key, *Cr.Track.Config, "data"))
+		if Cr.cspRequired {
+			Zf.ExtractFileToSubfolder(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/"+*Cr.track.Config+"/data/surfaces.ini"), filepath.Join(TempFolder, "content", "tracks", "csp", *Cr.track.Key, *Cr.track.Config, "data"))
 		} else {
-			Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.Track.Key+"/"+*Cr.Track.Config+"/data/surfaces.ini"), filepath.Join(TempFolder, "content"))
+			Zf.ExtractFile(Zf.FindZipFile("tracks/"+*Cr.track.Key+"/"+*Cr.track.Config+"/data/surfaces.ini"), filepath.Join(TempFolder, "content"))
 		}
 	}
 

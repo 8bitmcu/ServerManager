@@ -11,107 +11,107 @@ import (
 )
 
 const (
-	ACSP_PROTOCOL_VERSION      = 4
-	ACSP_NEW_SESSION           = 50
-	ACSP_NEW_CONNECTION        = 51
-	ACSP_CONNECTION_CLOSED     = 52
-	ACSP_CAR_UPDATE            = 53
-	ACSP_CAR_INFO              = 54
-	ACSP_END_SESSION           = 55
-	ACSP_LAP_COMPLETED         = 73
-	ACSP_VERSION               = 56
-	ACSP_CHAT                  = 57
-	ACSP_CLIENT_LOADED         = 58
-	ACSP_SESSION_INFO          = 59
-	ACSP_ERROR                 = 60
-	ACSP_CLIENT_EVENT          = 130
-	ACSP_CE_COLLISION_WITH_CAR = 10
-	ACSP_CE_COLLISION_WITH_ENV = 11
-	ACSP_REALTIMEPOS_INTERVAL  = 200
-	ACSP_GET_CAR_INFO          = 201
-	ACSP_SEND_CHAT             = 202
-	ACSP_BROADCAST_CHAT        = 203
-	ACSP_GET_SESSION_INFO      = 204
-	ACSP_SET_SESSION_INFO      = 205
-	ACSP_KICK_USER             = 206
-	ACSP_NEXT_SESSION          = 207
-	ACSP_RESTART_SESSION       = 208
-	ACSP_ADMIN_COMMAND         = 209
+	acspProtocolVersion     = 4
+	acspNewSession          = 50
+	acspNewConnection       = 51
+	acspConnectionClosed    = 52
+	acspCarUpdate           = 53
+	acspCarInfo             = 54
+	acspEndSession          = 55
+	acspLapCompleted        = 73
+	acspVersion             = 56
+	acspChat                = 57
+	acspClientLoaded        = 58
+	acspSessionInfo         = 59
+	acspError               = 60
+	acspClientEvent         = 130
+	acspCeCollisionWithCar  = 10
+	acspCeCollisionWithEnv  = 11
+	acspRealtimeposInterval = 200
+	acspGetCarInfo          = 201
+	acspSendChat            = 202
+	acspBroadcastChat       = 203
+	acspGetSessionInfo      = 204
+	acspSetSessionInfo      = 205
+	acspKickUser            = 206
+	acspNextSession         = 207
+	acspRestartSession      = 208
+	acspAdminCommand        = 209
 )
 
 type SessionInfo struct {
-	Version               int
-	Session_index         int
-	Current_session_index int
-	Session_count         int
-	Server_name           string
-	Track                 string
-	Track_config          string
-	Name                  string
-	Typ                   int
-	Time                  int
-	Laps                  int
-	Wait_time             int
-	Ambient_temp          int
-	Road_temp             int
-	Weather_graphics      string
-	Elapsed_ms            int32
+	version             int
+	sessionIndex        int
+	currentSessionIndex int
+	sessionCount        int
+	serverName          string
+	track               string
+	trackConfig         string
+	name                string
+	typ                 int
+	time                int
+	laps                int
+	waitTime            int
+	ambientTemp         int
+	roadTemp            int
+	weatherGraphics     string
+	elapsedMs           int32
 }
 
 type ClientEvent struct {
-	Car_id       int
-	Other_car_id int
-	Event_type   int
-	Impact_speed float32
-	World_pos    Vector
-	Rel_pos      Vector
+	carId       int
+	otherCarId  int
+	eventType   int
+	impactSpeed float32
+	worldPos    Vector
+	relPos      Vector
 }
 
 type CarInfo struct {
-	Car_id       int
-	Is_connected bool
-	Car_model    string
-	Car_skin     string
-	Driver_name  string
-	Driver_team  string
-	Driver_guid  string
+	carId       int
+	isConnected bool
+	carModel    string
+	carSkin     string
+	driverName  string
+	driverTeam  string
+	driverGuid  string
 }
 
 type CarUpdate struct {
-	Car_id                int
-	Position              Vector
-	Velocity              Vector
-	Gear                  int
-	Engine_rpm            int
-	Normalized_spline_pos float32
+	carId               int
+	position            Vector
+	velocity            Vector
+	gear                int
+	engineRpm           int
+	normalizedSplinePos float32
 }
 
 type NewConnection struct {
-	Driver_name string
-	Driver_guid string
-	Car_id      int
-	Car_model   string
-	Car_skin    string
+	driverName string
+	driverGuid string
+	carId      int
+	carModel   string
+	carSkin    string
 }
 
 type ConnectionClosed struct {
-	Driver_name string
-	Driver_guid string
-	Car_id      int
-	Car_model   string
-	Car_skin    string
+	driverName string
+	driverGuid string
+	carId      int
+	carModel   string
+	carSkin    string
 }
 
 type LapCompleted struct {
-	Car_id  int
-	Laptime uint32
-	Cuts    int
+	carId   int
+	laptime uint32
+	cuts    int
 }
 
 type Vector struct {
-	X float32
-	Y float32
-	Z float32
+	x float32
+	y float32
+	z float32
 }
 
 type UdpReader struct {
@@ -123,27 +123,27 @@ func (r *UdpReader) New(p []byte) {
 	r.data = p
 }
 
-func (r *UdpReader) Read_Byte() int {
+func (r *UdpReader) ReadByte() int {
 	val := r.data[r.readIndex]
 	r.readIndex = r.readIndex + 1
 	return int(val)
 }
 
-func (r *UdpReader) Read_Bytes(bytes int) []byte {
+func (r *UdpReader) ReadBytes(bytes int) []byte {
 	val := r.data[r.readIndex : r.readIndex+int64(bytes)]
 	r.readIndex = r.readIndex + int64(bytes)
 	return val
 }
 
-func (r *UdpReader) Read_String() string {
-	length := int(r.Read_Byte())
-	bytes := r.Read_Bytes(length)
+func (r *UdpReader) ReadString() string {
+	length := int(r.ReadByte())
+	bytes := r.ReadBytes(length)
 	return string(bytes)
 }
 
-func (r *UdpReader) Read_UTF32_String() string {
-	length := int(r.Read_Byte() * 4)
-	bytes := r.Read_Bytes(length)
+func (r *UdpReader) ReadUTF32String() string {
+	length := int(r.ReadByte() * 4)
+	bytes := r.ReadBytes(length)
 
 	val, err := utf32.UTF32(utf32.LittleEndian, utf32.IgnoreBOM).NewDecoder().Bytes(bytes)
 
@@ -154,26 +154,26 @@ func (r *UdpReader) Read_UTF32_String() string {
 	return string(val)
 }
 
-func (r *UdpReader) Read_Uint16() int {
-	bytes := r.Read_Bytes(2)
+func (r *UdpReader) ReadUint16() int {
+	bytes := r.ReadBytes(2)
 	data := binary.LittleEndian.Uint16(bytes)
 	return int(data)
 }
 
-func (r *UdpReader) Read_Int32() int32 {
-	bytes := r.Read_Bytes(4)
+func (r *UdpReader) ReadInt32() int32 {
+	bytes := r.ReadBytes(4)
 	data := binary.LittleEndian.Uint32(bytes)
 	return int32(data)
 }
 
-func (r *UdpReader) Read_Uint32() uint32 {
-	bytes := r.Read_Bytes(4)
+func (r *UdpReader) ReadUint32() uint32 {
+	bytes := r.ReadBytes(4)
 	data := binary.LittleEndian.Uint32(bytes)
 	return data
 }
 
-func (r *UdpReader) Read_Float() float32 {
-	bytes := r.Read_Bytes(4)
+func (r *UdpReader) ReadFloat() float32 {
+	bytes := r.ReadBytes(4)
 	a := binary.LittleEndian.Uint32(bytes)
 	a2 := math.Float32frombits(a)
 	return a2
@@ -183,14 +183,14 @@ type UdpWriter struct {
 	data []byte
 }
 
-func (w *UdpWriter) Write_Byte(d byte) {
+func (w *UdpWriter) WriteByte(d byte) {
 	w.data = append(w.data, d)
 }
 
-func (w *UdpWriter) Write_UTF32_String(str string) {
+func (w *UdpWriter) WriteUTF32String(str string) {
 	val, err := utf32.UTF32(utf32.LittleEndian, utf32.IgnoreBOM).NewEncoder().Bytes([]byte(str))
 
-	w.Write_Byte(byte(len(str)))
+	w.WriteByte(byte(len(str)))
 
 	if err != nil {
 		log.Print(err)
@@ -198,37 +198,40 @@ func (w *UdpWriter) Write_UTF32_String(str string) {
 	w.data = append(w.data, val[:]...)
 }
 
-func Read_SessionInfo(r UdpReader) SessionInfo {
+func readSessionInfo(r UdpReader) SessionInfo {
 	var s SessionInfo
-	s.Version = r.Read_Byte()
-	s.Session_index = r.Read_Byte()
-	s.Current_session_index = r.Read_Byte()
-	s.Session_count = r.Read_Byte()
-	s.Server_name = r.Read_UTF32_String()
-	s.Track = r.Read_String()
-	s.Track_config = r.Read_String()
-	s.Name = r.Read_String()
-	s.Typ = r.Read_Byte()
-	s.Time = r.Read_Uint16()
-	s.Laps = r.Read_Uint16()
-	s.Wait_time = r.Read_Uint16()
-	s.Ambient_temp = r.Read_Byte()
-	s.Road_temp = r.Read_Byte()
-	s.Weather_graphics = r.Read_String()
-	s.Elapsed_ms = r.Read_Int32()
+	s.version = r.ReadByte()
+	s.sessionIndex = r.ReadByte()
+	s.currentSessionIndex = r.ReadByte()
+	s.sessionCount = r.ReadByte()
+	s.serverName = r.ReadUTF32String()
+	s.track = r.ReadString()
+	s.trackConfig = r.ReadString()
+	s.name = r.ReadString()
+	s.typ = r.ReadByte()
+	s.time = r.ReadUint16()
+	s.laps = r.ReadUint16()
+	s.waitTime = r.ReadUint16()
+	s.ambientTemp = r.ReadByte()
+	s.roadTemp = r.ReadByte()
+	s.weatherGraphics = r.ReadString()
+	s.elapsedMs = r.ReadInt32()
 	return s
 }
 
-type UDPPlugin struct {
+type UdpPlugin struct {
 	conn   *net.UDPConn
 	online bool
 }
 
-func UdpListen() UDPPlugin {
-	var udp UDPPlugin
+func udpListen() UdpPlugin {
+	var udp UdpPlugin
 	udpClient, err := net.ResolveUDPAddr("udp", ":5001")
-	udpServer, err := net.ResolveUDPAddr("udp", ":5000")
+	if err != nil {
+		log.Print(err)
+	}
 
+	udpServer, err := net.ResolveUDPAddr("udp", ":5000")
 	if err != nil {
 		log.Print(err)
 	}
@@ -241,170 +244,170 @@ func UdpListen() UDPPlugin {
 	return udp
 }
 
-func (udp UDPPlugin) Receive() {
+func (udp UdpPlugin) Receive() {
 	data := make([]byte, 1024)
 	udp.conn.Read(data)
 
 	r := UdpReader{}
 	r.New(data)
 
-	acsp := r.Read_Byte()
+	acsp := r.ReadByte()
 
 	switch acsp {
-	case ACSP_ERROR:
-		err := r.Read_UTF32_String()
+	case acspError:
+		err := r.ReadUTF32String()
 		log.Print("ACSP_ERROR: ", err)
 
-	case ACSP_CHAT:
-		car := r.Read_Byte()
-		msg := r.Read_UTF32_String()
+	case acspChat:
+		car := r.ReadByte()
+		msg := r.ReadUTF32String()
 		log.Print("ACSP_CHAT: " + strconv.Itoa(car) + "; " + msg)
 
-	case ACSP_CLIENT_LOADED:
-		car := r.Read_Byte()
+	case acspClientLoaded:
+		car := r.ReadByte()
 		log.Print("ACSP_CLIENT_LOADED: ", car)
 
-	case ACSP_VERSION:
-		v := r.Read_Byte()
+	case acspVersion:
+		v := r.ReadByte()
 		log.Print("ACSP_VERSION: ", v)
 		Udp.online = true
 
-	case ACSP_NEW_SESSION:
-		sess := Read_SessionInfo(r)
+	case acspNewSession:
+		sess := readSessionInfo(r)
 		log.Print("ACSP_NEW_SESSION: ")
-		Print_Interface(sess)
+		PrintInterface(sess)
 		Status.Session = sess
 
-	case ACSP_SESSION_INFO:
-		sess := Read_SessionInfo(r)
+	case acspSessionInfo:
+		sess := readSessionInfo(r)
 		log.Print("ACSP_SESSION_INFO: ")
-		Print_Interface(sess)
+		PrintInterface(sess)
 		Status.Session = sess
 
-	case ACSP_END_SESSION:
-		file := r.Read_UTF32_String()
+	case acspEndSession:
+		file := r.ReadUTF32String()
 		log.Print("ACSP_END_SESSION: " + file)
 
-		if Status.Session.Current_session_index == Status.Session.Session_count-1 {
+		if Status.Session.currentSessionIndex == Status.Session.sessionCount-1 {
 			log.Print("UDP Plugin triggers Server Change Track")
-			Status.Server_ChangeTrack()
+			Status.serverChangeTrack()
 		}
 
-	case ACSP_CLIENT_EVENT:
+	case acspClientEvent:
 		var ce ClientEvent
-		ce.Event_type = r.Read_Byte()
-		ce.Car_id = r.Read_Byte()
-		if ce.Event_type == ACSP_CE_COLLISION_WITH_CAR {
-			ce.Other_car_id = r.Read_Byte()
+		ce.eventType = r.ReadByte()
+		ce.carId = r.ReadByte()
+		if ce.eventType == acspCeCollisionWithCar {
+			ce.otherCarId = r.ReadByte()
 		}
-		ce.Impact_speed = r.Read_Float()
-		ce.World_pos = Vector{r.Read_Float(), r.Read_Float(), r.Read_Float()}
-		ce.Rel_pos = Vector{r.Read_Float(), r.Read_Float(), r.Read_Float()}
+		ce.impactSpeed = r.ReadFloat()
+		ce.worldPos = Vector{r.ReadFloat(), r.ReadFloat(), r.ReadFloat()}
+		ce.relPos = Vector{r.ReadFloat(), r.ReadFloat(), r.ReadFloat()}
 		log.Print("ACSP_CLIENT_EVENT: ")
-		Print_Interface(ce)
+		PrintInterface(ce)
 
-	case ACSP_CAR_INFO:
+	case acspCarInfo:
 		var ci CarInfo
-		ci.Car_id = r.Read_Byte()
-		ci.Is_connected = r.Read_Byte() != 0
-		ci.Car_model = r.Read_UTF32_String()
-		ci.Car_skin = r.Read_UTF32_String()
-		ci.Driver_name = r.Read_UTF32_String()
-		ci.Driver_team = r.Read_UTF32_String()
-		ci.Driver_guid = r.Read_UTF32_String()
+		ci.carId = r.ReadByte()
+		ci.isConnected = r.ReadByte() != 0
+		ci.carModel = r.ReadUTF32String()
+		ci.carSkin = r.ReadUTF32String()
+		ci.driverName = r.ReadUTF32String()
+		ci.driverTeam = r.ReadUTF32String()
+		ci.driverGuid = r.ReadUTF32String()
 		log.Print("ACSP_CAR_INFO: ")
-		Print_Interface(ci)
+		PrintInterface(ci)
 
-	case ACSP_CAR_UPDATE:
+	case acspCarUpdate:
 		var cu CarUpdate
-		cu.Car_id = r.Read_Byte()
-		cu.Position = Vector{r.Read_Float(), r.Read_Float(), r.Read_Float()}
-		cu.Velocity = Vector{r.Read_Float(), r.Read_Float(), r.Read_Float()}
-		cu.Gear = r.Read_Byte()
-		cu.Engine_rpm = r.Read_Uint16()
-		cu.Normalized_spline_pos = r.Read_Float()
+		cu.carId = r.ReadByte()
+		cu.position = Vector{r.ReadFloat(), r.ReadFloat(), r.ReadFloat()}
+		cu.velocity = Vector{r.ReadFloat(), r.ReadFloat(), r.ReadFloat()}
+		cu.gear = r.ReadByte()
+		cu.engineRpm = r.ReadUint16()
+		cu.normalizedSplinePos = r.ReadFloat()
 		log.Print("ACSP_CAR_UPDATE: ")
-		Print_Interface(cu)
+		PrintInterface(cu)
 
-	case ACSP_NEW_CONNECTION:
+	case acspNewConnection:
 		var nc NewConnection
-		nc.Driver_name = r.Read_UTF32_String()
-		nc.Driver_guid = r.Read_UTF32_String()
-		nc.Car_id = r.Read_Byte()
-		nc.Car_model = r.Read_String()
-		nc.Car_skin = r.Read_String()
+		nc.driverName = r.ReadUTF32String()
+		nc.driverGuid = r.ReadUTF32String()
+		nc.carId = r.ReadByte()
+		nc.carModel = r.ReadString()
+		nc.carSkin = r.ReadString()
 		Status.Players = Status.Players + 1
 		log.Print("ACSP_NEW_CONNECTION: ")
-		Print_Interface(nc)
+		PrintInterface(nc)
 
-	case ACSP_CONNECTION_CLOSED:
+	case acspConnectionClosed:
 		var cc ConnectionClosed
-		cc.Driver_name = r.Read_UTF32_String()
-		cc.Driver_guid = r.Read_UTF32_String()
-		cc.Car_id = r.Read_Byte()
-		cc.Car_model = r.Read_String()
-		cc.Car_skin = r.Read_String()
+		cc.driverName = r.ReadUTF32String()
+		cc.driverGuid = r.ReadUTF32String()
+		cc.carId = r.ReadByte()
+		cc.carModel = r.ReadString()
+		cc.carSkin = r.ReadString()
 		Status.Players = Status.Players - 1
 		log.Print("ACSP_CONNECTION_CLOSED: ")
-		Print_Interface(cc)
+		PrintInterface(cc)
 
-	case ACSP_LAP_COMPLETED:
+	case acspLapCompleted:
 		var lc LapCompleted
-		lc.Car_id = r.Read_Byte()
-		lc.Laptime = r.Read_Uint32()
-		lc.Cuts = r.Read_Byte()
+		lc.carId = r.ReadByte()
+		lc.laptime = r.ReadUint32()
+		lc.cuts = r.ReadByte()
 		log.Print("ACSP_LAP_COMPLETED: ")
-		Print_Interface(lc)
+		PrintInterface(lc)
 
 	default:
 		log.Print("ACSP Unknown code: "+strconv.Itoa(acsp), data)
 	}
 }
 
-func (udp UDPPlugin) Write_AdminCommand(command string) {
+func (udp UdpPlugin) WriteAdminCommand(command string) {
 	var w UdpWriter
-	w.Write_Byte(ACSP_ADMIN_COMMAND)
-	w.Write_UTF32_String(command)
+	w.WriteByte(acspAdminCommand)
+	w.WriteUTF32String(command)
 	udp.conn.Write(w.data)
 }
 
-func (udp UDPPlugin) Write_BroadcastChat(message string) {
+func (udp UdpPlugin) WriteBroadcastChat(message string) {
 	var w UdpWriter
-	w.Write_Byte(ACSP_BROADCAST_CHAT)
-	w.Write_UTF32_String(message)
+	w.WriteByte(acspBroadcastChat)
+	w.WriteUTF32String(message)
 	udp.conn.Write(w.data)
 }
 
-func (udp UDPPlugin) Write_GetCarInfo(car_id int) {
+func (udp UdpPlugin) WriteGetCarInfo(carid int) {
 	var w UdpWriter
-	w.Write_Byte(ACSP_GET_CAR_INFO)
-	w.Write_Byte(byte(car_id))
+	w.WriteByte(acspGetCarInfo)
+	w.WriteByte(byte(carid))
 	udp.conn.Write(w.data)
 }
 
-func (udp UDPPlugin) Write_KickUser(car_id int) {
+func (udp UdpPlugin) WriteKickUser(carid int) {
 	var w UdpWriter
-	w.Write_Byte(ACSP_KICK_USER)
-	w.Write_Byte(byte(car_id))
+	w.WriteByte(acspKickUser)
+	w.WriteByte(byte(carid))
 	udp.conn.Write(w.data)
 }
 
-func (udp UDPPlugin) Write_NextSession() {
+func (udp UdpPlugin) WriteNextSession() {
 	var w UdpWriter
-	w.Write_Byte(ACSP_NEXT_SESSION)
+	w.WriteByte(acspNextSession)
 	udp.conn.Write(w.data)
 }
 
-func (udp UDPPlugin) Write_RestartSession() {
+func (udp UdpPlugin) WriteRestartSession() {
 	var w UdpWriter
-	w.Write_Byte(ACSP_RESTART_SESSION)
+	w.WriteByte(acspRestartSession)
 	udp.conn.Write(w.data)
 }
 
-func (udp UDPPlugin) Write_SendChat(car_id int, message string) {
+func (udp UdpPlugin) WriteSendChat(carid int, message string) {
 	var w UdpWriter
-	w.Write_Byte(ACSP_SEND_CHAT)
-	w.Write_Byte(byte(car_id))
-	w.Write_UTF32_String(message)
+	w.WriteByte(acspSendChat)
+	w.WriteByte(byte(carid))
+	w.WriteUTF32String(message)
 	udp.conn.Write(w.data)
 }

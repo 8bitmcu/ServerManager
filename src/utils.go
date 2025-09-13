@@ -8,7 +8,7 @@ import (
 )
 
 // open opens the specified URL in the default browser of the user.
-func Open_URL(url string) error {
+func OpenURL(url string) error {
 	var cmd string
 	var args []string
 
@@ -25,7 +25,7 @@ func Open_URL(url string) error {
 	return exec.Command(cmd, args...).Start()
 }
 
-func Print_Interface(t interface{}) {
+func PrintInterface(t interface{}) {
 	s, _ := json.MarshalIndent(t, "", "\t")
 	fmt.Print(string(s))
 }

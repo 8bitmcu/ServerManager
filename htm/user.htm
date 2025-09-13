@@ -19,8 +19,8 @@
         </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="measurement_unit"
           name="measurement_unit">
-          <option value="0" {{ if (eq (derefInt .form.Measurement_Unit) "0")}} selected {{ end }}>KM, KM/h</option>
-          <option value="1" {{ if (eq (derefInt .form.Measurement_Unit) "1") }} selected {{ end }}>Miles, MPH</option>
+          <option value="0" {{ if (eq (derefInt .form.MeasurementUnit) "0")}} selected {{ end }}>KM, KM/h</option>
+          <option value="1" {{ if (eq (derefInt .form.MeasurementUnit) "1") }} selected {{ end }}>Miles, MPH</option>
         </select>
       </div>
       <div class="mt-2">
@@ -33,8 +33,8 @@
           </div>
         </label>
         <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="temp_unit" name="temp_unit">
-          <option value="0" {{ if (eq (derefInt .form.Temp_Unit) "0") }} selected {{ end }}>Celcius</option>
-          <option value="1" {{ if (eq (derefInt .form.Temp_Unit) "1") }} selected {{ end }}>Fahrenheit</option>
+          <option value="0" {{ if (eq (derefInt .form.TempUnit) "0") }} selected {{ end }}>Celcius</option>
+          <option value="1" {{ if (eq (derefInt .form.TempUnit) "1") }} selected {{ end }}>Fahrenheit</option>
         </select>
       </div>
     </div>

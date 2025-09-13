@@ -11,7 +11,7 @@ import (
 var lines string
 var cmd *exec.Cmd
 
-func Start() {
+func start() {
 	binary := "acServer"
 	if runtime.GOOS == "windows" {
 		binary = "acServer.exe"
@@ -42,11 +42,11 @@ func Start() {
 	}()
 
 }
-func Get_Content() string {
+func getContent() string {
 	return lines
 }
 
-func Is_Running() bool {
+func isRunning() bool {
 	if cmd != nil && cmd.ProcessState != nil {
 		return cmd.ProcessState.Exited()
 	} else if cmd != nil && cmd.Process != nil {
@@ -55,7 +55,7 @@ func Is_Running() bool {
 	return false
 }
 
-func Stop() {
+func stop() {
 	if cmd != nil && cmd.Process != nil {
 		cmd.Process.Kill()
 		cmd = nil

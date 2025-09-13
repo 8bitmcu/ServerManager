@@ -75,9 +75,9 @@
         function csp_timeweather() {
           return {
             weatherlist: {{ .weatherlist }},
-            time_of_day_multi: {{ .form.Time_Of_Day_Multi | derefInt }},
+            time_of_day_multi: {{ .form.TimeOfDayMulti | derefInt }},
             time_of_day: {{ .form.Time | derefStr }},
-            csp_enabled: {{ .form.Csp_Enabled | toJsBool }},
+            csp_enabled: {{ .form.CspEnabled | toJsBool }},
             csp_changed: function(val) {
               this.items.forEach(x => {
                 x.csp_time = "";

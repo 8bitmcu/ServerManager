@@ -23,11 +23,11 @@
   }
   function csp() {
     return {
-      csp_required: {{ .form.Csp_Required | toJsBool}},
-      csp_version: {{ .form.Csp_Version}},
-      csp_phycars: {{ .form.Csp_Phycars | toJsBool}},
-      csp_phytracks: {{ .form.Csp_Phytracks | toJsBool}},
-      csp_hidepit: {{ .form.Csp_Hidepit | toJsBool}},
+      csp_required: {{ .form.CspRequired | toJsBool}},
+      csp_version: {{ .form.CspVersion}},
+      csp_phycars: {{ .form.CspPhycars | toJsBool}},
+      csp_phytracks: {{ .form.CspPhytracks | toJsBool}},
+      csp_hidepit: {{ .form.CspHidepit | toJsBool}},
 
       csp_required_changed: function(val) {
         if (val) {
@@ -66,7 +66,7 @@
   }
   function install_path() {
     return {
-      install_path: '{{ .form.Install_Path | derefStr }}',
+      install_path: '{{ .form.InstallPath | derefStr }}',
       path_valid: null,
       loading: false,
 
@@ -117,7 +117,7 @@
       <hr />
       <div class="w-full flex flex-row px-2 py-3">
         <div>
-          {{ if (eq (derefInt .form.Mod_Filled) "1") }}
+          {{ if (eq (derefInt .form.ModFilled) "1") }}
           <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
             type="button" @click="load_content()" :disabled="loading">
             <span class="pr-2">Reload Content</span>

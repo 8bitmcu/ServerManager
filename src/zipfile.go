@@ -169,6 +169,9 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 	}
 	defer zr.Close()
 	zwf, err := os.Create(zipfilename + "_")
+	if err != nil {
+		log.Print(err)
+	}
 	defer zwf.Close()
 	zw := zip.NewWriter(zwf)
 	defer zwf.Close()
@@ -286,7 +289,7 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 	log.Print("Copying zipfile content...")
 	inNewFiles := func(value string) bool {
 		for _, item := range newFiles {
-			if strings.ToLower(item) == strings.ToLower(value) {
+			if strings.EqualFold(item, value) {
 				return true
 			}
 		}
@@ -305,6 +308,9 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 
 		header := zipItem.FileHeader
 		targetItem, err := zw.CreateRaw(&header)
+		if err != nil {
+			log.Print(err)
+		}
 		_, err = io.Copy(targetItem, zipItemReader)
 		if err != nil {
 			log.Print(err)

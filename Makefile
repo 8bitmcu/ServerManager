@@ -17,6 +17,7 @@ run:
 deps:
 	go install github.com/jessevdk/go-assets-builder@latest
 	go install github.com/tc-hib/go-winres@latest
+	go get main/src
 	npm install
 	npx tailwindcss -i ./css/input.css -o ./css/main.css
 

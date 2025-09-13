@@ -2,6 +2,7 @@ package-lock.json
 node_modules/*
 css/main.css
 go.sum
+go.mod
 bin/*
 src/assets.go
 *.syso

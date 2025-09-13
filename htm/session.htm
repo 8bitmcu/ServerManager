@@ -73,27 +73,27 @@
       <script>
         function sessions() {
           return {
-            booking_enabled: {{ .form.Booking_Enabled | toJsBool }},
-            booking_time: {{ .form.Booking_Time }},
+            booking_enabled: {{ .form.BookingEnabled | toJsBool }},
+            booking_time: {{ .form.BookingTime }},
 
-            practice_enabled: {{ .form.Practice_Enabled | toJsBool }},
-            practice_time: {{ .form.Practice_Time }},
-            practice_is_open: {{ .form.Practice_Is_Open }},
+            practice_enabled: {{ .form.PracticeEnabled | toJsBool }},
+            practice_time: {{ .form.PracticeTime }},
+            practice_is_open: {{ .form.PracticeIsOpen }},
 
-            qualify_enabled: {{ .form.Qualify_Enabled | toJsBool }},
-            qualify_time: {{ .form.Qualify_Time }},
-            qualify_is_open:  {{ .form.Qualify_Is_Open }},
-            qualify_max_wait_perc:  {{ .form.Qualify_Max_Wait_Perc }},
+            qualify_enabled: {{ .form.QualifyEnabled | toJsBool }},
+            qualify_time: {{ .form.QualifyTime }},
+            qualify_is_open:  {{ .form.QualifyIsOpen }},
+            qualify_max_wait_perc:  {{ .form.QualifyMaxWaitPerc }},
 
-            race_enabled: {{ .form.Race_Enabled | toJsBool }},
-            race_time: {{ .form.Race_Time }},
-            race_extra_lap: {{ .form.Race_Extra_Lap }},
-            race_over_time: {{ .form.Race_Over_Time }},
-            race_wait_time: {{ .form.Race_Wait_Time }},
-            race_is_open: {{ .form.Race_Is_Open }},
-            reversed_grid_positions: {{ .form.Reversed_Grid_Positions }},
-            race_pit_window_start: {{ .form.Race_Pit_Window_Start }},
-            race_pit_window_end: {{ .form.Race_Pit_Window_End }},
+            race_enabled: {{ .form.RaceEnabled | toJsBool }},
+            race_time: {{ .form.RaceTime }},
+            race_extra_lap: {{ .form.RaceExtraLap }},
+            race_over_time: {{ .form.RaceOverTime }},
+            race_wait_time: {{ .form.RaceWaitTime }},
+            race_is_open: {{ .form.RaceIsOpen }},
+            reversed_grid_positions: {{ .form.ReversedGridPositions }},
+            race_pit_window_start: {{ .form.RacePitWindowStart }},
+            race_pit_window_end: {{ .form.RacePitWindowEnd }},
 
 
             booking_changed: function(val) {

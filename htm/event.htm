@@ -22,13 +22,13 @@
       class_data: {{ .classes }},
       time_data: {{ .times }},
 
-      selection_track_key: {{ .form.Cache_Track_Key | derefStr }},
-      selection_track_config: {{ .form.Cache_Track_Config | derefStr }},
-      selection_difficulty: {{ .form.Difficulty_Id | derefInt  }},
-      selection_session: {{ .form.Session_Id | derefInt }},
-      selection_class: {{ .form.Class_Id | derefInt }},
-      selection_time: {{ .form.Time_Id | derefInt }},
-      race_laps: {{.form.Race_Laps | derefInt }},
+      selection_track_key: {{ .form.CacheTrackKey | derefStr }},
+      selection_track_config: {{ .form.CacheTrackConfig | derefStr }},
+      selection_difficulty: {{ .form.DifficultyId | derefInt  }},
+      selection_session: {{ .form.SessionId | derefInt }},
+      selection_class: {{ .form.ClassId | derefInt }},
+      selection_time: {{ .form.TimeId | derefInt }},
+      race_laps: {{.form.RaceLaps | derefInt }},
 
       get_trackdata: function(key, config) {
         if (key == "")
@@ -191,8 +191,8 @@
   }
 </script>
 <h1 class="text-3xl text-black">Edit Event</h1>
-<form class="w-full mt-6 rounded-lg flex bg-white flex-row flex-wrap" action="/event/{{ .form.Event_Category_Id }}" method="POST" x-data="session()" x-init="init()">
-  <input type="hidden" name="event_category_id" value="{{ .form.Event_Category_Id }}"></input>
+<form class="w-full mt-6 rounded-lg flex bg-white flex-row flex-wrap" action="/event/{{ .form.EventCategoryId }}" method="POST" x-data="session()" x-init="init()">
+  <input type="hidden" name="event_category_id" value="{{ .form.EventCategoryId }}"></input>
   <input type="hidden" name="track_key" :value="selection_track_key"></input>
   <input type="hidden" name="track_config" :value="selection_track_config"></input>
 
@@ -586,7 +586,7 @@
 
   <div class="w-full mt-6 pl-0 lg:pl-2">
     <p class="text-xl pb-6 flex items-center">
-      <a href="/event_cat/{{ .form.Event_Category_Id }}" class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-l-md" type="button">
+      <a href="/event_cat/{{ .form.EventCategoryId }}" class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-l-md" type="button">
         Cancel
       </a>
       <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-r-md" type="submit">

@@ -20,20 +20,20 @@ import (
 
 var Dba Dbaccess
 var Cr ConfigRenderer
-var Status Server_Status
-var Udp UDPPlugin
+var Status ServerStatus
+var Udp UdpPlugin
 var ConfigFolder string
 var TempFolder string
 var SecretKey []byte
 var Zf ZipFile
 
 // TODO: checksuming is failing when CSP is enabled
-var DEBUG bool = true
+var debug bool = true
 
 func ConfigCompletedMiddlware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		config_filled := Dba.Select_Config_Filled()
-		if !config_filled && c.Request.URL.Path != "/config" && c.Request.URL.Path != "/content" {
+		configfilled := Dba.selectConfigFilled()
+		if !configfilled && c.Request.URL.Path != "/config" && c.Request.URL.Path != "/content" {
 			c.Redirect(http.StatusFound, "/config")
 			return
 		}
@@ -102,28 +102,27 @@ func main() {
 		}
 	}
 
-	db_path := filepath.Join(ConfigFolder, "smdata.db")
-	log.Print("Opening database file located at: " + db_path)
-	Dba = Open(db_path)
-	Dba.Apply_Schema(FindFile("/schema.sql"))
-	SecretKey = []byte(*Dba.Select_Config().Secret_Key)
+	dbpath := filepath.Join(ConfigFolder, "smdata.db")
+	log.Print("Opening database file located at: " + dbpath)
+	Dba = open(dbpath)
+	Dba.applySchema(FindFile("/schema.sql"))
+	SecretKey = []byte(*Dba.selectConfig().SecretKey)
 
 	gin.SetMode(gin.ReleaseMode)
 
 	Cr = ConfigRenderer{}
-	Status = Server_Status{}
+	Status = ServerStatus{}
 	Zf = ZipFile{}
-	Udp = UdpListen()
+	Udp = udpListen()
 
 	go func() {
-		for true {
+		for {
 			Udp.Receive()
 		}
 	}()
 
-
 	var router *gin.Engine
-	if DEBUG {
+	if debug {
 		router = gin.Default()
 	} else {
 		router = gin.New()
@@ -184,116 +183,116 @@ func main() {
 
 	router.StaticFS("/static", Assets)
 
-	router.GET("/login", Route_Login)
-	router.POST("/login", Route_Login)
-	router.GET("/logout", Route_Logout)
+	router.GET("/login", routeLogin)
+	router.POST("/login", routeLogin)
+	router.GET("/logout", routeLogout)
 
 	app := router.Group("/")
 	app.Use(ConfigCompletedMiddlware())
 	{
-		app.GET("/", Route_Index)
+		app.GET("/", routeIndex)
 
-		app.GET("/config", Route_Config)
-		app.POST("/config", Route_Config)
+		app.GET("/config", routeConfig)
+		app.POST("/config", routeConfig)
 
-		app.GET("/content", Route_Content)
-		app.POST("/content", Route_Content)
+		app.GET("/content", routeContent)
+		app.POST("/content", routeContent)
 
-		app.GET("/difficulty", Route_Difficulty)
-		app.POST("/difficulty", Route_Difficulty)
-		app.GET("/difficulty/:id", Route_Difficulty)
-		app.POST("/difficulty/:id", Route_Difficulty)
-		app.GET("/difficulty/delete/:id", Route_Delete_Difficulty)
-		app.POST("/difficulty/delete/:id", Route_Delete_Difficulty)
+		app.GET("/difficulty", routeDifficulty)
+		app.POST("/difficulty", routeDifficulty)
+		app.GET("/difficulty/:id", routeDifficulty)
+		app.POST("/difficulty/:id", routeDifficulty)
+		app.GET("/difficulty/delete/:id", routeDeleteDifficulty)
+		app.POST("/difficulty/delete/:id", routeDeleteDifficulty)
 
-		app.GET("/class", Route_Class)
-		app.POST("/class", Route_Class)
-		app.GET("/class/:id", Route_Class)
-		app.POST("/class/:id", Route_Class)
-		app.GET("/class/delete/:id", Route_Delete_Class)
-		app.POST("/class/delete/:id", Route_Delete_Class)
+		app.GET("/class", routeClass)
+		app.POST("/class", routeClass)
+		app.GET("/class/:id", routeClass)
+		app.POST("/class/:id", routeClass)
+		app.GET("/class/delete/:id", routeDeleteClass)
+		app.POST("/class/delete/:id", routeDeleteClass)
 
-		app.GET("/session", Route_Session)
-		app.POST("/session", Route_Session)
-		app.GET("/session/:id", Route_Session)
-		app.POST("/session/:id", Route_Session)
-		app.GET("/session/delete/:id", Route_Delete_Session)
-		app.POST("/session/delete/:id", Route_Delete_Session)
+		app.GET("/session", routeSession)
+		app.POST("/session", routeSession)
+		app.GET("/session/:id", routeSession)
+		app.POST("/session/:id", routeSession)
+		app.GET("/session/delete/:id", routeDeleteSession)
+		app.POST("/session/delete/:id", routeDeleteSession)
 
-		app.GET("/time", Route_Time)
-		app.POST("/time", Route_Time)
-		app.GET("/time/:id", Route_Time)
-		app.POST("/time/:id", Route_Time)
-		app.GET("/time/delete/:id", Route_Delete_Time)
-		app.POST("/time/delete/:id", Route_Delete_Time)
+		app.GET("/time", routeTime)
+		app.POST("/time", routeTime)
+		app.GET("/time/:id", routeTime)
+		app.POST("/time/:id", routeTime)
+		app.GET("/time/delete/:id", routeDeleteTime)
+		app.POST("/time/delete/:id", routeDeleteTime)
 
-		app.GET("/event_cat", Route_Event_Category)
-		app.POST("/event_cat", Route_Event_Category)
-		app.GET("/event_cat/:id", Route_Event_Category)
-		app.POST("/event_cat/:id", Route_Event_Category)
-		app.GET("/event_cat/delete/:id", Route_Delete_Event_Category)
-		app.POST("/event_cat/delete/:id", Route_Delete_Event_Category)
+		app.GET("/event_cat", routeEventCategory)
+		app.POST("/event_cat", routeEventCategory)
+		app.GET("/event_cat/:id", routeEventCategory)
+		app.POST("/event_cat/:id", routeEventCategory)
+		app.GET("/event_cat/delete/:id", routeDeleteEventCategory)
+		app.POST("/event_cat/delete/:id", routeDeleteEventCategory)
 
-		app.GET("/event/:category_id", Route_Event)
-		app.POST("/event/:category_id", Route_Event)
-		app.GET("/event/:category_id/:id", Route_Event)
-		app.POST("/event/:category_id/:id", Route_Event)
-		app.GET("/event/delete/:id", Route_Delete_Event)
-		app.POST("/event/delete/:id", Route_Delete_Event)
+		app.GET("/event/:category_id", routeEvent)
+		app.POST("/event/:category_id", routeEvent)
+		app.GET("/event/:category_id/:id", routeEvent)
+		app.POST("/event/:category_id/:id", routeEvent)
+		app.GET("/event/delete/:id", routeDeleteEvent)
+		app.POST("/event/delete/:id", routeDeleteEvent)
 
-		app.GET("/queue", Route_Queue)
-		app.POST("/queue", Route_Queue)
-		app.GET("/queue/delete/:id", Route_Delete_Queue)
-		app.POST("/queue/delete/:id", Route_Delete_Queue)
+		app.GET("/queue", routeQueue)
+		app.POST("/queue", routeQueue)
+		app.GET("/queue/delete/:id", routeDeleteQueue)
+		app.POST("/queue/delete/:id", routeDeleteQueue)
 
-		app.GET("/user", Route_User)
-		app.POST("/user", Route_User)
+		app.GET("/user", routeUser)
+		app.POST("/user", routeUser)
 
-		app.GET("/admin", Route_Admin)
+		app.GET("/admin", routeAdmin)
 
-		app.GET("/server", Route_Server)
+		app.GET("/server", routeServer)
 	}
 
 	api := router.Group("/api")
 	api.Use(AuthenticateMiddleware)
 	{
-		api.GET("/car/:key", API_Car)
-		api.GET("/car/image/:car/:skin", API_Car_Image)
+		api.GET("/car/:key", apiCar)
+		api.GET("/car/image/:car/:skin", apiCarImage)
 
-		api.GET("/track/preview/:track/:config", API_Track_Preview_Image)
-		api.GET("/track/preview/:track", API_Track_Preview_Image)
-		api.GET("/track/outline/:track/:config", API_Track_Outline_Image)
-		api.GET("/track/outline/:track", API_Track_Outline_Image)
+		api.GET("/track/preview/:track/:config", apiTrackPreviewImage)
+		api.GET("/track/preview/:track", apiTrackPreviewImage)
+		api.GET("/track/outline/:track/:config", apiTrackOutlineImage)
+		api.GET("/track/outline/:track", apiTrackOutlineImage)
 
-		api.GET("/difficulty/:id", API_Difficulty)
-		api.GET("/session/:id", API_Session)
-		api.GET("/class/:id", API_Class)
-		api.GET("/time/:id", API_Time)
+		api.GET("/difficulty/:id", apiDifficulty)
+		api.GET("/session/:id", apiSession)
+		api.GET("/class/:id", apiClass)
+		api.GET("/time/:id", apiTime)
 
-		api.GET("/content/recache", API_Recache_Content)
+		api.GET("/content/recache", apiRecacheContent)
 
-		api.POST("/validate/installpath", API_Validate_Installpath)
+		api.POST("/validate/installpath", apiValidateInstallpath)
 
-		api.GET("/server/start", API_Server_Start)
-		api.GET("/server/stop", API_Server_Stop)
-		api.GET("/server/status", API_Server_Status)
+		api.GET("/server/start", apiServerStart)
+		api.GET("/server/stop", apiServerStop)
+		api.GET("/server/status", apiServerStatus)
 
-		api.GET("/server/entry_list.ini", API_Entry_List)
-		api.GET("/server/server_cfg.ini", API_Server_Cfg)
+		api.GET("/server/entry_list.ini", apiEntryList)
+		api.GET("/server/server_cfg.ini", apiServerCfg)
 
-		api.GET("/queue/moveup/:id", API_Queue_MoveUp)
-		api.GET("/queue/movedown/:id", API_Queue_MoveDown)
-		api.GET("/queue/skipevent", API_Queue_SkipEvent)
-		api.GET("/queue/clearcompleted", API_Queue_ClearCompleted)
+		api.GET("/queue/moveup/:id", apiQueueMoveUp)
+		api.GET("/queue/movedown/:id", apiQueueMoveDown)
+		api.GET("/queue/skipevent", apiQueueSkipEvent)
+		api.GET("/queue/clearcompleted", apiQueueClearCompleted)
 	}
 
-	router.NoRoute(NoRoute)
+	router.NoRoute(noRoute)
 
-	if !DEBUG {
-		Open_URL("http://localhost:3030")
+	if !debug {
+		OpenURL("http://localhost:3030")
 	}
 
-	Status.Update_Public_Ip()
+	Status.updatePublicIp()
 
 	main := &http.Server{
 		Addr:    ":3030",
@@ -313,7 +312,7 @@ func main() {
 
 	log.Print("Shutting down server...")
 
-	Dba.Db.Close()
+	Dba.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

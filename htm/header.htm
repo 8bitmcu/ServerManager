@@ -28,13 +28,11 @@
     }
 
     .toggle-checkbox:checked {
-      @apply: right-0 border-red-400;
       right: 0;
       border-color: #e3342f;
     }
 
     .toggle-checkbox:checked+.toggle-label {
-      @apply: bg-red-400;
       background-color: #e3342f;
     }
 
@@ -72,7 +70,7 @@
         <div class="mt-2">
           <span>Server IP: &nbsp;</span>
           <input type="textbox" class="text-gray-700 bg-gray-200 rounded text-center" x-data="" @click="$el.select()"
-            value="{{ .status.Public_Ip }}" style="width: 100px; font-weight: lighter" />
+            value="{{ .status.PublicIp }}" style="width: 100px; font-weight: lighter" />
         </div>
       </div>
     </div>

@@ -15,22 +15,22 @@ import (
 )
 
 type ConfigRenderer struct {
-	server_cfg_ini   *template.Template
-	entry_list_ini   *template.Template
-	ServerCfg_Result string
-	EntryList_Result string
-	Class            User_Class
-	Track            Cache_Track
-	Csp_Required     bool
-	Max_Clients      int
-	Server_Event     Server_Event
+	serverCfgIni    *template.Template
+	entryListIni    *template.Template
+	serverCfgResult string
+	entryListResult string
+	class           UserClass
+	track           CacheTrack
+	cspRequired     bool
+	maxClients      int
+	serverEvent     ServerEvent
 }
 
 // 8:00 AM = -80
 // 18:00 PM = 80
 // increment of 8 every 30 minutes
-func (cr *ConfigRenderer) Time_To_SunAngle(time_str *string) int {
-	time, err := time.Parse("15:04", *time_str)
+func (cr *ConfigRenderer) timeToSunAngle(timeStr *string) int {
+	time, err := time.Parse("15:04", *timeStr)
 	if err != nil {
 		log.Print(err)
 	}
@@ -41,89 +41,89 @@ func (cr *ConfigRenderer) Time_To_SunAngle(time_str *string) int {
 	return angle
 }
 
-func (cr *ConfigRenderer) Write_Ini() {
+func (cr *ConfigRenderer) writeIni() {
 	cfgfolder := filepath.Join(TempFolder, "cfg")
 	err := os.MkdirAll(cfgfolder, os.ModePerm)
 	if err != nil {
 		log.Print(err)
 	}
 
-	err = os.WriteFile(filepath.Join(cfgfolder, "server_cfg.ini"), []byte(cr.ServerCfg_Result), 0644)
+	err = os.WriteFile(filepath.Join(cfgfolder, "server_cfg.ini"), []byte(cr.serverCfgResult), 0644)
 	if err != nil {
 		log.Print(err)
 	}
 
-	err = os.WriteFile(filepath.Join(cfgfolder, "entry_list.ini"), []byte(cr.EntryList_Result), 0644)
+	err = os.WriteFile(filepath.Join(cfgfolder, "entry_list.ini"), []byte(cr.entryListResult), 0644)
 	if err != nil {
 		log.Print(err)
 	}
 }
 
-func (cr *ConfigRenderer) Render_Ini(event_id int) {
-	r := regexp.MustCompile("\\d{1,3}")
+func (cr *ConfigRenderer) renderIni(eventId int) {
+	r := regexp.MustCompile(`\\d{1,3}`)
 
-	event := Dba.Select_Event(event_id)
-	event_cat := Dba.Select_Event_Category(*event.Event_Category_Id)
-	tm := Dba.Select_Time_Weather(*event.Time_Id)
-	diff := Dba.Select_Difficulty(*event.Difficulty_Id)
-	cfg := Dba.Select_Config()
-	session := Dba.Select_Session(*event.Session_Id)
-	class := Dba.Select_Class_Entries(*event.Class_Id)
-	track := Dba.Select_Cache_Track(*event.Cache_Track_Key, *event.Cache_Track_Config)
+	event := Dba.selectEvent(eventId)
+	eventcat := Dba.selectEventCategory(*event.EventCategoryId)
+	tm := Dba.selectTimeWeather(*event.TimeId)
+	diff := Dba.selectDifficulty(*event.DifficultyId)
+	cfg := Dba.selectConfig()
+	session := Dba.selectSession(*event.SessionId)
+	class := Dba.selectClassEntries(*event.ClassId)
+	track := Dba.selectCacheTrack(*event.CacheTrackKey, *event.CacheTrackConfig)
 
-	if session.Qualify_Max_Wait_Perc == nil {
+	if session.QualifyMaxWaitPerc == nil {
 		var val = 120
-		session.Qualify_Max_Wait_Perc = &val
+		session.QualifyMaxWaitPerc = &val
 	}
 
 	// csp required? build a cspstr to be concat with the track name
 	cspstr := ""
-	if cfg.Csp_Required != nil && *cfg.Csp_Required > 0 {
-		Cr.Csp_Required = true
-		csp_letter := ""
+	if cfg.CspRequired != nil && *cfg.CspRequired > 0 {
+		Cr.cspRequired = true
+		cspLetter := ""
 
-		if *cfg.Csp_Phycars > 0 && *cfg.Csp_Phytracks > 0 && *cfg.Csp_Hidepit > 0 {
-			csp_letter = "/../H"
-		} else if *cfg.Csp_Phycars > 0 && *cfg.Csp_Phytracks > 0 {
-			csp_letter = "/../D"
-		} else if *cfg.Csp_Phycars > 0 && *cfg.Csp_Hidepit > 0 {
-			csp_letter = "/../F"
-		} else if *cfg.Csp_Phytracks > 0 && *cfg.Csp_Hidepit > 0 {
-			csp_letter = "/../G"
-		} else if *cfg.Csp_Phycars > 0 {
-			csp_letter = "/../B"
-		} else if *cfg.Csp_Phytracks > 0 {
-			csp_letter = "/../C"
-		} else if *cfg.Csp_Hidepit > 0 {
-			csp_letter = "/../E"
+		if *cfg.CspPhycars > 0 && *cfg.CspPhytracks > 0 && *cfg.CspHidepit > 0 {
+			cspLetter = "/../H"
+		} else if *cfg.CspPhycars > 0 && *cfg.CspPhytracks > 0 {
+			cspLetter = "/../D"
+		} else if *cfg.CspPhycars > 0 && *cfg.CspHidepit > 0 {
+			cspLetter = "/../F"
+		} else if *cfg.CspPhytracks > 0 && *cfg.CspHidepit > 0 {
+			cspLetter = "/../G"
+		} else if *cfg.CspPhycars > 0 {
+			cspLetter = "/../B"
+		} else if *cfg.CspPhytracks > 0 {
+			cspLetter = "/../C"
+		} else if *cfg.CspHidepit > 0 {
+			cspLetter = "/../E"
 		}
 
-		cspstr = "csp/" + strconv.Itoa(*cfg.Csp_Version) + csp_letter + "/../"
+		cspstr = "csp/" + strconv.Itoa(*cfg.CspVersion) + cspLetter + "/../"
 	}
 
 	// Weather CSP? build new graphics string
-	if *tm.Csp_Enabled == 1 {
+	if *tm.CspEnabled == 1 {
 		t := "13:00" // sets the sun angle to zero; a "nice" default/backup value
 		tm.Time = &t
 		todm := 1
-		tm.Time_Of_Day_Multi = &todm
+		tm.TimeOfDayMulti = &todm
 		for _, wt := range tm.Weathers {
-			csp_time, err := time.Parse("15:04", *wt.Csp_Time)
+			cspTime, err := time.Parse("15:04", *wt.CspTime)
 			if err != nil {
 				log.Print(err)
 			}
-			csp_timeInt := (csp_time.Hour() * 3600) + (csp_time.Minute() * 60) + csp_time.Second()
-			seconds := strconv.Itoa(csp_timeInt)
-			mult := strconv.Itoa(*wt.Csp_Time_Of_Day_Multi)
+			cspTimeInt := (cspTime.Hour() * 3600) + (cspTime.Minute() * 60) + cspTime.Second()
+			seconds := strconv.Itoa(cspTimeInt)
+			mult := strconv.Itoa(*wt.CspTimeOfDayMulti)
 
 			dateStr := ""
-			if wt.Csp_Date != nil && *wt.Csp_Date != "" {
-				csp_date, err := time.Parse("2006-01-02", *wt.Csp_Date)
+			if wt.CspDate != nil && *wt.CspDate != "" {
+				cspDate, err := time.Parse("2006-01-02", *wt.CspDate)
 				if err != nil {
 					log.Print(err)
 				}
 
-				dateStr = "_start=" + strconv.FormatInt(csp_date.Unix(), 10)
+				dateStr = "_start=" + strconv.FormatInt(cspDate.Unix(), 10)
 			}
 
 			matches := r.FindStringSubmatch(*wt.Graphics)
@@ -131,30 +131,30 @@ func (cr *ConfigRenderer) Render_Ini(event_id int) {
 		}
 	}
 
-	// Maximum clients defined as the minimum between max_clients, pitboxes and vehicles in class
-	strat_needed := false
-	max_clients := *cfg.Max_Clients
+	// Maximum clients defined as the minimum between maxclients, pitboxes and vehicles in class
+	stratneeded := false
+	maxclients := *cfg.MaxClients
 
-	if *track.Pitboxes < *cfg.Max_Clients {
-		strat_needed = true
-		max_clients = *track.Pitboxes
+	if *track.Pitboxes < *cfg.MaxClients {
+		stratneeded = true
+		maxclients = *track.Pitboxes
 	}
-	if len(class.Entries) < max_clients {
-		strat_needed = true
-		max_clients = len(class.Entries)
+	if len(class.Entries) < maxclients {
+		stratneeded = true
+		maxclients = len(class.Entries)
 	}
-	if len(class.Entries) > max_clients {
-		strat_needed = true
+	if len(class.Entries) > maxclients {
+		stratneeded = true
 	}
 
 	// Strategy needed? re-order cars in the entry list as per selected strategy
-	if strat_needed {
+	if stratneeded {
 		// Random
 		if *event.Strategy == 2 {
 			rand.Shuffle(len(class.Entries), func(i, j int) { class.Entries[i], class.Entries[j] = class.Entries[j], class.Entries[i] })
 		}
 		// Cut the list by the max number of clients
-		class.Entries = class.Entries[:max_clients]
+		class.Entries = class.Entries[:maxclients]
 	}
 
 	funcMap := template.FuncMap{
@@ -163,13 +163,13 @@ func (cr *ConfigRenderer) Render_Ini(event_id int) {
 		},
 	}
 
-	if Cr.server_cfg_ini == nil {
+	if Cr.serverCfgIni == nil {
 		file := FindFile("/ini/server_cfg.ini")
 		tmplStr, err := io.ReadAll(file)
 		if err != nil {
 			log.Print(err)
 		}
-		Cr.server_cfg_ini, err = template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
+		Cr.serverCfgIni, err = template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
 		if err != nil {
 			log.Print(err)
 		}
@@ -183,39 +183,39 @@ func (cr *ConfigRenderer) Render_Ini(event_id int) {
 		"time":        tm,
 		"class":       class,
 		"track":       track,
-		"max_clients": max_clients,
-		"sunangle":    cr.Time_To_SunAngle(tm.Time),
+		"max_clients": maxclients,
+		"sunangle":    cr.timeToSunAngle(tm.Time),
 		"cspstr":      cspstr,
-		"name":        event_cat.Name,
+		"name":        eventcat.Name,
 	}
 
 	var b bytes.Buffer
-	err := Cr.server_cfg_ini.Execute(&b, data)
+	err := Cr.serverCfgIni.Execute(&b, data)
 	if err != nil {
 		log.Print(err)
 	}
 
-	if Cr.entry_list_ini == nil {
+	if Cr.entryListIni == nil {
 		file := FindFile("/ini/entry_list.ini")
 		tmplStr, err := io.ReadAll(file)
 		if err != nil {
 			log.Print(err)
 		}
-		Cr.entry_list_ini, err = template.New("entry_list.ini").Funcs(funcMap).Parse(string(tmplStr))
+		Cr.entryListIni, err = template.New("entry_list.ini").Funcs(funcMap).Parse(string(tmplStr))
 		if err != nil {
 			log.Print(err)
 		}
 	}
 
 	var b2 bytes.Buffer
-	err = Cr.entry_list_ini.Execute(&b2, class)
+	err = Cr.entryListIni.Execute(&b2, class)
 	if err != nil {
 		log.Print(err)
 	}
 
-	cr.ServerCfg_Result = b.String()
-	cr.EntryList_Result = b2.String()
-	cr.Class = class
-	cr.Track = track
-	cr.Max_Clients = max_clients
+	cr.serverCfgResult = b.String()
+	cr.entryListResult = b2.String()
+	cr.class = class
+	cr.track = track
+	cr.maxClients = maxclients
 }

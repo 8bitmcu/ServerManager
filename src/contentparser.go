@@ -18,52 +18,51 @@ import (
 	"github.com/kaptinlin/jsonrepair"
 )
 
-
-func Parse_Content(dba Dbaccess) {
+func parseContent(dba Dbaccess) {
 	zipfiles := map[string]string{}
 	var mutex = &sync.RWMutex{}
 
-	log.Print("Parsing ", dba.Basepath())
+	log.Print("Parsing ", dba.basepath())
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func() {
 		defer wg.Done()
-		tracks := parse_Tracks(Dba)
+		tracks := parseTracks(Dba)
 		mutex.Lock()
 		maps.Copy(zipfiles, tracks)
 		mutex.Unlock()
 	}()
 	go func() {
 		defer wg.Done()
-		cars := parse_Cars(Dba)
+		cars := parseCars(Dba)
 		mutex.Lock()
 		maps.Copy(zipfiles, cars)
 		mutex.Unlock()
 	}()
 	go func() {
 		defer wg.Done()
-		weathers := parse_Weathers(Dba)
+		weathers := parseWeathers(Dba)
 		mutex.Lock()
 		maps.Copy(zipfiles, weathers)
 		mutex.Unlock()
 	}()
 	wg.Wait()
 
-	zipfiles[filepath.Join(dba.Basepath(), "server", "acServer")] = "acServer"
-	zipfiles[filepath.Join(dba.Basepath(), "server", "acServer.exe")] = "acServer.exe"
-	zipfiles[filepath.Join(dba.Basepath(), "system", "data", "surfaces.ini")] = "system/data/surfaces.ini"
+	zipfiles[filepath.Join(dba.basepath(), "server", "acServer")] = "acServer"
+	zipfiles[filepath.Join(dba.basepath(), "server", "acServer.exe")] = "acServer.exe"
+	zipfiles[filepath.Join(dba.basepath(), "system", "data", "surfaces.ini")] = "system/data/surfaces.ini"
 
 	Zf.UpdateZipfile(zipfiles)
 }
 
-func parse_Weathers(dba Dbaccess) map[string]string {
+func parseWeathers(dba Dbaccess) map[string]string {
 	zipfiles := map[string]string{}
 
 	r := regexp.MustCompile("^NAME")
 	r2 := regexp.MustCompile("^NAME=(.*)$")
 	r3 := regexp.MustCompile("; .*")
 
-	parseWeather := func(element fs.DirEntry, file io.Reader) Cache_Weather {
+	parseWeather := func(element fs.DirEntry, file io.Reader) CacheWeather {
 
 		scanner := bufio.NewScanner(file)
 
@@ -81,7 +80,7 @@ func parse_Weathers(dba Dbaccess) map[string]string {
 		}
 
 		key := element.Name()
-		weather := Cache_Weather{
+		weather := CacheWeather{
 			Key:  &key,
 			Name: &name,
 		}
@@ -89,10 +88,10 @@ func parse_Weathers(dba Dbaccess) map[string]string {
 		return weather
 	}
 
-	weathers := make([]Cache_Weather, 0)
+	weathers := make([]CacheWeather, 0)
 
-	weather_path := filepath.Join(Dba.Basepath(), "content", "weather")
-	entries, err := os.ReadDir(weather_path)
+	weatherpath := filepath.Join(Dba.basepath(), "content", "weather")
+	entries, err := os.ReadDir(weatherpath)
 	if err != nil {
 		log.Print(err)
 	}
@@ -104,18 +103,18 @@ func parse_Weathers(dba Dbaccess) map[string]string {
 			continue
 		}
 
-		ini_path := filepath.Join(weather_path, element.Name(), "weather.ini")
-		preview_path := filepath.Join(weather_path, element.Name(), "preview.jpg")
+		inipath := filepath.Join(weatherpath, element.Name(), "weather.ini")
+		previewpath := filepath.Join(weatherpath, element.Name(), "preview.jpg")
 
-		if _, err := os.Stat(preview_path); errors.Is(err, os.ErrNotExist) {
+		if _, err := os.Stat(previewpath); errors.Is(err, os.ErrNotExist) {
 		} else {
-			zipfiles[preview_path] = "weather/" + element.Name() + "/preview.jpg"
+			zipfiles[previewpath] = "weather/" + element.Name() + "/preview.jpg"
 		}
 
-		if _, err := os.Stat(ini_path); errors.Is(err, os.ErrNotExist) {
+		if _, err := os.Stat(inipath); errors.Is(err, os.ErrNotExist) {
 			continue
 		}
-		file, err := os.Open(ini_path)
+		file, err := os.Open(inipath)
 		if err != nil {
 			log.Print(err)
 			continue
@@ -131,7 +130,7 @@ func parse_Weathers(dba Dbaccess) map[string]string {
 
 	wg.Wait()
 
-	dba.Update_Cache_Weathers(weathers)
+	dba.updateCacheWeathers(weathers)
 
 	return zipfiles
 }
@@ -157,13 +156,13 @@ func recurseAddIniZip(absPath string, relPath string) map[string]string {
 	return zipfiles
 }
 
-func parse_Tracks(dba Dbaccess) map[string]string {
+func parseTracks(dba Dbaccess) map[string]string {
 	zipfiles := map[string]string{}
 	var mutex = &sync.RWMutex{}
 
-	parse_json := func(json_path string, key string, config string) Cache_Track {
+	parsejson := func(jsonpath string, key string, config string) CacheTrack {
 		r := regexp.MustCompile("[^0-9]")
-		jsonBytes, err := os.ReadFile(json_path)
+		jsonBytes, err := os.ReadFile(jsonpath)
 		if err != nil {
 			log.Print(err)
 		}
@@ -180,13 +179,16 @@ func parse_Tracks(dba Dbaccess) map[string]string {
 			//log.Print(err)
 		}
 
-		var track Cache_Track
+		var track CacheTrack
 		err = json.Unmarshal([]byte(data), &track)
 		if err != nil {
 			//log.Print(err)
 		}
 
 		parsedLen, err := strconv.Atoi(r.ReplaceAllString(result["length"], ""))
+		if err != nil {
+			log.Fatal(err)
+		}
 		track.Key = &key
 		track.Config = &config
 		track.Length = &parsedLen
@@ -194,23 +196,23 @@ func parse_Tracks(dba Dbaccess) map[string]string {
 		return track
 	}
 
-	tracks := make([]Cache_Track, 0)
-	tracks_path := filepath.Join(Dba.Basepath(), "content", "tracks")
+	tracks := make([]CacheTrack, 0)
+	trackspath := filepath.Join(Dba.basepath(), "content", "tracks")
 
 	parseTrack := func(element fs.DirEntry) {
 		if !element.IsDir() {
 			return
 		}
-		zips := recurseAddIniZip(filepath.Join(tracks_path, element.Name()), "tracks/"+element.Name())
+		zips := recurseAddIniZip(filepath.Join(trackspath, element.Name()), "tracks/"+element.Name())
 		mutex.Lock()
 		maps.Copy(zipfiles, zips)
 		mutex.Unlock()
 
-		json_path := filepath.Join(tracks_path, element.Name(), "ui", "ui_track.json")
-		if _, err := os.Stat(json_path); errors.Is(err, os.ErrNotExist) {
+		jsonpath := filepath.Join(trackspath, element.Name(), "ui", "ui_track.json")
+		if _, err := os.Stat(jsonpath); errors.Is(err, os.ErrNotExist) {
 			// track has many configs which we need to parse
-			configs_folder := filepath.Join(tracks_path, element.Name(), "ui")
-			configs, err := os.ReadDir(configs_folder)
+			configsfolder := filepath.Join(trackspath, element.Name(), "ui")
+			configs, err := os.ReadDir(configsfolder)
 			if err != nil {
 				log.Print(err)
 			}
@@ -220,46 +222,46 @@ func parse_Tracks(dba Dbaccess) map[string]string {
 					continue
 				}
 
-				json_path = filepath.Join(tracks_path, element.Name(), "ui", config.Name(), "ui_track.json")
+				jsonpath = filepath.Join(trackspath, element.Name(), "ui", config.Name(), "ui_track.json")
 
-				if _, err := os.Stat(json_path); errors.Is(err, os.ErrNotExist) {
+				if _, err := os.Stat(jsonpath); errors.Is(err, os.ErrNotExist) {
 					// Does not exist, try dlc_ui_track.json
-					json_path = filepath.Join(tracks_path, element.Name(), "ui", config.Name(), "dlc_ui_track.json")
-					if _, err := os.Stat(json_path); errors.Is(err, os.ErrNotExist) {
+					jsonpath = filepath.Join(trackspath, element.Name(), "ui", config.Name(), "dlc_ui_track.json")
+					if _, err := os.Stat(jsonpath); errors.Is(err, os.ErrNotExist) {
 						log.Print(err)
 						continue
 					}
 				}
 
 				mutex.Lock()
-				outline := filepath.Join(tracks_path, element.Name(), "ui", config.Name(), "outline.png")
+				outline := filepath.Join(trackspath, element.Name(), "ui", config.Name(), "outline.png")
 				if _, err := os.Stat(outline); errors.Is(err, os.ErrNotExist) {
 				} else {
 					zipfiles[outline] = "tracks/" + element.Name() + "/" + config.Name() + "/outline.png"
 				}
-				preview := filepath.Join(tracks_path, element.Name(), "ui", config.Name(), "preview.png")
+				preview := filepath.Join(trackspath, element.Name(), "ui", config.Name(), "preview.png")
 				if _, err := os.Stat(preview); errors.Is(err, os.ErrNotExist) {
 				} else {
 					zipfiles[preview] = "tracks/" + element.Name() + "/" + config.Name() + "/preview.png"
 				}
 				mutex.Unlock()
 
-				track := parse_json(json_path, element.Name(), config.Name())
+				track := parsejson(jsonpath, element.Name(), config.Name())
 				tracks = append(tracks, track)
 			}
 		} else {
 			// track has no config / only one selection
 			mutex.Lock()
-			zipfiles[filepath.Join(tracks_path, element.Name(), "ui", "outline.png")] = "tracks/" + element.Name() + "/outline.png"
-			zipfiles[filepath.Join(tracks_path, element.Name(), "ui", "preview.png")] = "tracks/" + element.Name() + "/preview.png"
+			zipfiles[filepath.Join(trackspath, element.Name(), "ui", "outline.png")] = "tracks/" + element.Name() + "/outline.png"
+			zipfiles[filepath.Join(trackspath, element.Name(), "ui", "preview.png")] = "tracks/" + element.Name() + "/preview.png"
 			mutex.Unlock()
 
-			track := parse_json(json_path, element.Name(), "")
+			track := parsejson(jsonpath, element.Name(), "")
 			tracks = append(tracks, track)
 		}
 	}
 
-	entries, err := os.ReadDir(tracks_path)
+	entries, err := os.ReadDir(trackspath)
 	if err != nil {
 		log.Print(err)
 	}
@@ -274,28 +276,28 @@ func parse_Tracks(dba Dbaccess) map[string]string {
 	}
 	wg.Wait()
 
-	dba.Update_Cache_Tracks(tracks)
+	dba.updateCacheTracks(tracks)
 
 	return zipfiles
 }
 
-func parse_Cars(dba Dbaccess) map[string]string {
+func parseCars(dba Dbaccess) map[string]string {
 
 	zipfiles := map[string]string{}
 	var mutex = &sync.RWMutex{}
 
-	type jsonCarSkin struct {
+	type JsonCarSkin struct {
 		Key  string `json:"key"`
 		Name string `json:"name"`
 	}
 
-	parseSkin := func(skin fs.DirEntry, skins_path string) jsonCarSkin {
-		skin_json := filepath.Join(skins_path, skin.Name(), "ui_skin.json")
-		skin_name := skin.Name()
-		if _, err := os.Stat(skin_json); errors.Is(err, os.ErrNotExist) {
+	parseSkin := func(skin fs.DirEntry, skinspath string) JsonCarSkin {
+		skinjson := filepath.Join(skinspath, skin.Name(), "ui_skin.json")
+		skinname := skin.Name()
+		if _, err := os.Stat(skinjson); errors.Is(err, os.ErrNotExist) {
 			//log.Print(err)
 		} else {
-			jsonBytes, err := os.ReadFile(skin_json)
+			jsonBytes, err := os.ReadFile(skinjson)
 			if err != nil {
 				log.Print(err)
 			}
@@ -313,30 +315,30 @@ func parse_Cars(dba Dbaccess) map[string]string {
 			}
 
 			if result["skinname"] != "" {
-				skin_name = result["skinname"]
+				skinname = result["skinname"]
 			}
 		}
 
-		carSkin := jsonCarSkin{
+		carSkin := JsonCarSkin{
 			Key:  skin.Name(),
-			Name: skin_name,
+			Name: skinname,
 		}
 
 		return carSkin
 	}
 
-	parseCar := func(element fs.DirEntry, cars_path string) Cache_Car {
+	parseCar := func(element fs.DirEntry, carspath string) CacheCar {
 
-		json_path := filepath.Join(cars_path, element.Name(), "ui", "ui_car.json")
-		if _, err := os.Stat(json_path); errors.Is(err, os.ErrNotExist) {
+		jsonpath := filepath.Join(carspath, element.Name(), "ui", "ui_car.json")
+		if _, err := os.Stat(jsonpath); errors.Is(err, os.ErrNotExist) {
 			// file not exist, try dlc json
-			json_path := filepath.Join(cars_path, element.Name(), "ui", "dlc_ui_car.json")
-			if _, err := os.Stat(json_path); errors.Is(err, os.ErrNotExist) {
+			jsonpath := filepath.Join(carspath, element.Name(), "ui", "dlc_ui_car.json")
+			if _, err := os.Stat(jsonpath); errors.Is(err, os.ErrNotExist) {
 				log.Print(err)
 			}
 		}
 
-		jsonBytes, err := os.ReadFile(json_path)
+		jsonBytes, err := os.ReadFile(jsonpath)
 		if err != nil {
 			log.Print(err)
 		}
@@ -347,15 +349,15 @@ func parse_Cars(dba Dbaccess) map[string]string {
 			log.Print(err)
 		}
 
-		var result Cache_Car
+		var result CacheCar
 		err = json.Unmarshal([]byte(data), &result)
 		if err != nil {
 			//log.Print(err)
 		}
 
-		skins_path := filepath.Join(cars_path, element.Name(), "skins")
+		skinspath := filepath.Join(carspath, element.Name(), "skins")
 
-		skins, err := os.ReadDir(skins_path)
+		skins, err := os.ReadDir(skinspath)
 		if err != nil {
 			log.Print(err)
 		}
@@ -367,13 +369,13 @@ func parse_Cars(dba Dbaccess) map[string]string {
 			}
 
 			mutex.Lock()
-			zipfiles[filepath.Join(skins_path, skin.Name(), "preview.jpg")] = "cars/" + element.Name() + "/skins/" + skin.Name() + "/preview.jpg"
+			zipfiles[filepath.Join(skinspath, skin.Name(), "preview.jpg")] = "cars/" + element.Name() + "/skins/" + skin.Name() + "/preview.jpg"
 			mutex.Unlock()
 
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				result.Skins = append(result.Skins, parseSkin(skin, skins_path))
+				result.Skins = append(result.Skins, parseSkin(skin, skinspath))
 			}()
 		}
 
@@ -385,9 +387,9 @@ func parse_Cars(dba Dbaccess) map[string]string {
 		return result
 	}
 
-	cars := make([]Cache_Car, 0)
-	cars_path := filepath.Join(Dba.Basepath(), "content", "cars")
-	entries, err := os.ReadDir(cars_path)
+	cars := make([]CacheCar, 0)
+	carspath := filepath.Join(Dba.basepath(), "content", "cars")
+	entries, err := os.ReadDir(carspath)
 	if err != nil {
 		log.Print(err)
 	}
@@ -399,9 +401,9 @@ func parse_Cars(dba Dbaccess) map[string]string {
 		}
 
 		// if data.acd or data dir is missing, assume it's a missing dlc and avoid listing/saving it
-		data_acd := filepath.Join(cars_path, element.Name(), "data.acd")
-		if _, err := os.Stat(data_acd); errors.Is(err, os.ErrNotExist) {
-			data := filepath.Join(cars_path, element.Name(), "data")
+		dataacd := filepath.Join(carspath, element.Name(), "data.acd")
+		if _, err := os.Stat(dataacd); errors.Is(err, os.ErrNotExist) {
+			data := filepath.Join(carspath, element.Name(), "data")
 			if _, err := os.Stat(data); errors.Is(err, os.ErrNotExist) {
 				//log.Print("  skipping folder '", element.Name(), "' (most likely a missing DLC)")
 				continue
@@ -410,36 +412,36 @@ func parse_Cars(dba Dbaccess) map[string]string {
 			// append all *.ini files in data/ to our zipfile
 			// I don't think this is needed since the car can't be validated anyway
 			/*
-			dfiles, err := os.ReadDir(data)
-			if err != nil {
-				log.Print(err)
-			}
-			for _, fn := range dfiles {
-				if fn.IsDir() {
-					continue
+				dfiles, err := os.ReadDir(data)
+				if err != nil {
+					log.Print(err)
 				}
-				if strings.HasSuffix(fn.Name(), ".ini") {
+				for _, fn := range dfiles {
+					if fn.IsDir() {
+						continue
+					}
+					if strings.HasSuffix(fn.Name(), ".ini") {
 
+					}
 				}
-			}
 			*/
 		} else {
 			// append data.acd to our zipfile
 			mutex.Lock()
-			zipfiles[data_acd] = "cars/" + element.Name() + "/data.acd"
+			zipfiles[dataacd] = "cars/" + element.Name() + "/data.acd"
 			mutex.Unlock()
 		}
 
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			cars = append(cars, parseCar(element, cars_path))
+			cars = append(cars, parseCar(element, carspath))
 		}()
 	}
 
 	wg.Wait()
 
-	dba.Update_Cache_Cars(cars)
+	dba.updateCacheCars(cars)
 
 	return zipfiles
 }

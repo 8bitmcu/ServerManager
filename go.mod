@@ -3,6 +3,7 @@ module main
 go 1.23.2
 
 require (
+	github.com/akutz/sortfold v0.2.1
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -17,7 +18,6 @@ require (
 require (
 	github.com/STARRY-S/zip v0.1.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/akutz/sortfold v0.2.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/bodgit/plumbing v1.3.0 // indirect
 	github.com/bodgit/sevenzip v1.5.2 // indirect
@@ -52,6 +52,7 @@ require (
 	github.com/nwaples/rardecode/v2 v2.0.0-beta.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
+	github.com/qiniu/checkstyle v0.0.0-20181122073030-e47d31cae315 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sorairolake/lzip-go v0.3.5 // indirect
 	github.com/spkg/zipfs v0.7.1 // indirect
