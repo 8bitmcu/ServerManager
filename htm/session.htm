@@ -4,8 +4,8 @@
 <div class="flex flex-wrap">
   <div class="w-full pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
-    <div class="bg-gray-800 text-white">
-      <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap">
+    <div class="">
+      <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap bg-gray-800 text-white">
         {{ $g := . }}
         {{range $val := .list }}
         <a href="/session/{{ $val.Id }}"
@@ -130,10 +130,14 @@
         }
       </script>
 
-      <form class="flex flex-wrap text-black bg-white" method="POST" x-data="sessions()">
-        <div class="w-full mt-6 pl-0 lg:pl-2">
-          <div class="w-1/2 p-4 lg:p-10 leading-loose">
+      <form class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto" method="POST" x-data="sessions()">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
             <div class="">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Session Name
+            </p>
+            <hr class="pb-6" />
               <label class="block text-sm text-gray-600 group relative" for="name">
                 Name
                 <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
@@ -148,11 +152,12 @@
             </div>
           </div>
         </div>
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Booking
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Booking
+            </p>
+            <hr class="pb-6" />
             <div>
               <label class="block text-sm text-gray-600 group relative" for="booking_enabled">
                 Booking
@@ -189,11 +194,12 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Practice
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Practice
+            </p>
+            <hr class="pb-6" />
             <div>
               <label class="block text-sm text-gray-600 group relative" for="practice_enabled">
                 Practice
@@ -247,11 +253,12 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Qualify
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Qualify
+            </p>
+            <hr class="pb-6" />
             <div>
               <label class="block text-sm text-gray-600 group relative" for="qualify_enabled">
                 Qualify
@@ -317,11 +324,12 @@
             </div>
           </div>
         </div>
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Race
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Race
+            </p>
+            <hr class="pb-6" />
             <div>
               <label class="block text-sm text-gray-600 group relative" for="race_enabled">
                 Race
@@ -459,8 +467,8 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl pb-6 flex items-center">
+        <div class="w-full mt-6">
+          <p class="text-xl flex justify-center items-center">
             <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
               Save
             </button>

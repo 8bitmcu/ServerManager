@@ -4,8 +4,8 @@
 <div class="flex flex-wrap">
   <div class="w-full pr-0 lg:pr-2">
     <p class="text-xl pb-6 flex items-center"></p>
-    <div class="bg-gray-800 text-white">
-      <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap">
+    <div class="text-black">
+      <nav class="bg-gray-800 flex flex-col lg:flex-row xl:flex-row flex-wrap">
         {{ $g := . }}
         {{range $val := .list }}
         <a href="/difficulty/{{ $val.Id }}"
@@ -126,9 +126,13 @@
           }
         }
       </script>
-      <form class="flex flex-wrap bg-white text-black" method="POST">
-        <div class="w-full mt-6 pl-0 lg:pl-2">
-          <div class="w-1/2 p-4 lg:p-10 leading-loose">
+      <form class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto" method="POST">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Difficulty Name
+            </p>
+            <hr class="pb-6" />
             <div class="">
               <label class="block text-sm text-gray-600 group relative" for="name">
                 Name
@@ -144,11 +148,12 @@
             </div>
           </div>
         </div>
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Assists
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Assists
+            </p>
+            <hr class="pb-6" />
             <div class="">
               <label class="block text-sm text-gray-600 group relative" for="abs_allowed">
                 ABS
@@ -255,11 +260,12 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Realism
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Realism
+            </p>
+            <hr class="pb-6" />
             <div class="">
               <label class="block text-sm text-gray-600 group relative" for="fuel_rate">
                 Fuel Rate
@@ -367,11 +373,12 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="dynamic_track()">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Dynamic Track
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6" x-data="dynamic_track()">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Dynamic Track
+            </p>
+            <hr class="pb-6" />
             <div class="">
               <label class="block text-sm text-gray-600 group relative" for="dynamic_track">
                 Enabled
@@ -478,16 +485,15 @@
                 <input type="hidden" name="lap_gain" x-model="lap_gain" />
               </div>
             </div>
-
-
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2">
-          <p class="text-xl px-6 pb-6 flex items-center">
-            <i class="fas fa-list mr-3"></i> Voting and Banning
-          </p>
-          <div class="p-4 lg:p-10 leading-loose">
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Voting and Banning
+            </p>
+            <hr class="pb-6" />
             <div class="">
               <label class="block text-sm text-gray-600 group relative" for="kick_quorum">
                 Kick Vote Quorum
@@ -560,8 +566,8 @@
           </div>
         </div>
 
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data=" { btnClick : true }">
-          <p class="text-xl pb-6 flex items-center">
+        <div class="w-full mt-6" x-data=" { btnClick : true }">
+          <p class="text-xl flex justify-center items-center">
             <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
               Save
             </button>
