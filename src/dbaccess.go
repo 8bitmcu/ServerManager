@@ -629,11 +629,13 @@ SELECT
 	t.name as track_name,
 	t.length as track_length,
 	t.pitboxes as pitboxes,
+	d.id as difficulty_id,
 	d.name as difficulty_name,
 	d.abs_allowed as abs_allowed,
 	d.tc_allowed as tc_allowed,
 	d.stability_allowed as stability_allowed,
 	d.autoclutch_allowed as autoclutch_allowed,
+	e.id as session_id,
 	e.name as session_name,
 	e.booking_enabled as booking_enabled,
 	e.booking_time as booking_time,
@@ -643,8 +645,10 @@ SELECT
 	e.qualify_time as qualify_time,
 	e.race_enabled as race_enabled,
 	e.race_time as race_time,
+	c.id as class_id,
 	c.name as class_name,
 	COUNT(ce.id) as entries,
+	tw.id as time_id,
 	tw.name as time_name,
 	concat((SELECT
 		GROUP_CONCAT(a.csp_time, ', ')
@@ -688,7 +692,7 @@ GROUP BY s.id`
 
 	for rows.Next() {
 		evt := UserEvent{}
-		err = rows.Scan(&evt.Id, &evt.RaceLaps, &evt.Strategy, &evt.TrackName, &evt.TrackLength, &evt.Pitboxes, &evt.DifficultyName, &evt.AbsAllowed, &evt.TcAllowed, &evt.StabilityAllowed, &evt.AutoclutchAllowed, &evt.SessionName, &evt.BookingEnabled, &evt.BookingTime, &evt.PracticeEnabled, &evt.PracticeTime, &evt.QualifyEnabled, &evt.QualifyTime, &evt.RaceEnabled, &evt.RaceTime, &evt.ClassName, &evt.Entries, &evt.TimeName, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.CspWeather)
+		err = rows.Scan(&evt.Id, &evt.RaceLaps, &evt.Strategy, &evt.TrackName, &evt.TrackLength, &evt.Pitboxes, &evt.DifficultyId, &evt.DifficultyName, &evt.AbsAllowed, &evt.TcAllowed, &evt.StabilityAllowed, &evt.AutoclutchAllowed, &evt.SessionId, &evt.SessionName, &evt.BookingEnabled, &evt.BookingTime, &evt.PracticeEnabled, &evt.PracticeTime, &evt.QualifyEnabled, &evt.QualifyTime, &evt.RaceEnabled, &evt.RaceTime, &evt.ClassId, &evt.ClassName, &evt.Entries, &evt.TimeId, &evt.TimeName, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.CspWeather)
 		if err != nil {
 			log.Fatal(err)
 		}

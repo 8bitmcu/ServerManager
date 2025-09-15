@@ -313,15 +313,18 @@ func routeEventCategory(c *gin.Context) {
 		}
 	}
 
-	maxclients := Dba.selectConfig().MaxClients
 
 	c.HTML(http.StatusOK, "/htm/event_cat.htm", gin.H{
 		"page":          "event_cat",
 		"list":          Dba.selectEventCategoryList(false),
 		"form":          form,
+		"difficulties":  Dba.selectDifficultyList(true),
+		"sessions":      Dba.selectSessionList(true),
+		"times":         Dba.selectTimeList(true),
+		"classes":       Dba.selectClassList(true),
+		"max_clients":   Dba.selectConfig().MaxClients,
 		"track_data":    Dba.selectCacheTracks(),
 		"config_filled": Dba.selectConfigFilled(),
-		"max_clients":   maxclients,
 		"status":        Status,
 	})
 }
@@ -338,69 +341,6 @@ func routeDeleteEventCategory(c *gin.Context) {
 		})
 	} else {
 		c.Redirect(http.StatusFound, "/event_cat")
-	}
-}
-
-func routeEvent(c *gin.Context) {
-	form := UserEvent{}
-
-	categoryid, err := strconv.Atoi(c.Param("category_id"))
-	if categoryid <= 0 || err != nil {
-		noRoute(c)
-		return
-	}
-	form.EventCategoryId = &categoryid
-
-	id, err := strconv.Atoi(c.Param("id"))
-	if id > 0 && err == nil {
-		form = Dba.selectEvent(id)
-
-		if form.Id == nil {
-			noRoute(c)
-			return
-		}
-	}
-	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
-		if c.PostForm("id") != "" {
-			Dba.updateEvent(form)
-			c.Redirect(http.StatusFound, "/event_cat/"+strconv.Itoa(categoryid))
-			return
-		} else {
-			Dba.insertEvent(form)
-			c.Redirect(http.StatusFound, "/event_cat/"+strconv.Itoa(categoryid))
-			return
-		}
-	}
-
-	Status.refresh()
-	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
-		"page":          "event",
-		"form":          form,
-		"difficulties":  Dba.selectDifficultyList(true),
-		"sessions":      Dba.selectSessionList(true),
-		"times":         Dba.selectTimeList(true),
-		"classes":       Dba.selectClassList(true),
-		"max_clients":   Dba.selectConfig().MaxClients,
-		"track_data":    Dba.selectCacheTracks(),
-		"config_filled": Dba.selectConfigFilled(),
-		"status":        Status,
-	})
-}
-
-func routeDeleteEvent(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	evt := Dba.selectEvent(id)
-	catid := *evt.EventCategoryId
-	_, err := Dba.deleteEvent(id)
-
-	if err != nil {
-		c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-			"status":        Status,
-			"config_filled": Dba.selectConfigFilled(),
-			"error":         err.Error(),
-		})
-	} else {
-		c.Redirect(http.StatusFound, "/event_cat"+strconv.Itoa(catid))
 	}
 }
 

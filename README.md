@@ -1,6 +1,11 @@
 # Server Manager (SM)
 
-SM is yet another web interface to manage a dedicated Assetto Corsa server. This project differs from others in which it uses presets to create events.
+SM is a very flexible web interface used to manage a dedicated Assetto Corsa server.
+
+Features:
+
+ - Supports both Windows and Linux
+ - Single executable file, no external dependencies
 
 ## Running on Linux
 

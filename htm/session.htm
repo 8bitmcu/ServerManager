@@ -1,24 +1,13 @@
 {{ template "/htm/header.htm" . }}
 
-<h1 class="text-3xl text-black pb-6">Session Presets</h1>
 <div class="flex flex-wrap">
-  <div class="w-full pr-0 lg:pr-2">
-    <p class="text-xl pb-6 flex items-center"></p>
+  <div class="w-full">
     <div class="">
-      <nav class="flex flex-col lg:flex-row xl:flex-row flex-wrap bg-gray-800 text-white">
-        {{ $g := . }}
-        {{range $val := .list }}
-        <a href="/session/{{ $val.Id }}"
-          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {{ if (eq (derefInt $val.Id) (derefInt $g.form.Id)) }} text-white {{ end }}">
-          <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
-        </a>
-        {{ end }}
 
-        <form x-data="{ showModal: false, email: '' }" method="POST">
-          <a href="#" @click="showModal = true"
-            class="py-4 px-6 block focus:outline-none font-medium">
-            <i class="fas fa-plus mr-3"></i> Add new Session
-          </a>
+      {{ if not .form.Id }}
+      <div class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto" x-data="{ showModal: false, email: '' }">
+        <h1 class="text-3xl text-black pb-6">Session Presets</h1>
+        <form method="POST">
           <!-- Background overlay -->
           <div x-show="showModal" class="fixed inset-0 transition-opacity" aria-hidden="true"
             @click="showModal = false">
@@ -49,7 +38,8 @@
                           Enter the name of the session
                         </p>
                         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="session_name"
-                          name="session_name" type="text" required="" placeholder="Session Name" aria-label="Session Name" />
+                          name="session_name" type="text" required="" placeholder="Session Name"
+                          aria-label="Session Name" />
                       </div>
                     </div>
                   </div>
@@ -67,7 +57,33 @@
             </div>
           </div>
         </form>
-      </nav>
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Sessions
+            </p>
+            <hr class="pb-6" />
+            <div class="flex">
+              <ul class="bg-white w-96 text-gray-900">
+                {{ $g := . }}
+                {{range $val := .list }}
+                <li class="w-full hover:bg-gray-200 rounded-lg">
+                  <a class="px-5 py-2 inline-block w-full" href="/session/{{ $val.Id }}">
+                    <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
+                  </a>
+                </li>
+                {{ end }}
+                <li class="w-full hover:bg-gray-200 rounded-lg">
+                  <a class="px-5 py-2 inline-block w-full" href="#" @click="showModal = true">
+                    <i class="fas fa-plus mr-3"></i>Add new Session
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{ end }}
 
       {{ if .form.Id }}
       <script>
@@ -131,6 +147,7 @@
       </script>
 
       <form class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto" method="POST" x-data="sessions()">
+        <h1 class="text-3xl text-black pb-6">Session Presets</h1>
         <div class="w-full mt-6">
           <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
             <div class="">

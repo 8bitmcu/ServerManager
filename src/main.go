@@ -233,13 +233,6 @@ func main() {
 		app.GET("/event_cat/delete/:id", routeDeleteEventCategory)
 		app.POST("/event_cat/delete/:id", routeDeleteEventCategory)
 
-		app.GET("/event/:category_id", routeEvent)
-		app.POST("/event/:category_id", routeEvent)
-		app.GET("/event/:category_id/:id", routeEvent)
-		app.POST("/event/:category_id/:id", routeEvent)
-		app.GET("/event/delete/:id", routeDeleteEvent)
-		app.POST("/event/delete/:id", routeDeleteEvent)
-
 		app.GET("/queue", routeQueue)
 		app.POST("/queue", routeQueue)
 		app.GET("/queue/delete/:id", routeDeleteQueue)

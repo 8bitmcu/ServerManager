@@ -51,8 +51,13 @@
       animation: loader-rotate 1s linear infinite;
     }
 
-    input, select {
+    input, select, .limit-width, .multi-input {
       max-width: 350px;
+    }
+
+    .multi-input select,
+    .multi-input input {
+      max-width: initial;
     }
   </style>
 </head>

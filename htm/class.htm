@@ -1,24 +1,12 @@
 {{ template "/htm/header.htm" . }}
 
-<h1 class="text-3xl text-black">Car Classes</h1>
 <div class="flex flex-wrap">
-  <div class="w-full my-6 pr-0 lg:pr-2">
-    <p class="text-xl pb-6 flex items-center"></p>
+  <div class="w-full">
     <div class="flex flex-wrap">
-      <nav class="flex flex-row flex-wrap w-full border-r-2 bg-gray-800 text-white">
-        {{ $g := . }}
-        {{range $val := .list }}
-        <a href="/class/{{ $val.Id }}"
-          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {{ if (eq (derefInt $val.Id) (derefInt $g.form.Id)) }} text-white {{ end }}">
-          <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
-        </a>
-        {{ end }}
-
-        <form id="frmAdd" x-data="{ showModal: false, email: '' }" method="POST">
-          <a href="#" @click="showModal = true"
-            class="py-4 px-6 block font-medium">
-            <i class="fas fa-plus mr-3"></i> Add new Class
-          </a>
+      {{ if not .form.Id }}
+      <div class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto" x-data="{ showModal: false, email: '' }">
+        <h1 class="text-3xl text-black pb-6">Car Classes</h1>
+        <form method="POST">
           <!-- Background overlay -->
           <div x-show="showModal" class="fixed inset-0 transition-opacity" aria-hidden="true"
             @click="showModal = false">
@@ -42,15 +30,15 @@
                   <div class="sm:flex sm:items-start">
                     <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                       <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                        Add a new Car Class
+                        Add a new Class
                       </h3>
                       <div class="mt-2">
                         <p class="text-sm text-gray-500">
                           Enter the name of the class
                         </p>
                         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="class_name"
-                          name="class_name" type="text" required="" placeholder="Car Class"
-                          aria-label="Car Class" />
+                          name="class_name" type="text" required="" placeholder="Class Name"
+                          aria-label="Class Name" />
                       </div>
                     </div>
                   </div>
@@ -68,7 +56,33 @@
             </div>
           </div>
         </form>
-      </nav>
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Classes
+            </p>
+            <hr class="pb-6" />
+            <div class="flex">
+              <ul class="bg-white w-96 text-gray-900">
+                {{ $g := . }}
+                {{range $val := .list }}
+                <li class="w-full hover:bg-gray-200 rounded-lg">
+                  <a class="px-5 py-2 inline-block w-full" href="/class/{{ $val.Id }}">
+                    <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
+                  </a>
+                </li>
+                {{ end }}
+                <li class="w-full hover:bg-gray-200 rounded-lg">
+                  <a class="px-5 py-2 inline-block w-full" href="#" @click="showModal = true">
+                    <i class="fas fa-plus mr-3"></i>Add new Class
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{ end }}
 
       {{ if .form.Id }}
 
@@ -329,9 +343,14 @@
           };
         }
       </script>
-      <form id="frmUpdate" method="POST" action="/class/{{ .form.Id }}" class="w-full flex flex-col bg-white text-black">
-        <div class="w-full pl-0 lg:pl-2">
-          <div class="w-1/2 p-4 lg:p-10 leading-loose">
+      <form id="frmUpdate" method="POST" action="/class/{{ .form.Id }}" class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto">
+        <h1 class="text-3xl text-black pb-6">Car Classes</h1>
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Class Name
+            </p>
+            <hr class="pb-6" />
             <div class="">
               <label class="block text-sm text-gray-600 group relative" for="name">
                 Name
@@ -347,300 +366,392 @@
             </div>
           </div>
         </div>
+
+
+
+
+
+
+
+
         <div x-data="class_data()" x-init="class_init()">
-          <input type="hidden" x-model="JSON.stringify(class_cars)" name="entries" />
-          <nav class="flex flex-col">
-            <div class="w-full flex px-6 py-6" x-show="skinpicker_car.uid">
-              <div class="w-full rounded-lg bg-gray-100">
-                <div class="w-full flex flex-row justify-between">
-                  <h2 class="px-6 py-4 text-xl">Skin Picker</h2>
-                  <h2 class="px-6 py-4 text-xl cursor-pointer" @click="skinpicker_car = {}"><i class="fas fa-times-circle"></i></h2>
-                </div>
-                <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
-                  <template x-for="skin in car_getdata(skinpicker_car.cache_car_key).skins">
-                    <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
-                      x-bind:src="skin_getimg(skinpicker_car.cache_car_key, skin.key)"
-                      :class="skinpicker_car.skin_key == skin.key ? 'border-red-500' : ''"
-                      @click="skinpicker_car.skin_key = skin.key" />
-                  </template>
+          <div x-show="skinpicker_car.uid" class="fixed inset-0 transition-opacity" aria-hidden="true"
+            @click="skinpicker_car = {}">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <!-- modal -->
+          <div x-show="skinpicker_car.uid" x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <!-- modal panel -->
+              <div
+                class="md:w-1/2 sm:w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all mt-6"
+                role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <!-- modal content -->
+                  <div class="sm:flex sm:items-start">
+                    <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+
+                      <div class="w-full flex flex-row justify-between">
+                        <h2 class="px-6 py-4 text-xl">skin picker</h2>
+                        <h2 class="px-6 py-4 text-xl cursor-pointer" @click="skinpicker_car = {}"><i class="fas fa-times-circle"></i></h2>
+                      </div>
+                      <div class="flex flex-row flex-wrap max-h-96 overflow-scroll">
+                        <template x-for="skin in car_getdata(skinpicker_car.cache_car_key).skins">
+                          <img class="mx-auto my-4 hover:border-red-300 border-2 rounded cursor-pointer" style="height: 140px"
+                            x-bind:src="skin_getimg(skinpicker_car.cache_car_key, skin.key)"
+                            :class="skinpicker_car.skin_key == skin.key ? 'border-red-500' : ''"
+                            @click="skinpicker_car.skin_key = skin.key" />
+                        </template>
+                      </div>
+
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+          <input type="hidden" x-model="JSON.stringify(class_cars)" name="entries" />
 
-            <div class="w-full flex px-6 py-6" x-show="search_car.uid">
-              <div class="w-full rounded-lg bg-gray-100 max-h-96 overflow-scroll">
+          <div x-show="search_car.uid" class="fixed inset-0 transition-opacity" aria-hidden="true"
+            @click="skinpicker_car = {}">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <!-- modal -->
+          <div x-show="search_car.uid" x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <!-- modal panel -->
+              <div
+                class="md:w-1/2 sm:w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all mt-6"
+                role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <!-- modal content -->
+
                 <div class="w-full flex flex-row justify-between">
                   <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
                   <h2 class="px-6 py-4 text-xl cursor-pointer" @click="search_car = {}"><i class="fas fa-times-circle"></i></h2>
                 </div>
-                <table class="w-full text-left border-collapse">
-                  <thead class="bg-gray-100" style="position: sticky; top: 0">
-                    <tr>
-                      <th colspan="2"
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                        <label class="block text-sm text-gray-600">Name</label>
-                        <div class="flex flex-row">
-                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
-                            type="text" x-model="search_name" placeholder="Name" aria-label="Name" />
-                          <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
-                            <i class="fas fa-search"></i>
+                <div class="overflow-scroll" style="max-height: 75vh">
+                  <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-100" style="position: sticky; top: 0">
+                      <tr>
+                        <th colspan="2"
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          <label class="block text-sm text-gray-600">Name</label>
+                          <div class="flex flex-row">
+                            <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
+                              type="text" x-model="search_name" placeholder="Name" aria-label="Name" />
+                            <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                              <i class="fas fa-search"></i>
+                            </div>
                           </div>
-                        </div>
-                      </th>
-                      <th
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
-                        colspan="2">
-                        <label class="block text-sm text-gray-600">Tag</label>
-                        <div class="flex flex-row">
-                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
-                            type="text" x-model="search_tag" placeholder="Tag" aria-label="Tag" />
-                          <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
-                            <i class="fas fa-search"></i>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
+                          colspan="2">
+                          <label class="block text-sm text-gray-600">Tag</label>
+                          <div class="flex flex-row">
+                            <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none"
+                              type="text" x-model="search_tag" placeholder="Tag" aria-label="Tag" />
+                            <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                              <i class="fas fa-search"></i>
+                            </div>
                           </div>
-                        </div>
-                      </th>
-                      <th colspan="2"></th>
-                    </tr>
-                    <tr>
-                      <th
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                        Name
-                        <button @click="search_sortby='name'; search_sortor='desc'" type="button"
-                          :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-down"></i>
-                        </button>
-                        <button @click="search_sortby='name'; search_sortor='asc'" type="button"
-                          :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-up"></i>
-                        </button>
-                      </th>
-                      <th
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                        Power
-                        <button @click="search_sortby='power'; search_sortor='desc'" type="button"
-                          :class="(search_sortby == 'power' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-down"></i>
-                        </button>
-                        <button @click="search_sortby='power'; search_sortor='asc'" type="button"
-                          :class="(search_sortby == 'power' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-up"></i>
-                        </button>
-                      </th>
-                      <th
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                        Torque
-                        <button @click="search_sortby='torque'; search_sortor='desc'" type="button"
-                          :class="(search_sortby == 'torque' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-down"></i>
-                        </button>
-                        <button @click="search_sortby='torque'; search_sortor='asc'" type="button"
-                          :class="(search_sortby == 'torque' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-up"></i>
-                        </button>
-                      </th>
-                      <th
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                        Weight
-                        <button @click="search_sortby='weight'; search_sortor='desc'" type="button"
-                          :class="(search_sortby == 'weight' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-down"></i>
-                        </button>
-                        <button @click="search_sortby='weight'; search_sortor='asc'" type="button"
-                          :class="(search_sortby == 'weight' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-up"></i>
-                        </button>
-                      </th>
-                      <th
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                        Accel
-                        <button @click="search_sortby='acceleration'; search_sortor='desc'" type="button"
-                          :class="(search_sortby == 'acceleration' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-down"></i>
-                        </button>
-                        <button @click="search_sortby='acceleration'; search_sortor='asc'" type="button"
-                          :class="(search_sortby == 'acceleration' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-up"></i>
-                        </button>
-                      </th>
-                      <th
-                        class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                        Power/Weight
-                        <button @click="search_sortby='pwratio'; search_sortor='desc'" type="button"
-                          :class="(search_sortby == 'pwratio' && search_sortor == 'desc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-down"></i>
-                        </button>
-                        <button @click="search_sortby='pwratio'; search_sortor='asc'" type="button"
-                          :class="(search_sortby == 'pwratio' && search_sortor == 'asc') ? 'text-red-500' : ''">
-                          <i class="fas fa-arrow-up"></i>
-                        </button>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <template x-for="(result, r_index) in search_getresults()">
-                      <tr :class="search_car.cache_car_key == result.key ? 'text-red-500' : ''">
-                        <td class="px-6 border-b border-grey-light">
-                          <a href="#" @click="search_car.cache_car_key = result.key; car_changed(search_car)"
-                            x-text="result.name"></a>
-                        </td>
-                        <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
-                        <td class="px-6 border-b border-grey-light" x-text="result.specs.torque"></td>
-                        <td class="px-6 border-b border-grey-light" x-text="result.specs.weight"></td>
-                        <td class="px-6 border-b border-grey-light" x-text="result.specs.acceleration"></td>
-                        <td class="px-6 border-b border-grey-light" x-text="result.specs.pwratio"></td>
+                        </th>
+                        <th colspan="2"></th>
                       </tr>
-                    </template>
-                  </tbody>
-                </table>
+                      <tr>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Name
+                          <button @click="search_sortby='name'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='name'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Power
+                          <button @click="search_sortby='power'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'power' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='power'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'power' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Torque
+                          <button @click="search_sortby='torque'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'torque' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='torque'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'torque' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Weight
+                          <button @click="search_sortby='weight'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'weight' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='weight'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'weight' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Accel
+                          <button @click="search_sortby='acceleration'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'acceleration' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='acceleration'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'acceleration' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Power/Weight
+                          <button @click="search_sortby='pwratio'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'pwratio' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='pwratio'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'pwratio' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="(result, r_index) in search_getresults()">
+                        <tr :class="search_car.cache_car_key == result.key ? 'text-red-500' : ''">
+                          <td class="px-6 border-b border-grey-light">
+                            <a href="#" @click="search_car.cache_car_key = result.key; car_changed(search_car)"
+                              x-text="result.name"></a>
+                          </td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.specs.bhp"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.specs.torque"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.specs.weight"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.specs.acceleration"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.specs.pwratio"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+
+                </div>
               </div>
             </div>
+          </div>
 
-            <table>
-              <template x-for="(car, car_index) in class_cars" :key="car.uid">
-                <tr class="even:bg-gray-100">
-                  <td class="relative max-w-64" style="padding: 0">
-                    <span class="text-2xl text-white px-2 py-1 absolute"
-                      x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
-                    <img x-bind:src="skin_getimg(car.cache_car_key, car.skin_key)" class="w-64"/>
-                  </td>
-                  <td class="pl-4 pr-4">
-                    <label class="block text-sm text-gray-600">Car</label>
-                    <div class="flex flex-row">
-                      <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.cache_car_key" required=""
-                        @change="car_changed(car)">
-                        <option value="">Select ...</option>
-                        {{range $val := .car_data }}
-                        <option value="{{  $val.Key }}">{{ $val.Name }}</option>
-                        {{ end }}
-                      </select>
-                      <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
-                        :class="search_car.uid == car.uid ? 'text-red-500' : ''" type="button"
-                        @click="search_show(car)">
-                        <i class="fas fa-search"></i>
-                      </button>
-                    </div>
-                    <label class="block text-sm text-gray-600">Skin</label>
-                    <div class="flex flex-row">
-                      <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin_key" required="">
-                        <option value="" :selected="car.skin_key == ''">
-                          Select ...
-                        </option>
-                        <template x-for="skin in car_getdata(car.cache_car_key).skins">
-                          <option x-bind:value="skin.key" x-text="skin.name"
-                            :selected="car.skin_key == skin.key"></option>
-                        </template>
-                      </select>
-                      <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_skin(car)">
-                        <i class="fas fa-random"></i>
-                      </button>
-                      <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
-                        :class="skinpicker_car.uid == car.uid ? 'text-red-500' : ''" type="button"
-                        @click="skinpicker_show(car)">
-                        <i class="fas fa-grip-horizontal"></i>
-                      </button>
-                    </div>
-                  </td>
 
-                  <td class="table-cell align-middle">
-                    <div class="flex justify-center">
-                      <button class="px-2 py-1 tracking-wider bg-gray-200 rounded-l-md" type="button"
+          <nav class="flex flex-col">
+
+            <div class="w-full mt-6">
+              <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+                <p class="text-xl flex items-center">
+                  <i class="fas fa-list mr-3"></i> Entries
+                </p>
+                <hr />
+                <template x-for="(car, car_index) in class_cars" :key="car.uid">
+                  <div class="mt-6 m-2 leading-loose font-regular rounded-lg bg-gray-100 flex flex-row">
+                    <div class="max-w-64 mr-4" style="padding: 0">
+                      <span class="text-2xl text-white px-2 py-1 absolute"
+                        x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
+                      <img x-bind:src="skin_getimg(car.cache_car_key, car.skin_key)" class="w-64 rounded-l-lg"/>
+                    </div>
+                    <div class="mr-4">
+                      <label class="block text-sm text-gray-600">Car</label>
+                      <div class="flex flex-row">
+                        <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.cache_car_key" required=""
+                          @change="car_changed(car)">
+                          <option value="">Select ...</option>
+                          {{range $val := .car_data }}
+                          <option value="{{  $val.Key }}">{{ $val.Name }}</option>
+                          {{ end }}
+                        </select>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
+                          :class="search_car.uid == car.uid ? 'text-red-500' : ''" type="button"
+                          @click="search_show(car)">
+                          <i class="fas fa-search"></i>
+                        </button>
+                      </div>
+                      <label class="block text-sm text-gray-600">Skin</label>
+                      <div class="flex flex-row">
+                        <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin_key" required="">
+                          <option value="" :selected="car.skin_key == ''">
+                            Select ...
+                          </option>
+                          <template x-for="skin in car_getdata(car.cache_car_key).skins">
+                            <option x-bind:value="skin.key" x-text="skin.name"
+                              :selected="car.skin_key == skin.key"></option>
+                          </template>
+                        </select>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_skin(car)">
+                          <i class="fas fa-random"></i>
+                        </button>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md"
+                          :class="skinpicker_car.uid == car.uid ? 'text-red-500' : ''" type="button"
+                          @click="skinpicker_show(car)">
+                          <i class="fas fa-grip-horizontal"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col flex-1">
+                      <button class="grow tracking-wider bg-gray-200 rounded-tr-lg" type="button"
                         @click="car_moveup(car_index)" x-bind:disabled="car_index == 0">
                         Up
-                      </button><button class="px-2 py-1 tracking-wider bg-gray-200" type="button" @click="car_movedown(car_index)"
+                      </button><button class="grow tracking-wider bg-gray-200" type="button" @click="car_movedown(car_index)"
                         x-bind:disabled="car_index == class_cars.length-1">
                         Down
-                      </button><button class="px-2 py-1 tracking-wider bg-gray-200" type="button" @click="details_fetch(car)">
-                        More
-                      </button><button class="text-white px-2 py-1 tracking-wider bg-red-900 rounded-r-md" type="button"
+                      </button><button class="grow tracking-wider bg-gray-200" type="button" @click="details_fetch(car)">
+                        Info
+                      </button><button class="grow text-white tracking-wider bg-red-900 rounded-br-lg" type="button"
                         @click="car_remove(car_index, car.uid)">
                         Remove
                       </button>
                     </div>
-                  </td>
-                </tr>
-              </template>
-            </table>
-
-            <a href="#" @click="car_add()" class="py-8 px-6 block hover:text-red-500 focus:outline-none font-medium">
-              <i class="fas fa-plus mr-3"></i> Add new entry
-            </a>
-          </nav>
-
-          <div class="w-full px-6 py-6" x-show="details_car.uid">
-            <div class="p-4 lg:p-10 leading-loose font-regular px-4 py-4 rounded-lg bg-gray-100 flex flex-row">
-              <div class="w-1/2 mx-6 flex flex-col">
-                <div>
-                  <div class="">
-                    <label class="block text-sm text-gray-600">GUID</label>
-                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
-                      placeholder="GUID" aria-label="GUID" />
                   </div>
-                  <div class="mt-2">
-                    <label class="block text-sm text-gray-600" for="race_laps">Name</label>
-                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
-                      placeholder="Name" aria-label="Name" />
-                  </div>
-                  <div class="mt-2">
-                    <label class="block text-sm text-gray-600" for="race_laps">Team</label>
-                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
-                      placeholder="Team" aria-label="Team" />
-                  </div>
-                  <div class="mt-2">
-                    <label class="block text-sm text-gray-600" for="race_laps">Ballast</label>
-                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text" 
-                      placeholder="Ballast" aria-label="Ballast" />
-                  </div>
-                  <div class="mt-2">
-                    <label class="block text-sm text-gray-600" for="race_laps">Restrictor</label>
-                    <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
-                      placeholder="Restrictor" aria-label="Restrictor" />
-                  </div>
-                </div>
-                <div class="bg-white w-full py-4 px-4 my-6">
-                  <canvas id="chartOne" width="200" height="100"></canvas>
+                </template>
+                <div class="w-full mt-6 pl-0 lg:pl-2 flex justify-center items-center">
+                  <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="button"
+                    @click="car_add()">
+                    Add New Entry
+                  </button>
                 </div>
               </div>
-              <div class="w-1/2 mx-6">
-                <h2 class="text-lg"
-                  x-text="car_getdata(details_car.cache_car_key).name + ' - ' + skin_getdata(details_car.cache_car_key, details_car.skin_key).name">
-                </h2>
-                <img x-bind:src="skin_getimg(details_car.cache_car_key, details_car.skin_key)" class="py-4" />
+            </div>
+          </nav>
 
-                <div>
-                  <template x-for="tag in car_getdata(details_car.cache_car_key).tags">
-                    <div
-                      class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
-                      <div class="mt-px" x-html="tag"></div>
+
+
+
+          <div x-show="details_car.uid" class="fixed inset-0 transition-opacity" aria-hidden="true"
+            @click="skinpicker_car = {}">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <!-- modal -->
+          <div x-show="details_car.uid" x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <!-- modal panel -->
+              <div
+                class="md:w-1/2 sm:w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all mt-6"
+                role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <!-- modal content -->
+                  <div class="w-full flex flex-row justify-between">
+                    <h2 class="px-6 py-4 text-xl">Car Details</h2>
+                    <h2 class="px-6 py-4 text-xl cursor-pointer" @click="details_car = {}"><i class="fas fa-times-circle"></i></h2>
+                  </div>
+                  <div class="w-full px-6 py-6 flex flex-row">
+                    <div class="w-1/2 mx-6 flex flex-col">
+                      <div>
+                        <div class="">
+                          <label class="block text-sm text-gray-600">GUID</label>
+                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                            placeholder="GUID" aria-label="GUID" />
+                        </div>
+                        <div class="mt-2">
+                          <label class="block text-sm text-gray-600" for="race_laps">Name</label>
+                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                            placeholder="Name" aria-label="Name" />
+                        </div>
+                        <div class="mt-2">
+                          <label class="block text-sm text-gray-600" for="race_laps">Team</label>
+                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                            placeholder="Team" aria-label="Team" />
+                        </div>
+                        <div class="mt-2">
+                          <label class="block text-sm text-gray-600" for="race_laps">Ballast</label>
+                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" type="text" 
+                            placeholder="Ballast" aria-label="Ballast" />
+                        </div>
+                        <div class="mt-2">
+                          <label class="block text-sm text-gray-600" for="race_laps">Restrictor</label>
+                          <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" disabled type="text" 
+                            placeholder="Restrictor" aria-label="Restrictor" />
+                        </div>
+                      </div>
+                      <div class="bg-white w-full py-4 px-4 my-6">
+                        <canvas id="chartOne" width="200" height="100"></canvas>
+                      </div>
                     </div>
-                  </template>
+                    <div class="w-1/2 mx-6">
+                      <h2 class="text-lg"
+                        x-text="car_getdata(details_car.cache_car_key).name + ' - ' + skin_getdata(details_car.cache_car_key, details_car.skin_key).name">
+                      </h2>
+                      <img x-bind:src="skin_getimg(details_car.cache_car_key, details_car.skin_key)" class="py-4" />
+
+                      <div>
+                        <template x-for="tag in car_getdata(details_car.cache_car_key).tags">
+                          <div
+                            class="center relative inline-block select-none whitespace-nowrap rounded-lg bg-red-500 py-1 px-2 align-baseline font-sans text-xs font-bold leading-none text-white">
+                            <div class="mt-px" x-html="tag"></div>
+                          </div>
+                        </template>
+                      </div>
+
+                      <p class="py-4" style="
+                          float: left;
+                          margin-right: 1em;
+                          margin-bottom: 1em;
+                          line-height: 1.6;
+                        ">
+                        Power:
+                        <span x-text="car_getdata(details_car.cache_car_key).specs.bhp"></span><br />
+                        Torque:
+                        <span x-text="car_getdata(details_car.cache_car_key).specs.torque"></span><br />
+                        Weight:
+                        <span x-text="car_getdata(details_car.cache_car_key).specs.weight"></span><br />
+                        Top Speed:
+                        <span x-text="car_getdata(details_car.cache_car_key).specs.topspeed"></span>
+                        <br />
+                        Acceleration:
+                        <span x-text="car_getdata(details_car.cache_car_key).specs.acceleration"></span>
+                      </p>
+
+                      <p class="text-xs text-justify py-4" x-html="details.desc"></p>
+                    </div>
+                  </div>
                 </div>
-
-                <p class="py-4" style="
-                    float: left;
-                    margin-right: 1em;
-                    margin-bottom: 1em;
-                    line-height: 1.6;
-                  ">
-                  Power:
-                  <span x-text="car_getdata(details_car.cache_car_key).specs.bhp"></span><br />
-                  Torque:
-                  <span x-text="car_getdata(details_car.cache_car_key).specs.torque"></span><br />
-                  Weight:
-                  <span x-text="car_getdata(details_car.cache_car_key).specs.weight"></span><br />
-                  Top Speed:
-                  <span x-text="car_getdata(details_car.cache_car_key).specs.topspeed"></span>
-                  <br />
-                  Acceleration:
-                  <span x-text="car_getdata(details_car.cache_car_key).specs.acceleration"></span>
-                </p>
-
-                <p class="text-xs text-justify py-4" x-html="details.desc"></p>
               </div>
             </div>
           </div>
         </div>
-        <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="">
-          <p class="text-xl pb-6 flex items-center">
+        <div class="w-full mt-6 pl-0 lg:pl-2" x-data="">
+          <p class="text-xl pb-6 flex justify-center items-center">
           <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-l-md" type="submit">
               Save
             </button>

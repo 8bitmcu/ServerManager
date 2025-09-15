@@ -1,29 +1,143 @@
 {{ template "/htm/header.htm" . }}
 
 <script>
+  function sort_str(a, b) {
+    let x = a.toLowerCase();
+    let y = b.toLowerCase();
+    if (x < y) return -1;
+    if (x > y) return 1;
+    return 0;
+  }
+
+  function sort_num(a, b) {
+    return a - b;
+  }
   function format_distance(len) {
     return Math.round(Number(len) / 10) / 100 + " km";
   }
-</script>
-<h1 class="text-3xl text-black">Event Categories</h1>
-<div class="flex flex-wrap">
-  <div class="w-full my-6 pr-0 lg:pr-2">
-    <p class="text-xl pb-6 flex items-center"></p>
-    <div class="flex flex-wrap bg-white">
-      <nav class="flex flex-row flex-wrap w-full bg-gray-800 text-white">
-        {{ $g := . }}
-        {{range $val := .list }}
-        <a href="/event_cat/{{ $val.Id }}"
-          class="py-4 px-6 block text-gray-500 hover:text-white focus:outline-none font-medium {{ if (eq (derefInt $val.Id) (derefInt $g.form.Id)) }} text-white {{ end }}">
-          <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
-        </a>
-        {{ end }}
+  function event_category() {
+    return {
+      tracks_data: {{ .track_data }},
+      class_data: {{ .classes }},
+      time_data: {{ .times }},
+      items: {{ .form.Events }},
 
-        <form x-data="{ showModal: false, email: '' }" method="POST">
-          <a href="#" @click="showModal = true"
-            class="py-4 px-6 block font-medium">
-            <i class="fas fa-plus mr-3"></i> Add new Category
-          </a>
+      trackpicker_open: false,
+      search_open: false,
+      search_index: 0,
+      search_toggle: function (index) {
+        this.search_open = !this.search_open;
+        this.search_track = this.items[index].selected_track;
+        this.search_index = index;
+      },
+      search_name: "",
+      search_tag: "",
+      search_sortby: "name",
+      search_sortor: "asc",
+      search_track: {},
+      search_getresults: function () {
+        let sn = this.search_name;
+        let name_results = this.tracks_data.filter(function (x) {
+          return x.name.match(new RegExp(sn, "ig"));
+        });
+
+        let tag_results = [];
+        let st = this.search_tag;
+        name_results.forEach(function (track) {
+          if (track.tags.find((x) => x.match(new RegExp(st, "ig")))) {
+            tag_results.push(track);
+          }
+        });
+
+        let sortby = this.search_sortby;
+        let sortor = this.search_sortor;
+        let sorted_results = tag_results.sort(function (a, b) {
+          if (sortby == "name" && sortor == "asc")
+            return sort_str(a.name, b.name);
+          else if (sortby == "name" && sortor == "desc")
+            return sort_str(b.name, a.name);
+          else if (sortby == "country" && sortor == "asc")
+            return sort_str(a.country, b.country);
+          else if (sortby == "country" && sortor == "desc")
+            return sort_str(b.country, a.country);
+          else if (sortby == "city" && sortor == "asc")
+            return sort_str(a.city, b.city);
+          else if (sortby == "city" && sortor == "desc")
+            return sort_str(b.city, a.city);
+          else if (sortby == "length" && sortor == "asc")
+            return sort_num(a.length, b.length);
+          else if (sortby == "length" && sortor == "desc")
+            return sort_num(b.length, a.length);
+          else if (sortby == "width" && sortor == "asc")
+            return sort_num(a.width, b.width);
+          else if (sortby == "width" && sortor == "desc")
+            return sort_num(b.width, a.width);
+          else if (sortby == "pitboxes" && sortor == "asc")
+            return sort_num(a.pitboxes, b.pitboxes);
+          else if (sortby == "pitboxes" && sortor == "desc")
+            return sort_num(b.pitboxes, a.pitboxes);
+        });
+
+        return sorted_results;
+      },
+      set_searchresult: function(key, config) {
+        this.search_track = key + ':' + config;
+        this.items[this.search_index].selected_track = this.search_track;
+      },
+
+      trackpicker_open: false,
+      trackpicker_index: 0,
+      trackpicker_track: {},
+      trackpicker_toggle: function (index) {
+        this.trackpicker_open = !this.trackpicker_open;
+        this.trackpicker_index = index;
+        this.trackpicker_track = this.items[index].selected_track;
+      },
+      track_preview: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track/preview/" + key;
+        else return "/api/track/preview/" + key + "/" + config;
+      },
+      track_outline: function (key, config) {
+        if (!key) return "";
+        if (!config) return "/api/track/outline/" + key;
+        else return "/api/track/outline/" + key + "/" + config;
+      },
+      set_trackpicked: function(key, config) {
+        this.trackpicker_track = key + ':' + config;
+        this.items[this.trackpicker_index].selected_track = this.trackpicker_track;
+      },
+
+      add_panel() {
+        this.items.push({});
+      },
+      remove_panel(index) {
+        this.items = this.items.filter((item, idx) => {
+          return index !== idx
+        })
+      },
+      random_track: function(index) {
+        let rand = Math.floor(Math.random()*this.tracks_data.length);
+        this.items[index].selected_track = this.tracks_data[rand].key + ":" + this.tracks_data[rand].config;
+      },
+      random_class: function(index) {
+        let rand = Math.floor(Math.random()*this.class_data.length);
+        this.items[index].class = this.class_data[rand].id;
+      },
+      random_time: function(index) {
+        let rand = Math.floor(Math.random()*this.time_data.length);
+        this.items[index].time = this.time_data[rand].id;
+      },
+    }
+  }
+</script>
+<div class="flex flex-wrap">
+  <div class="w-full">
+    <div class="flex flex-wrap">
+      {{ if not .form.Id }}
+      <div class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto" x-data="{ showModal: false, email: '' }">
+        <h1 class="text-3xl text-black pb-6">Event Categories</h1>
+        <form method="POST">
           <!-- Background overlay -->
           <div x-show="showModal" class="fixed inset-0 transition-opacity" aria-hidden="true"
             @click="showModal = false">
@@ -51,7 +165,7 @@
                       </h3>
                       <div class="mt-2">
                         <p class="text-sm text-gray-500">
-                          Enter the name of the category
+                          Enter the name of the event category
                         </p>
                         <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded" id="category_name"
                           name="category_name" type="text" required="" placeholder="Category Name"
@@ -73,13 +187,233 @@
             </div>
           </div>
         </form>
-      </nav>
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Event Categories
+            </p>
+            <hr class="pb-6" />
+            <div class="flex">
+              <ul class="bg-white w-96 text-gray-900">
+                {{ $g := . }}
+                {{range $val := .list }}
+                <li class="w-full hover:bg-gray-200 rounded-lg">
+                  <a class="px-5 py-2 inline-block w-full" href="/event_cat/{{ $val.Id }}">
+                    <i class="fas fa-edit mr-3"></i>{{ $val.Name }}
+                  </a>
+                </li>
+                {{ end }}
+                <li class="w-full hover:bg-gray-200 rounded-lg">
+                  <a class="px-5 py-2 inline-block w-full" href="#" @click="showModal = true">
+                    <i class="fas fa-plus mr-3"></i>Add new Event Category
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{ end }}
 
 
       {{ if .form.Id }}
-      <form class="w-full" action="/event_cat/{{ .form.Id }}" method="POST">
-        <div class="w-full pl-0 lg:pl-2">
-          <div class="w-1/2 p-4 lg:p-10 leading-loose">
+      <form class="2xl:w-1/2 xl:w-4/6 lg:w-5/6 md:w-full m-auto" action="/event_cat/{{ .form.Id }}" method="POST" x-data="event_category()">
+
+        <!-- ADVANCED SEARCH -->
+        <div x-show="search_open" class="fixed inset-0 transition-opacity" aria-hidden="true"
+          @click="search_open = false">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <!-- Modal -->
+        <div x-show="search_open" x-transition:enter="transition ease-out duration-300 transform"
+          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave="transition ease-in duration-200 transform"
+          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+          <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Modal panel -->
+            <div
+              class="md:w-1/2 sm:w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all mt-6" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <!-- Modal content -->
+                <div class="w-full flex flex-row justify-between">
+                  <h2 class="px-6 py-4 text-xl">Advanced Search</h2>
+                  <h2 class="px-6 py-4 text-xl cursor-pointer" @click="search_open = false"><i class="fas fa-times-circle"></i></h2>
+                </div>
+                <div class="overflow-scroll" style="max-height: 75vh">
+                  <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-100" style="position: sticky; top: 0">
+                      <tr>
+                        <th colspan="2"
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          <label class="block text-sm text-gray-600">Name</label>
+                          <div class="flex flex-row">
+                            <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                              x-model="search_name" placeholder="Name" aria-label="Name" />
+                            <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                              <i class="fas fa-search"></i>
+                            </div>
+                          </div>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light"
+                          colspan="2">
+                          <label class="block text-sm text-gray-600">Tag</label>
+                          <div class="flex flex-row">
+                            <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l focus:outline-none" type="text"
+                              x-model="search_tag" placeholder="Tag" aria-label="Tag" />
+                            <div class="px-4 py-1 tracking-wider bg-gray-200 rounded-r">
+                              <i class="fas fa-search"></i>
+                            </div>
+                          </div>
+                        </th>
+                        <th colspan="2"></th>
+                      </tr>
+                      <tr>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Name
+                          <button @click="search_sortby='name'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'name' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='name'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'name' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Country
+                          <button @click="search_sortby='country'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'country' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='country'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'country' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          City
+                          <button @click="search_sortby='city'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'city' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='city'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'city' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Length
+                          <button @click="search_sortby='length'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'length' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='length'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'length' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Width
+                          <button @click="search_sortby='width'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'width' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='width'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'width' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                        <th
+                          class="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+                          Pitboxes
+                          <button @click="search_sortby='pitboxes'; search_sortor='desc'" type="button"
+                            :class="(search_sortby == 'pitboxes' && search_sortor == 'desc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-down"></i>
+                          </button>
+                          <button @click="search_sortby='pitboxes'; search_sortor='asc'" type="button"
+                            :class="(search_sortby == 'pitboxes' && search_sortor == 'asc') ? 'text-red-500' : ''">
+                            <i class="fas fa-arrow-up"></i>
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="(result, r_index) in search_getresults()">
+                        <tr :class="(search_track == result.key + ':' + result.config) ? 'text-red-500':''">
+                          <td class="px-6 border-b border-grey-light">
+                            <a href="#" x-text="result.name" @click="set_searchresult(result.key, result.config)"></a>
+                          </td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.country"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.city"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="format_distance(result.length)"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.width"></td>
+                          <td class="px-6 border-b border-grey-light" x-text="result.pitboxes"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- (VISUAL) TRACK PICKER -->
+        <div x-show="trackpicker_open" class="fixed inset-0 transition-opacity" aria-hidden="true"
+          @click="trackpicker_open = false">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <!-- Modal -->
+        <div x-show="trackpicker_open" x-transition:enter="transition ease-out duration-300 transform"
+          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave="transition ease-in duration-200 transform"
+          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+          <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Modal panel -->
+            <div
+              class="md:w-1/2 sm:w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all mt-6" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <!-- Modal content -->
+                <div class="w-full flex flex-row justify-between">
+                  <h2 class="px-6 py-4 text-xl">Track Picker</h2>
+                  <h2 class="px-6 py-4 text-xl cursor-pointer" @click="trackpicker_open = false"><i class="fas fa-times-circle"></i></h2>
+                </div>
+                <div class="flex flex-row flex-wrap overflow-scroll" style="max-height: 75vh">
+                  <template x-for="track in tracks_data">
+                    <div class="relative mx-auto pb-2 my-4 hover:border-red-300 border-2 rounded cursor-pointer" @click="set_trackpicked(track.key, track.config)" 
+                      :class="trackpicker_track == track.key + ':' + track.config ? 'border-red-500':''">
+                      <img style="height: 140px" x-bind:src="track_preview(track.key, track.config)" />
+                      <img class="absolute" style="height: 140px; top: 0"
+                        x-bind:src="track_outline(track.key, track.config)" />
+                      <p class="text-xs" x-text="track.name + ', ' + format_distance(track.length)"></p>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- form begins -->
+        <h1 class="text-3xl text-black pb-6">Event Categories</h1>
+        <div class="w-full">
+          <div class="p-4 lg:p-10 leading-loose bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i> Category Name
+            </p>
+            <hr class="pb-6" />
             <div class="">
               <label class="block text-sm text-gray-600 group relative" for="name">
                 Name
@@ -95,153 +429,144 @@
             </div>
           </div>
         </div>
-        <table class="min-w-full bg-white" x-data="{}">
-          <thead class="bg-gray-700 text-white">
-            <tr>
-              <th class="text-left py-3 uppercase pl-4 font-semibold text-sm">
-                Track
-              </th>
-              <th class="text-left py-3 uppercase font-semibold text-sm">
-                Difficulty
-              </th>
-              <th class="text-left py-3 uppercase font-semibold text-sm">
-                Session
-              </th>
-              <th class="text-left py-3 uppercase font-semibold text-sm">
-                Class
-              </th>
-              <th class="text-left py-3 uppercase font-semibold text-sm">
-                Time and Weather
-              </th>
-              <th class="text-left py-3 uppercase font-semibold text-sm">
-                Action
-              </th>
-            </tr>
-          </thead>
-            <tbody class="text-gray-700">
-              {{$g := . }}
-              {{range $i, $event := .form.Events }}
-              <tr class="even:bg-gray-100">
-                <td class="pl-4 text-left whitespace-nowrap align-baseline">
-                  <span>{{ $event.TrackName }}</span>
-                  <div class="text-xs">
-                    <i class="fas fa-route"></i>
-                    <span class="pr-2" x-html="format_distance({{ $event.TrackLength }})"></span>
-                    <span>{{ $event.Pitboxes }} pitboxes</span>
-                  </div>
-                </td>
-                <td class="text-left whitespace-nowrap align-baseline">
-                  <span>{{ $event.DifficultyName }}</span>
-                  <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row">
-                    <span class="{{ if not (eq (derefInt $event.AbsAllowed) "0") }}text-red-500{{ end }}" >
-                      <i class="fas fa-exclamation-circle"></i>
-                      <span class="pr-4">ABS</span>
-                    </span>
-                    <span class="{{ if not (eq (derefInt $event.TcAllowed) "0") }}text-red-500{{ end }}" >
-                      <i class="fas fa-exclamation-circle"></i>
-                      <span class="pr-4">TC</span>
-                    </span>
-                    <span class="{{ if not (eq (derefInt $event.StabilityAllowed) "0") }}text-red-500{{ end }}" >
-                      <i class="fas fa-exclamation-circle"></i>
-                      <span class="pr-4">Stability</span>
-                    </span>
-                    <span class="{{ if not (eq (derefInt $event.AutoclutchAllowed) "0") }}text-red-500{{ end }}" >
-                      <i class="fas fa-exclamation-circle"></i>
-                      <span class="pr-4">Clutch</span>
-                    </span>
-                  </div>
-                </td>
-                <td class="text-left whitespace-nowrap align-baseline py-3">
-                  <span>{{ $event.SessionName }}</span>
-                  <div class="text-xs flex sm:flex-col md:flex-col lg:flex-col xl:flex-row whitespace-nowrap">
-                    <div class="flex flex-col">
-                      <span class="{{ if (eq (derefInt $event.BookingEnabled) "1") }}text-red-500{{ end }}" >
-                        <i class="fas {{ if (eq (derefInt $event.BookingEnabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Booking</span>
-                      </span>
-                      {{ if (eq (derefInt $event.BookingEnabled) "1") }}
-                      <span class="pr-2">{{ $event.BookingTime }} minutes</span>
-                      {{ end }}
+
+        <div class="w-full mt-6">
+          <div class="p-4 lg:p-10 leading-loose flex-row bg-white rounded shadow-xl">
+            <p class="text-xl flex items-center">
+              <i class="fas fa-list mr-3"></i>Event(s)
+            </p>
+            <hr class="pb-6" />
+
+            <div class="flex flex-wrap flex-col sm:flex-row">
+
+              <template x-for="(evt, index) in items">
+                <div class="w-full mt-6 pl-0 lg:pl-2">
+                  <div class="p-4 lg:p-10 m-2 leading-loose font-regular rounded-lg bg-gray-100">
+                    <h2 class="text-black">Event <span x-html="index+1"></span></h2>
+                    <hr class="pb-6" />
+
+                    <div class="">
+                      <label class="block text-sm text-gray-600" for="track">Track</label>
+                      <div class="flex flex-row multi-input">
+                        <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="track" required x-model="evt.selected_track">
+                          <option value="">Select ...</option>
+                          {{range $val := .track_data }}
+                          <option value="{{ $val.Key }}:{{ $val.Config }}">
+                            {{ $val.Name }}
+                          </option>
+                          {{ end }}
+                        </select>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_track(index)">
+                          <i class="fas fa-random"></i>
+                        </button>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="search_toggle(index)">
+                          <i class="fas fa-search"></i>
+                        </button>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r-md" type="button" @click="trackpicker_toggle(index)">
+                          <i class="fas fa-grip-horizontal"></i>
+                        </button>
+                      </div>
                     </div>
-                    <div class="flex flex-col">
-                      <span class="{{ if (eq (derefInt $event.PracticeEnabled) "1") }}text-red-500{{ end }}" >
-                        <i class="fas {{ if (eq (derefInt $event.PracticeEnabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Practice</span>
-                      </span>
-                      {{ if (eq (derefInt $event.PracticeEnabled) "1") }}
-                      <span class="pr-2">{{ $event.PracticeTime }} minutes</span>
-                      {{ end }}
+
+                    <div class="mt-2">
+                      <label class="block text-sm text-gray-600" for="difficulty">Difficulty</label>
+                      <div class="flex flex-row">
+                        <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="difficulty" required x-model="evt.difficulty">
+                          <option value="">Select ...</option>
+                          {{range $val := .difficulties }}
+                          <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+                          {{ end }}
+                        </select>
+                      </div>
                     </div>
-                    <div class="flex flex-col">
-                      <span class="{{ if (eq (derefInt $event.QualifyEnabled) "1") }}text-red-500{{ end }}" >
-                        <i class="fas {{ if (eq (derefInt $event.QualifyEnabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Qualifying</span>
-                      </span>
-                      {{ if (eq (derefInt $event.QualifyEnabled) "1") }}
-                      <span class="pr-2">{{ $event.QualifyTime }} minutes</span>
-                      {{ end }}
+
+                    <div class="mt-2">
+                      <label class="block text-sm text-gray-600" for="session">Session</label>
+                      <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="session" required x-model="evt.session">
+                          <option value="">Select ...</option>
+                          {{range $val := .sessions }}
+                          <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+                          {{ end }}
+                      </select>
                     </div>
-                    <div class="flex flex-col">
-                      <span class="{{ if (eq (derefInt $event.RaceEnabled) "1") }}text-red-500{{ end }}" >
-                        <i class="fas {{ if (eq (derefInt $event.RaceEnabled) "1") }}fa-check{{ else }}fa-times{{ end }}"></i> <span class="pr-4">Race</span>
-                      </span>
-                      {{ if and (gt (toInt $event.RaceLaps) 0) (eq (derefInt $event.RaceEnabled) "1") }}
-                      <span class="pr-2">{{ $event.RaceLaps }} laps</span>
-                      {{ else if (eq (derefInt $event.RaceEnabled) "1") }}
-                      <span class="pr-2">{{ $event.RaceTime }} minutes</span>
-                      {{ end }}
+                    <div class="mt-2">
+                      <label class="block text-sm text-gray-600" for="time">Time and Weather</label>
+                      <div class="flex flex-row multi-input">
+                        <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="time" required x-model="evt.time">
+                            <option value="">Select ...</option>
+                            {{range $val := .times }}
+                            <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+                            {{ end }}
+                        </select>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200" type="button" @click="random_time(index)">
+                          <i class="fas fa-random"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <label class="block text-sm text-gray-600 group relative" for="race_laps">
+                        Laps (optional)
+                        <div class="absolute mx-2 invisible group-hover:visible whitespace-nowrap"
+                          style="top: -2rem; left: -1rem; z-index: 2">
+                          <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                            When laps is not set, race time will be used instead
+                          </div>
+                        </div>
+                      </label>
+                      <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-md" type="number" name="race_laps" x-model="evt.race_laps"
+                        placeholder="Laps" aria-label="Laps" min="0" />
+                    </div>
+
+                    <div class="mt-2">
+                      <label class="block text-sm text-gray-600" for="class">Class</label>
+                      <div class="flex flex-row multi-input">
+                        <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" name="class" required x-model="evt.class">
+                            <option value="">Select ...</option>
+                            {{range $val := .classes }}
+                            <option value="{{ $val.Id }}">{{ $val.Name }}</option>
+                            {{ end }}
+                        </select>
+                        <button class="px-4 py-1 tracking-wider bg-gray-200 rounded-r" type="button" @click="random_class(index)">
+                          <i class="fas fa-random"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <label class="block text-sm text-gray-600 group relative" for="strategy">
+                        Strategy
+                        <div class="absolute mx-2 invisible group-hover:visible whitespace-nowrap"
+                          style="top: -2rem; left: -1rem; z-index: 2">
+                          <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+                            Stategy used when Maximum Players or Track pitboxes are lower than the number of vehicles in this class
+                          </div>
+                        </div>
+                      </label>
+                      <select class="w-full bg-gray-200 rounded py-2 px-4 pr-8" name="strategy" required x-model="evt.strategy">
+                          <option value="">Select ...</option>
+                          <option value="1">First</option>
+                          <option value="2">Random</option>
+                      </select>
+                    </div>
+                    <div class="inline-block mt-2 w-full pr-1">
+                      <button class="px-4 py-1 text-white font-light tracking-wider bg-red-900 rounded-md" type="button"
+                        @click="remove_panel(index)" x-bind:disabled="items.length == 1">
+                        Remove Event Panel
+                      </button>
                     </div>
                   </div>
-                </td>
-                <td class="text-left whitespace-nowrap align-baseline">
-                  <span>{{ $event.ClassName }}</span>
-                  <div class="text-xs">
-                    <span><i class="fas fa-warehouse"></i>
-                    {{ if and (gt (toInt $event.Pitboxes) (toInt $g.maxClients)) (gt (toInt $event.Entries) (toInt $g.maxClients)) }}
-                      {{ $g.max_clients }} 
-                      {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
-                      {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
-                      entries of {{ $event.Entries }}
-                    {{ else if (gt (toInt $event.Entries) (toInt $event.Pitboxes)) }}
-                      {{ $event.Pitboxes }}
-                      {{ if (eq (derefInt $event.Strategy) "1") }}first{{ end }}
-                      {{ if (eq (derefInt $event.Strategy) "2") }}random{{ end }}
-                      entries of {{ $event.Entries }}
-                    {{ else }}
-                      all {{ $event.Entries }} entries
-                    {{ end }}
-                    </span>
-                  </div>
-                </td>
-                <td class="text-left whitespace-nowrap flex flex-col align-baseline">
-                  <span>{{ $event.TimeName }} {{ if (gt (toInt $event.CspWeather) 0) }} (CSP) {{end}}</span>
-                  {{ if (gt (toInt $event.TruncWeather) 1) }}
-                  <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> 1 of {{ $event.TruncWeather }} entries</span>
-                  {{ else }}
-                  <span class="text-xs mr-4"><i class="fas fa-stopwatch"></i> {{ $event.Time }} </span>
-                  <span class="text-xs"><i class="fas fa-cloud-moon-rain"></i> {{ $event.Graphics }}</span>
-                  {{ end }}
-                </td>
-                <td class="text-left whitespace-nowrap">
-                  <div class="flex flex-col">
-                    <a href="/event/{{ $g.form.Id }}/{{ $event.Id }}">
-                      Edit
-                    </a>
-                    <a href="/event/delete/{{ $event.Id }}" @click="return confirm('Are you sure?')">
-                      Remove
-                    </a>
-                  </div>
-                </td>
-              </tr>
-              {{ end }}
-            </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="6">
-                <a href="/event/{{ .form.Id }}" class="py-8 px-6 block hover:text-red-500 focus:outline-none font-medium">
-                  <i class="fas fa-plus mr-3"></i> Add new Event
-                </a>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+                </div>
+              </template>
+
+              <div class="w-full mt-6 pl-0 lg:pl-2 flex justify-center items-center">
+                <button class="px-4 py-1 text-white font-light tracking-wider bg-gray-900 rounded-md" type="button"
+                  @click="add_panel()">
+                  Add Event
+                </button>
+              </div>
+              <input type="hidden" x-model="JSON.stringify(items)" name="events" />
+            </div>
+          </div>
+        </div>
 
         <div class="w-full lg:w-1/2 mt-6 pl-0 lg:pl-2" x-data="{}">
           <p class="text-xl pb-6 flex items-center">

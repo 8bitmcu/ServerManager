@@ -47,8 +47,8 @@ type UserEvent struct {
 	Id                *int `form:"id"`
 	EventCategoryId   *int `form:"event_category_id"`
 	CategoryName      *string
-	RaceLaps          *int `form:"race_laps"`
-	Strategy          *int `form:"strategy"`
+	RaceLaps          *int `form:"race_laps" json:"race_laps"`
+	Strategy          *int `form:"strategy" json:"strategy"`
 	TrackName         *string
 	TrackLength       *int
 	Pitboxes          *int
@@ -75,10 +75,10 @@ type UserEvent struct {
 	CspWeather        *int
 	CacheTrackKey     *string `form:"track_key"`
 	CacheTrackConfig  *string `form:"track_config"`
-	DifficultyId      *int    `form:"difficulty"`
-	SessionId         *int    `form:"session"`
-	ClassId           *int    `form:"class"`
-	TimeId            *int    `form:"time"`
+	DifficultyId      *int    `form:"difficulty" json:"difficulty"`
+	SessionId         *int    `form:"session" json:"session"`
+	ClassId           *int    `form:"class" json:"class"`
+	TimeId            *int    `form:"time" json:"time"`
 }
 
 type UserEventList struct {
