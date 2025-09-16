@@ -313,6 +313,9 @@ func routeEventCategory(c *gin.Context) {
 		}
 	}
 
+	if len(form.Events) == 0 {
+		form.Events = append(form.Events, UserEvent{})
+	}
 
 	c.HTML(http.StatusOK, "/htm/event_cat.htm", gin.H{
 		"page":          "event_cat",

@@ -1,0 +1,44 @@
+.nav-item:hover {
+  background: #621b18;
+}
+
+.toggle-checkbox:checked {
+  right: 0;
+  border-color: #e3342f;
+}
+
+.toggle-checkbox:checked+.toggle-label {
+  background-color: #e3342f;
+}
+
+@keyframes loader-rotate {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loader {
+  border-right-color: transparent;
+  animation: loader-rotate 1s linear infinite;
+}
+
+input, select, .limit-width, .multi-input {
+  max-width: 350px;
+}
+
+.multi-input select,
+.multi-input input {
+  max-width: initial;
+}
+
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+}

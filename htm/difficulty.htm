@@ -183,7 +183,7 @@
                   </div>
                 </div>
               </label>
-              <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="abs_allowed"
+              <select class="w-full text-gray-700 bg-gray-200 rounded py-1 px-4 pr-8" id="abs_allowed"
                 name="abs_allowed">
                 <option value="0" {{ if (eq (derefInt .form.AbsAllowed) "0") }} selected {{ end }}>Denied</option>
                 <option value="1" {{ if (eq (derefInt .form.AbsAllowed) "1") }} selected {{ end }}>Factory</option>
@@ -199,7 +199,7 @@
                   </div>
                 </div>
               </label>
-              <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="tc_allowed" name="tc_allowed">
+              <select class="w-full text-gray-700 bg-gray-200 rounded py-1 px-4 pr-8" id="tc_allowed" name="tc_allowed">
                 <option value="0" {{ if (eq (derefInt .form.TcAllowed) "0") }} selected {{ end }}>Denied</option>
                 <option value="1" {{ if (eq (derefInt .form.TcAllowed) "1") }} selected {{ end }}>Factory</option>
                 <option value="2" {{ if (eq (derefInt .form.TcAllowed) "2") }} selected {{ end }}>Force</option>
@@ -334,7 +334,7 @@
                   </div>
                 </div>
               </label>
-              <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="allowed_tyres_out"
+              <select class="w-full text-gray-700 bg-gray-200 rounded py-1 px-4 pr-8" id="allowed_tyres_out"
                 name="allowed_tyres_out">
                 <option value="0" {{ if (eq (derefInt .form.AllowedTyresOut) "0") }} selected {{ end }}>0</option>
                 <option value="1" {{ if (eq (derefInt .form.AllowedTyresOut) "1") }} selected {{ end }}>1</option>
@@ -365,7 +365,7 @@
                   </div>
                 </div>
               </label>
-              <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="start_rule" name="start_rule">
+              <select class="w-full text-gray-700 bg-gray-200 rounded py-1 px-4 pr-8" id="start_rule" name="start_rule">
                 <option value="0" {{ if (eq (derefInt .form.StartRule) "0") }} selected {{ end }}>Car Locked</option>
                 <option value="1" {{ if (eq (derefInt .form.StartRule) "1") }} selected {{ end }}>Teleport To Pit
                 </option>
@@ -428,7 +428,7 @@
                     </div>
                   </div>
                 </label>
-                <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="dynamic_track_preset"
+                <select class="w-full text-gray-700 bg-gray-200 rounded py-1 px-4 pr-8" id="dynamic_track_preset"
                   :required="open" name="dynamic_track_preset" x-model="dynamic_track_preset" :disabled="!open"
                   @change="preset_changed()">
                   <option value="0" {{ if (eq (derefInt .form.DynamicTrackPreset) "0") }} selected {{ end }}>Custom
@@ -562,7 +562,7 @@
                   </div>
                 </div>
               </label>
-              <select class="w-full text-gray-700 bg-gray-200 rounded py-3 px-4 pr-8" id="blacklist_mode"
+              <select class="w-full text-gray-700 bg-gray-200 rounded py-1 px-4 pr-8" id="blacklist_mode"
                 name="blacklist_mode">
                 <option value="0" {{ if (eq (derefInt .form.BlacklistMode) "0") }} selected {{ end }}>Kick Player
                 </option>

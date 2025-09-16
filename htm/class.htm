@@ -588,7 +588,7 @@
                     <div class="mr-4">
                       <label class="block text-sm text-gray-600">Car</label>
                       <div class="flex flex-row">
-                        <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.cache_car_key" required=""
+                        <select class="w-full bg-gray-200 rounded-l py-1 px-4 pr-8" x-model="car.cache_car_key" required=""
                           @change="car_changed(car)">
                           <option value="">Select ...</option>
                           {{range $val := .car_data }}
@@ -603,7 +603,7 @@
                       </div>
                       <label class="block text-sm text-gray-600">Skin</label>
                       <div class="flex flex-row">
-                        <select class="w-full bg-gray-200 rounded-l py-2 px-4 pr-8" x-model="car.skin_key" required="">
+                        <select class="w-full bg-gray-200 rounded-l py-1 px-4 pr-8" x-model="car.skin_key" required="">
                           <option value="" :selected="car.skin_key == ''">
                             Select ...
                           </option>

@@ -73,8 +73,9 @@ type UserEvent struct {
 	Graphics          *string
 	TruncWeather      *int
 	CspWeather        *int
-	CacheTrackKey     *string `form:"track_key"`
-	CacheTrackConfig  *string `form:"track_config"`
+	CacheTrackKey     *string
+	CacheTrackConfig  *string
+	CacheTrack        *string `form:"track" json:"track"`
 	DifficultyId      *int    `form:"difficulty" json:"difficulty"`
 	SessionId         *int    `form:"session" json:"session"`
 	ClassId           *int    `form:"class" json:"class"`
