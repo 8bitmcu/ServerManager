@@ -306,9 +306,10 @@ func routeEventCategory(c *gin.Context) {
 	if c.Request.Method == "POST" {
 		if c.PostForm("category_name") != "" {
 			id := Dba.insertEventCategory(c.PostForm("category_name"))
-			c.Redirect(http.StatusFound, fmt.Sprint("/event_cat/", id))
+			c.Redirect(http.StatusFound, fmt.Sprint("/event/", id))
 			return
 		} else if c.ShouldBind(&form) == nil {
+			json.Unmarshal([]byte(c.PostForm("events")), &form.Events)
 			Dba.updateEventCategory(form)
 		}
 	}
@@ -317,8 +318,8 @@ func routeEventCategory(c *gin.Context) {
 		form.Events = append(form.Events, UserEvent{})
 	}
 
-	c.HTML(http.StatusOK, "/htm/event_cat.htm", gin.H{
-		"page":          "event_cat",
+	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
+		"page":          "event",
 		"list":          Dba.selectEventCategoryList(false),
 		"form":          form,
 		"difficulties":  Dba.selectDifficultyList(true),
@@ -343,7 +344,7 @@ func routeDeleteEventCategory(c *gin.Context) {
 			"error":         err.Error(),
 		})
 	} else {
-		c.Redirect(http.StatusFound, "/event_cat")
+		c.Redirect(http.StatusFound, "/event")
 	}
 }
 

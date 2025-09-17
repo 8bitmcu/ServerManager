@@ -28,7 +28,7 @@ var SecretKey []byte
 var Zf ZipFile
 
 // TODO: checksuming is failing when CSP is enabled
-var debug bool = true
+var debug bool = false
 
 func ConfigCompletedMiddlware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -226,12 +226,12 @@ func main() {
 		app.GET("/time/delete/:id", routeDeleteTime)
 		app.POST("/time/delete/:id", routeDeleteTime)
 
-		app.GET("/event_cat", routeEventCategory)
-		app.POST("/event_cat", routeEventCategory)
-		app.GET("/event_cat/:id", routeEventCategory)
-		app.POST("/event_cat/:id", routeEventCategory)
-		app.GET("/event_cat/delete/:id", routeDeleteEventCategory)
-		app.POST("/event_cat/delete/:id", routeDeleteEventCategory)
+		app.GET("/event", routeEventCategory)
+		app.POST("/event", routeEventCategory)
+		app.GET("/event/:id", routeEventCategory)
+		app.POST("/event/:id", routeEventCategory)
+		app.GET("/event/delete/:id", routeDeleteEventCategory)
+		app.POST("/event/delete/:id", routeDeleteEventCategory)
 
 		app.GET("/queue", routeQueue)
 		app.POST("/queue", routeQueue)

@@ -60,7 +60,7 @@ func (cr *ConfigRenderer) writeIni() {
 }
 
 func (cr *ConfigRenderer) renderIni(eventId int) {
-	r := regexp.MustCompile(`\\d{1,3}`)
+	r := regexp.MustCompile("\\d{1,3}")
 
 	event := Dba.selectEvent(eventId)
 	eventcat := Dba.selectEventCategory(*event.EventCategoryId)

@@ -45,10 +45,10 @@ type ServerEvent struct {
 
 type UserEvent struct {
 	Id                *int `form:"id"`
-	EventCategoryId   *int `form:"event_category_id"`
+	EventCategoryId   *int
 	CategoryName      *string
-	RaceLaps          *int `form:"race_laps" json:"race_laps"`
-	Strategy          *int `form:"strategy" json:"strategy"`
+	RaceLaps          *int `form:"race_laps" json:"race_laps,string"`
+	Strategy          *int `form:"strategy" json:"strategy,string"`
 	TrackName         *string
 	TrackLength       *int
 	Pitboxes          *int
@@ -76,10 +76,10 @@ type UserEvent struct {
 	CacheTrackKey     *string
 	CacheTrackConfig  *string
 	CacheTrack        *string `form:"track" json:"track"`
-	DifficultyId      *int    `form:"difficulty" json:"difficulty"`
-	SessionId         *int    `form:"session" json:"session"`
-	ClassId           *int    `form:"class" json:"class"`
-	TimeId            *int    `form:"time" json:"time"`
+	DifficultyId      *int    `form:"difficulty" json:"difficulty,string"`
+	SessionId         *int    `form:"session" json:"session,string"`
+	ClassId           *int    `form:"class" json:"class,string"`
+	TimeId            *int    `form:"time" json:"time,string"`
 }
 
 type UserEventList struct {
@@ -90,8 +90,8 @@ type UserEventList struct {
 
 type UserEventCategory struct {
 	Id     *int
-	Name   *string `form:"name"`
-	Events []UserEvent
+	Name   *string     `form:"name"`
+	Events []UserEvent `json:"events"`
 }
 
 type UserDifficulty struct {

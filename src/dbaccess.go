@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"strings"
 
 	"github.com/jessevdk/go-assets"
 	_ "github.com/mattn/go-sqlite3"
@@ -65,7 +66,7 @@ func (dba Dbaccess) selectDropDownList(filled bool, tableName string) []DropDown
 	if filled {
 		where = " WHERE filled = 1"
 	}
-	rows, err := dba.db.Query("SELECT id, name from " + tableName + where + " ORDER BY name")
+	rows, err := dba.db.Query("SELECT id, name from " + tableName + where + " ORDER BY id")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -629,6 +630,9 @@ SELECT
 	t.name as track_name,
 	t.length as track_length,
 	t.pitboxes as pitboxes,
+	CONCAT(t.key, ':', t.config) as track,
+	t.key as track_key,
+	t.config as track_config,
 	d.id as difficulty_id,
 	d.name as difficulty_name,
 	d.abs_allowed as abs_allowed,
@@ -692,7 +696,7 @@ GROUP BY s.id`
 
 	for rows.Next() {
 		evt := UserEvent{}
-		err = rows.Scan(&evt.Id, &evt.RaceLaps, &evt.Strategy, &evt.TrackName, &evt.TrackLength, &evt.Pitboxes, &evt.DifficultyId, &evt.DifficultyName, &evt.AbsAllowed, &evt.TcAllowed, &evt.StabilityAllowed, &evt.AutoclutchAllowed, &evt.SessionId, &evt.SessionName, &evt.BookingEnabled, &evt.BookingTime, &evt.PracticeEnabled, &evt.PracticeTime, &evt.QualifyEnabled, &evt.QualifyTime, &evt.RaceEnabled, &evt.RaceTime, &evt.ClassId, &evt.ClassName, &evt.Entries, &evt.TimeId, &evt.TimeName, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.CspWeather)
+		err = rows.Scan(&evt.Id, &evt.RaceLaps, &evt.Strategy, &evt.TrackName, &evt.TrackLength, &evt.Pitboxes, &evt.CacheTrack, &evt.CacheTrackKey, &evt.CacheTrackConfig, &evt.DifficultyId, &evt.DifficultyName, &evt.AbsAllowed, &evt.TcAllowed, &evt.StabilityAllowed, &evt.AutoclutchAllowed, &evt.SessionId, &evt.SessionName, &evt.BookingEnabled, &evt.BookingTime, &evt.PracticeEnabled, &evt.PracticeTime, &evt.QualifyEnabled, &evt.QualifyTime, &evt.RaceEnabled, &evt.RaceTime, &evt.ClassId, &evt.ClassName, &evt.Entries, &evt.TimeId, &evt.TimeName, &evt.Time, &evt.Graphics, &evt.TruncWeather, &evt.CspWeather)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -733,7 +737,36 @@ func (dba Dbaccess) updateEventCategory(cat UserEventCategory) int64 {
 		log.Print(err)
 	}
 
+	stmt, err = dba.db.Prepare("DELETE FROM user_event WHERE event_category_id = ?")
+	if err != nil {
+		log.Print(err)
+	}
+	_, err = stmt.Exec(cat.Id)
+	defer stmt.Close()
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	for _, evt := range cat.Events {
+
+		track := strings.Split(*evt.CacheTrack, ":")
+
+		stmt, err = dba.db.Prepare("INSERT INTO user_event (event_category_id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		if err != nil {
+			log.Print(err)
+		}
+
+		_, err := stmt.Exec(&cat.Id, track[0], track[1], &evt.DifficultyId, &evt.SessionId, &evt.ClassId, &evt.TimeId, &evt.RaceLaps, &evt.Strategy)
+		defer stmt.Close()
+
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
 	return affected
+
 }
 
 func (dba Dbaccess) deleteEventCategory(id int) (int64, error) {

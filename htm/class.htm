@@ -580,7 +580,7 @@
                 <hr />
                 <template x-for="(car, car_index) in class_cars" :key="car.uid">
                   <div class="mt-6 m-2 leading-loose font-regular rounded-lg bg-gray-100 flex flex-row">
-                    <div class="max-w-64 mr-4" style="padding: 0">
+                    <div class="max-w-64 mr-4 relative" style="padding: 0">
                       <span class="text-2xl text-white px-2 py-1 absolute"
                         x-text="car_index+1 < 10 ? '0' + (car_index+1) : car_index+1"></span>
                       <img x-bind:src="skin_getimg(car.cache_car_key, car.skin_key)" class="w-64 rounded-l-lg"/>

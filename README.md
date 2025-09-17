@@ -91,7 +91,7 @@ The makefile provides an easy to use method to create a build for Windows
 make buildwin
 ```
 
-## Screenshots
+# Screenshots
 
 ![server screen](assets/server.png)
 
