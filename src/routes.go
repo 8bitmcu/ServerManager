@@ -13,17 +13,47 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+
+func routeDbError(c *gin.Context, err error) {
+	c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
+		"error": err.Error(),
+	})
+}
+
+func routeFkError(c *gin.Context, err error) {
+	c.HTML(http.StatusOK, "/htm/fkerror.htm", gin.H{
+		"error": err.Error(),
+	})
+}
+
 func routeConfig(c *gin.Context) {
 	var form UserConfig
 	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
-		Dba.updateConfig(form)
+		_, err := Dba.updateConfig(form)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
 	}
 
 	Status.refresh()
+
+	form, err := Dba.selectConfig()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	c.HTML(http.StatusOK, "/htm/config.htm", gin.H{
 		"page":          "config",
-		"form":          Dba.selectConfig(),
-		"config_filled": Dba.selectConfigFilled(),
+		"form":          form,
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -31,17 +61,51 @@ func routeConfig(c *gin.Context) {
 func routeContent(c *gin.Context) {
 	var form UserConfig
 	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
-		Dba.updateContent(form)
+		_, err := Dba.updateContent(form)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
+	}
+
+	form, err := Dba.selectConfig()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	trackData, err := Dba.selectCacheTracks()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	carData, err := Dba.selectCacheCars()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	weatherData, err := Dba.selectCacheWeathers()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
 	}
 
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/content.htm", gin.H{
 		"page":          "content",
-		"form":          Dba.selectConfig(),
-		"track_data":    Dba.selectCacheTracks(),
-		"car_data":      Dba.selectCacheCars(),
-		"weather_data":  Dba.selectCacheWeathers(),
-		"config_filled": Dba.selectConfigFilled(),
+		"form":          form,
+		"track_data":    trackData,
+		"car_data":      carData,
+		"weather_data":  weatherData, 
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -51,10 +115,15 @@ func routeIndex(c *gin.Context) {
 }
 
 func routeServer(c *gin.Context) {
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/server.htm", gin.H{
 		"page":          "server",
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -65,23 +134,57 @@ func routeQueue(c *gin.Context) {
 			// insert single event from category
 			id, err := strconv.Atoi(c.PostForm("event"))
 			if id > 0 && err == nil {
-				Dba.insertServerEvent(id)
+				_, err := Dba.insertServerEvent(id)
+				if err != nil {
+					routeDbError(c, err)
+					return
+				}
 			}
 		} else {
 			// insert all events from category
 			id, err := strconv.Atoi(c.PostForm("category"))
 			if id > 0 && err == nil {
-				Dba.insertServerEventCategory(id)
+				_, err := Dba.insertServerEventCategory(id)
+				if err != nil {
+					routeDbError(c, err)
+					return
+				}
 			}
 		}
 	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	eventCat, err := Dba.selectEventCategoryList(false)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	eventList, err := Dba.selectEventList()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	serverEvents, err := Dba.selectServerEvents(false)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/queue.htm", gin.H{
 		"page":          "queue",
-		"config_filled": Dba.selectConfigFilled(),
-		"event_cat":     Dba.selectEventCategoryList(false),
-		"event_list":    Dba.selectEventList(),
-		"server_events": Dba.selectServerEvents(false),
+		"config_filled": cfgFilled,
+		"event_cat":     eventCat,
+		"event_list":    eventList,
+		"server_events": serverEvents,
 		"status":        Status,
 	})
 }
@@ -91,11 +194,7 @@ func routeDeleteQueue(c *gin.Context) {
 	_, err := Dba.deleteServerEvent(id)
 
 	if err != nil {
-		c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-			"status":        Status,
-			"config_filled": Dba.selectConfigFilled(),
-			"error":         err.Error(),
-		})
+		routeFkError(c, err)
 	} else {
 		c.Redirect(http.StatusFound, "/queue")
 	}
@@ -105,7 +204,12 @@ func routeDifficulty(c *gin.Context) {
 	form := UserDifficulty{}
 	id, err := strconv.Atoi(c.Param("id"))
 	if id > 0 && err == nil {
-		form = Dba.selectDifficulty(id)
+		form, err = Dba.selectDifficulty(id)
+
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
 
 		if form.Id == nil {
 			noRoute(c)
@@ -114,19 +218,40 @@ func routeDifficulty(c *gin.Context) {
 	}
 	if c.Request.Method == "POST" {
 		if c.PostForm("difficulty_name") != "" {
-			id := Dba.insertDifficulty(c.PostForm("difficulty_name"))
+			id, err := Dba.insertDifficulty(c.PostForm("difficulty_name"))
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 			c.Redirect(http.StatusFound, fmt.Sprint("/difficulty/", id))
 			return
 		} else if c.ShouldBind(&form) == nil {
-			Dba.updateDifficulty(form)
+			_, err := Dba.updateDifficulty(form)
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 		}
 	}
+
+	list, err := Dba.selectDifficultyList(false)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/difficulty.htm", gin.H{
 		"page":          "difficulty",
-		"list":          Dba.selectDifficultyList(false),
+		"list":          list,
 		"form":          form,
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -136,11 +261,7 @@ func routeDeleteDifficulty(c *gin.Context) {
 	_, err := Dba.deleteDifficulty(id)
 
 	if err != nil {
-		c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-			"status":        Status,
-			"config_filled": Dba.selectConfigFilled(),
-			"error":         err.Error(),
-		})
+		routeFkError(c, err)
 	} else {
 		c.Redirect(http.StatusFound, "/difficulty")
 	}
@@ -150,7 +271,11 @@ func routeClass(c *gin.Context) {
 	form := UserClass{}
 	id, err := strconv.Atoi(c.Param("id"))
 	if id > 0 && err == nil {
-		form = Dba.selectClassEntries(id)
+		form, err = Dba.selectClassEntries(id)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
 
 		if form.Id == nil {
 			noRoute(c)
@@ -159,21 +284,48 @@ func routeClass(c *gin.Context) {
 	}
 	if c.Request.Method == "POST" {
 		if c.PostForm("class_name") != "" {
-			id := Dba.insertClass(c.PostForm("class_name"))
+			id, err := Dba.insertClass(c.PostForm("class_name"))
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 			c.Redirect(http.StatusFound, fmt.Sprint("/class/", id))
 			return
 		} else if c.ShouldBind(&form) == nil {
 			json.Unmarshal([]byte(c.PostForm("entries")), &form.Entries)
-			Dba.updateClass(form)
+			_, err := Dba.updateClass(form)
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 		}
 	}
+
+	list, err := Dba.selectClassList(false)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	carData, err := Dba.selectCacheCars()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/class.htm", gin.H{
 		"page":          "class",
-		"list":          Dba.selectClassList(false),
-		"car_data":      Dba.selectCacheCars(),
+		"list":          list,
+		"car_data":      carData,
 		"form":          form,
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -183,11 +335,7 @@ func routeDeleteClass(c *gin.Context) {
 	_, err := Dba.deleteClass(id)
 
 	if err != nil {
-		c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-			"status":        Status,
-			"config_filled": Dba.selectConfigFilled(),
-			"error":         err.Error(),
-		})
+		routeFkError(c, err)
 	} else {
 		c.Redirect(http.StatusFound, "/class")
 	}
@@ -197,7 +345,11 @@ func routeSession(c *gin.Context) {
 	form := UserSession{}
 	id, err := strconv.Atoi(c.Param("id"))
 	if id > 0 && err == nil {
-		form = Dba.selectSession(id)
+		form, err = Dba.selectSession(id)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
 
 		if form.Id == nil {
 			noRoute(c)
@@ -206,19 +358,40 @@ func routeSession(c *gin.Context) {
 	}
 	if c.Request.Method == "POST" {
 		if c.PostForm("session_name") != "" {
-			id := Dba.insertSession(c.PostForm("session_name"))
+			id, err := Dba.insertSession(c.PostForm("session_name"))
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 			c.Redirect(http.StatusFound, fmt.Sprint("/session/", id))
 			return
 		} else if c.ShouldBind(&form) == nil {
-			Dba.updateSession(form)
+			_, err := Dba.updateSession(form)
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 		}
 	}
+
+	list, err := Dba.selectSessionList(false)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/session.htm", gin.H{
 		"page":          "session",
-		"list":          Dba.selectSessionList(false),
+		"list":          list,
 		"form":          form,
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -228,11 +401,7 @@ func routeDeleteSession(c *gin.Context) {
 	_, err := Dba.deleteSession(id)
 
 	if err != nil {
-		c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-			"status":        Status,
-			"config_filled": Dba.selectConfigFilled(),
-			"error":         err.Error(),
-		})
+		routeFkError(c, err)
 	} else {
 		c.Redirect(http.StatusFound, "/session")
 	}
@@ -242,7 +411,11 @@ func routeTime(c *gin.Context) {
 	form := UserTime{}
 	id, err := strconv.Atoi(c.Param("id"))
 	if id > 0 && err == nil {
-		form = Dba.selectTimeWeather(id)
+		form, err = Dba.selectTimeWeather(id)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
 
 		if form.Id == nil {
 			noRoute(c)
@@ -251,12 +424,20 @@ func routeTime(c *gin.Context) {
 	}
 	if c.Request.Method == "POST" {
 		if c.PostForm("time_name") != "" {
-			id := Dba.insertTime(c.PostForm("time_name"))
+			id, err := Dba.insertTime(c.PostForm("time_name"))
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 			c.Redirect(http.StatusFound, fmt.Sprint("/time/", id))
 			return
 		} else if c.ShouldBind(&form) == nil {
 			json.Unmarshal([]byte(c.PostForm("weather")), &form.Weathers)
-			Dba.updateTime(form)
+			_, err := Dba.updateTime(form)
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 		}
 	}
 
@@ -264,13 +445,32 @@ func routeTime(c *gin.Context) {
 		form.Weathers = append(form.Weathers, UserTimeWeather{})
 	}
 
+
+	list, err := Dba.selectTimeList(false)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	weatherList, err := Dba.selectCacheWeathers()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/time.htm", gin.H{
 		"page":          "time",
-		"list":          Dba.selectTimeList(false),
-		"weatherlist":   Dba.selectCacheWeathers(),
+		"list":          list,
+		"weatherlist":   weatherList,
 		"form":          form,
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -280,11 +480,7 @@ func routeDeleteTime(c *gin.Context) {
 	_, err := Dba.deleteTime(id)
 
 	if err != nil {
-		c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-			"status":        Status,
-			"config_filled": Dba.selectConfigFilled(),
-			"error":         err.Error(),
-		})
+		routeFkError(c, err)
 	} else {
 		c.Redirect(http.StatusFound, "/time")
 	}
@@ -296,7 +492,11 @@ func routeEventCategory(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if id > 0 && err == nil {
-		form = Dba.selectCategoryEvents(id)
+		form, err = Dba.selectCategoryEvents(id)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
 
 		if form.Id == nil {
 			noRoute(c)
@@ -305,12 +505,20 @@ func routeEventCategory(c *gin.Context) {
 	}
 	if c.Request.Method == "POST" {
 		if c.PostForm("category_name") != "" {
-			id := Dba.insertEventCategory(c.PostForm("category_name"))
+			id, err := Dba.insertEventCategory(c.PostForm("category_name"))
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 			c.Redirect(http.StatusFound, fmt.Sprint("/event/", id))
 			return
 		} else if c.ShouldBind(&form) == nil {
 			json.Unmarshal([]byte(c.PostForm("events")), &form.Events)
-			Dba.updateEventCategory(form)
+			_, err := Dba.updateEventCategory(form)
+			if err != nil {
+				routeDbError(c, err)
+				return
+			}
 		}
 	}
 
@@ -318,17 +526,65 @@ func routeEventCategory(c *gin.Context) {
 		form.Events = append(form.Events, UserEvent{})
 	}
 
+	list, err := Dba.selectEventCategoryList(false)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	difficulties, err := Dba.selectDifficultyList(true)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	sessions, err := Dba.selectSessionList(true)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	times, err := Dba.selectTimeList(true)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	classes, err := Dba.selectClassList(true)
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+  cfg, err := Dba.selectConfig()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	tracksData, err := Dba.selectCacheTracks()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	c.HTML(http.StatusOK, "/htm/event.htm", gin.H{
 		"page":          "event",
-		"list":          Dba.selectEventCategoryList(false),
+		"list":          list,
 		"form":          form,
-		"difficulties":  Dba.selectDifficultyList(true),
-		"sessions":      Dba.selectSessionList(true),
-		"times":         Dba.selectTimeList(true),
-		"classes":       Dba.selectClassList(true),
-		"max_clients":   Dba.selectConfig().MaxClients,
-		"track_data":    Dba.selectCacheTracks(),
-		"config_filled": Dba.selectConfigFilled(),
+		"difficulties":  difficulties,
+		"sessions":      sessions,
+		"times":         times,
+		"classes":       classes,
+		"max_clients":   cfg.MaxClients,
+		"track_data":    tracksData,
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -338,11 +594,7 @@ func routeDeleteEventCategory(c *gin.Context) {
 	_, err := Dba.deleteEventCategory(id)
 
 	if err != nil {
-		c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-			"status":        Status,
-			"config_filled": Dba.selectConfigFilled(),
-			"error":         err.Error(),
-		})
+		routeFkError(c, err)
 	} else {
 		c.Redirect(http.StatusFound, "/event")
 	}
@@ -353,7 +605,11 @@ func routeLogin(c *gin.Context) {
 		usr := c.PostForm("name")
 		pwd := c.PostForm("password")
 
-		user := Dba.selectUser(usr)
+		user, err := Dba.selectUser(usr)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
 
 		if user.Name == nil {
 			c.Redirect(http.StatusFound, "/login")
@@ -400,15 +656,30 @@ func routeUser(c *gin.Context) {
 		return
 	}
 
-	form := Dba.selectUser(user.(string))
+	form, err := Dba.selectUser(user.(string))
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
-		Dba.updateUser(form)
+		_, err := Dba.updateUser(form)
+		if err != nil {
+			routeDbError(c, err)
+			return
+		}
+	}
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
 	}
 
 	c.HTML(http.StatusOK, "/htm/user.htm", gin.H{
 		"page":          "user",
 		"form":          form,
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }
@@ -425,8 +696,14 @@ func routeAdmin(c *gin.Context) {
 		return
 	}
 
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
 	c.HTML(http.StatusOK, "/htm/admin.htm", gin.H{
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 
@@ -434,8 +711,14 @@ func routeAdmin(c *gin.Context) {
 
 func noRoute(c *gin.Context) {
 	Status.refresh()
+
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
 	c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{
-		"config_filled": Dba.selectConfigFilled(),
+		"config_filled": cfgFilled,
 		"status":        Status,
 	})
 }

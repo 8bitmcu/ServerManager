@@ -14,10 +14,12 @@ SM is a very flexible web interface used to manage a dedicated Assetto Corsa ser
 
 Features:
 
- - Supports CSP [(Custom Shaders Patch)](https://acstuff.club/patch/)
+ - Supports CSP ([Custom Shaders Patch](https://acstuff.club/patch/))
  - Supports both Windows and Linux
  - No installation required
 
+To be added:
+ - Support for UDP Plugins
 
 # How to use
 

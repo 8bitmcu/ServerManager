@@ -22,7 +22,7 @@ func apiCarImage(c *gin.Context) {
 	if zi != nil {
 		r, err := zi.Open()
 		if err != nil {
-			log.Print(err)
+			log.Print("Cannot open car preview skin file in zipfile: ", err)
 		}
 		defer r.Close()
 		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/jpg", r, nil)
@@ -35,7 +35,15 @@ func apiCarImage(c *gin.Context) {
 func apiCar(c *gin.Context) {
 	key := c.Param("key")
 
-	cardata := Dba.selectCacheCar(key)
+	cardata, err := Dba.selectCacheCar(key)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
 
 	var power []any
 	var torque []any
@@ -74,7 +82,7 @@ func apiTrackPreviewImage(c *gin.Context) {
 	if zi != nil {
 		r, err := zi.Open()
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not open track preview from zipfile", err)
 		}
 		defer r.Close()
 		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/png", r, nil)
@@ -98,7 +106,7 @@ func apiTrackOutlineImage(c *gin.Context) {
 	if zi != nil {
 		r, err := zi.Open()
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not open track outline from zipfile", err)
 		}
 		defer r.Close()
 		c.DataFromReader(http.StatusOK, int64(zi.UncompressedSize64), "image/png", r, nil)
@@ -115,7 +123,16 @@ func apiDifficulty(c *gin.Context) {
 		return
 	}
 
-	data := Dba.selectDifficulty(id)
+	data, err := Dba.selectDifficulty(id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
 	if data.Id == nil {
 		noRoute(c)
 		return
@@ -132,7 +149,16 @@ func apiSession(c *gin.Context) {
 		return
 	}
 
-	data := Dba.selectSession(id)
+	data, err := Dba.selectSession(id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
 	if data.Id == nil {
 		noRoute(c)
 		return
@@ -149,7 +175,14 @@ func apiClass(c *gin.Context) {
 		return
 	}
 
-	data := Dba.selectClassEntries(id)
+	data, err := Dba.selectClassEntries(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
 	if data.Id == nil {
 		noRoute(c)
 		return
@@ -166,7 +199,14 @@ func apiTime(c *gin.Context) {
 		return
 	}
 
-	data := Dba.selectTimeWeather(id)
+	data, err := Dba.selectTimeWeather(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
 	if data.Id == nil {
 		noRoute(c)
 		return
@@ -178,12 +218,39 @@ func apiTime(c *gin.Context) {
 
 func apiRecacheContent(c *gin.Context) {
 
+	tracks, err := Dba.selectCacheTracks()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	cars, err := Dba.selectCacheCars() 
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	weathers, err := Dba.selectCacheWeathers() 
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
 	parseContent(Dba)
 	c.PureJSON(http.StatusOK, gin.H{
 		"result":         "ok",
-		"tracks_total":   len(Dba.selectCacheTracks()),
-		"cars_total":     len(Dba.selectCacheCars()),
-		"weathers_total": len(Dba.selectCacheWeathers()),
+		"tracks_total":   len(tracks),
+		"cars_total":     len(cars),
+		"weathers_total": len(weathers),
 	})
 }
 

@@ -22,7 +22,14 @@ func parseContent(dba Dbaccess) {
 	zipfiles := map[string]string{}
 	var mutex = &sync.RWMutex{}
 
-	log.Print("Parsing ", dba.basepath())
+	basepath, err := dba.basepath()
+	if err != nil {
+		log.Print("Database Error: ", err)
+		return
+	}
+
+	log.Print("Recreating smcontent.zip... please wait....")
+	log.Print("Parsing ", basepath)
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func() {
@@ -48,9 +55,9 @@ func parseContent(dba Dbaccess) {
 	}()
 	wg.Wait()
 
-	zipfiles[filepath.Join(dba.basepath(), "server", "acServer")] = "acServer"
-	zipfiles[filepath.Join(dba.basepath(), "server", "acServer.exe")] = "acServer.exe"
-	zipfiles[filepath.Join(dba.basepath(), "system", "data", "surfaces.ini")] = "system/data/surfaces.ini"
+	zipfiles[filepath.Join(basepath, "server", "acServer")] = "acServer"
+	zipfiles[filepath.Join(basepath, "server", "acServer.exe")] = "acServer.exe"
+	zipfiles[filepath.Join(basepath, "system", "data", "surfaces.ini")] = "system/data/surfaces.ini"
 
 	Zf.UpdateZipfile(zipfiles)
 }
@@ -69,13 +76,14 @@ func parseWeathers(dba Dbaccess) map[string]string {
 		name := ""
 		for scanner.Scan() {
 			if err := scanner.Err(); err != nil {
-				log.Print(err)
+				log.Print("Weather scanner failed to read: ", file, err)
 				continue
 			}
 			t := scanner.Text()
 			if r.MatchString(t) {
 				matches := r2.FindStringSubmatch(t)
 				name = r3.ReplaceAllString(matches[1], "")
+				break
 			}
 		}
 
@@ -90,10 +98,15 @@ func parseWeathers(dba Dbaccess) map[string]string {
 
 	weathers := make([]CacheWeather, 0)
 
-	weatherpath := filepath.Join(Dba.basepath(), "content", "weather")
+	basepath, err := dba.basepath()
+	if err != nil {
+		log.Print("Database Error: ", err)
+		return nil
+	}
+	weatherpath := filepath.Join(basepath, "content", "weather")
 	entries, err := os.ReadDir(weatherpath)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not read directory: ", weatherpath, err)
 	}
 
 	var wg sync.WaitGroup
@@ -107,16 +120,18 @@ func parseWeathers(dba Dbaccess) map[string]string {
 		previewpath := filepath.Join(weatherpath, element.Name(), "preview.jpg")
 
 		if _, err := os.Stat(previewpath); errors.Is(err, os.ErrNotExist) {
+			//log.Print("(warning) weather preview file missing: ", err)
 		} else {
 			zipfiles[previewpath] = "weather/" + element.Name() + "/preview.jpg"
 		}
 
 		if _, err := os.Stat(inipath); errors.Is(err, os.ErrNotExist) {
+			log.Print("weather ini file missing: ", err)
 			continue
 		}
 		file, err := os.Open(inipath)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not open weather ini file: ", inipath, err)
 			continue
 		}
 		defer file.Close()
@@ -140,7 +155,7 @@ func recurseAddIniZip(absPath string, relPath string) map[string]string {
 	zipfiles := map[string]string{}
 	files, err := os.ReadDir(absPath)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not read directory content at: ", absPath, err)
 	}
 
 	for _, file := range files {
@@ -164,30 +179,30 @@ func parseTracks(dba Dbaccess) map[string]string {
 		r := regexp.MustCompile("[^0-9]")
 		jsonBytes, err := os.ReadFile(jsonpath)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not read track json file: ", jsonpath, err)
 		}
 		jsonStr := string(jsonBytes)
 
 		data, err := jsonrepair.JSONRepair(jsonStr)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not repair track json file:", jsonpath, err)
 		}
 
 		var result map[string]string
 		err = json.Unmarshal([]byte(data), &result)
 		if err != nil {
-			//log.Print(err)
+			//log.Print("Could not unmarshal track json file to map[string]string: ", jsonpath, err)
 		}
 
 		var track CacheTrack
 		err = json.Unmarshal([]byte(data), &track)
 		if err != nil {
-			//log.Print(err)
+			//log.Print("Could not unmarshal track json file to CacheTrack: ", jsonpath, err)
 		}
-
-		parsedLen, err := strconv.Atoi(r.ReplaceAllString(result["length"], ""))
+		tracklen := r.ReplaceAllString(result["length"], "")
+		parsedLen, err := strconv.Atoi(tracklen)
 		if err != nil {
-			log.Fatal(err)
+			log.Print("Could not convert track length to integer: ", tracklen, err)
 		}
 		track.Key = &key
 		track.Config = &config
@@ -196,8 +211,13 @@ func parseTracks(dba Dbaccess) map[string]string {
 		return track
 	}
 
+	basepath, err := dba.basepath()
+	if err != nil {
+		log.Print("Database Error: ", err)
+		return nil
+	}
 	tracks := make([]CacheTrack, 0)
-	trackspath := filepath.Join(Dba.basepath(), "content", "tracks")
+	trackspath := filepath.Join(basepath, "content", "tracks")
 
 	parseTrack := func(element fs.DirEntry) {
 		if !element.IsDir() {
@@ -214,7 +234,7 @@ func parseTracks(dba Dbaccess) map[string]string {
 			configsfolder := filepath.Join(trackspath, element.Name(), "ui")
 			configs, err := os.ReadDir(configsfolder)
 			if err != nil {
-				log.Print(err)
+				log.Print("Could not read track config folder: ", configsfolder, err)
 			}
 
 			for _, config := range configs {
@@ -228,7 +248,7 @@ func parseTracks(dba Dbaccess) map[string]string {
 					// Does not exist, try dlc_ui_track.json
 					jsonpath = filepath.Join(trackspath, element.Name(), "ui", config.Name(), "dlc_ui_track.json")
 					if _, err := os.Stat(jsonpath); errors.Is(err, os.ErrNotExist) {
-						log.Print(err)
+						log.Print("No valid track config json file found for: ", err)
 						continue
 					}
 				}
@@ -236,11 +256,13 @@ func parseTracks(dba Dbaccess) map[string]string {
 				mutex.Lock()
 				outline := filepath.Join(trackspath, element.Name(), "ui", config.Name(), "outline.png")
 				if _, err := os.Stat(outline); errors.Is(err, os.ErrNotExist) {
+					//log.Print("(warning) Track outline file does not exist: ", err)
 				} else {
 					zipfiles[outline] = "tracks/" + element.Name() + "/" + config.Name() + "/outline.png"
 				}
 				preview := filepath.Join(trackspath, element.Name(), "ui", config.Name(), "preview.png")
 				if _, err := os.Stat(preview); errors.Is(err, os.ErrNotExist) {
+					//log.Print("(warning) Track preview file does not exist: ", err)
 				} else {
 					zipfiles[preview] = "tracks/" + element.Name() + "/" + config.Name() + "/preview.png"
 				}
@@ -263,7 +285,7 @@ func parseTracks(dba Dbaccess) map[string]string {
 
 	entries, err := os.ReadDir(trackspath)
 	if err != nil {
-		log.Print(err)
+		log.Print("Can not read tracks directory: ", trackspath, err)
 	}
 
 	var wg sync.WaitGroup
@@ -295,23 +317,23 @@ func parseCars(dba Dbaccess) map[string]string {
 		skinjson := filepath.Join(skinspath, skin.Name(), "ui_skin.json")
 		skinname := skin.Name()
 		if _, err := os.Stat(skinjson); errors.Is(err, os.ErrNotExist) {
-			//log.Print(err)
+			log.Print("Car ui_skin.json file missing: ", skinjson, skinname, err)
 		} else {
 			jsonBytes, err := os.ReadFile(skinjson)
 			if err != nil {
-				log.Print(err)
+				log.Print("Cannot read ui_skin.json file: ", skinjson, skinname, err)
 			}
 			jsonStr := string(jsonBytes)
 
 			data, err := jsonrepair.JSONRepair(jsonStr)
 			if err != nil {
-				log.Print(err)
+				log.Print("Cannot repair ui_skin.json file: ", skinjson, skinname, err)
 			}
 
 			var result map[string]string
 			err = json.Unmarshal([]byte(data), &result)
 			if err != nil {
-				//log.Print(err)
+				//log.Print("Cannot unmarshal ui_skin.json file: ", skinjson, skinname, err)
 			}
 
 			if result["skinname"] != "" {
@@ -334,32 +356,32 @@ func parseCars(dba Dbaccess) map[string]string {
 			// file not exist, try dlc json
 			jsonpath := filepath.Join(carspath, element.Name(), "ui", "dlc_ui_car.json")
 			if _, err := os.Stat(jsonpath); errors.Is(err, os.ErrNotExist) {
-				log.Print(err)
+				log.Print("No json file found for car: ", element.Name(), err)
 			}
 		}
 
 		jsonBytes, err := os.ReadFile(jsonpath)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not read car json file: ", jsonpath, err)
 		}
 		jsonStr := string(jsonBytes)
 
 		data, err := jsonrepair.JSONRepair(jsonStr)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not repair car json file: ", jsonpath, err)
 		}
 
 		var result CacheCar
 		err = json.Unmarshal([]byte(data), &result)
 		if err != nil {
-			//log.Print(err)
+			//log.Print("Could not unmarshal car json file: ", jsonpath, err)
 		}
 
 		skinspath := filepath.Join(carspath, element.Name(), "skins")
 
 		skins, err := os.ReadDir(skinspath)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not read car skin directory: ", skinspath, err)
 		}
 
 		var wg sync.WaitGroup
@@ -387,11 +409,16 @@ func parseCars(dba Dbaccess) map[string]string {
 		return result
 	}
 
+	basepath, err := dba.basepath()
+	if err != nil {
+		log.Print("Database Error: ", err)
+		return nil
+	}
 	cars := make([]CacheCar, 0)
-	carspath := filepath.Join(Dba.basepath(), "content", "cars")
+	carspath := filepath.Join(basepath, "content", "cars")
 	entries, err := os.ReadDir(carspath)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not read cars directory: ", carspath, err)
 	}
 
 	var wg sync.WaitGroup
@@ -405,26 +432,8 @@ func parseCars(dba Dbaccess) map[string]string {
 		if _, err := os.Stat(dataacd); errors.Is(err, os.ErrNotExist) {
 			data := filepath.Join(carspath, element.Name(), "data")
 			if _, err := os.Stat(data); errors.Is(err, os.ErrNotExist) {
-				//log.Print("  skipping folder '", element.Name(), "' (most likely a missing DLC)")
 				continue
 			}
-
-			// append all *.ini files in data/ to our zipfile
-			// I don't think this is needed since the car can't be validated anyway
-			/*
-				dfiles, err := os.ReadDir(data)
-				if err != nil {
-					log.Print(err)
-				}
-				for _, fn := range dfiles {
-					if fn.IsDir() {
-						continue
-					}
-					if strings.HasSuffix(fn.Name(), ".ini") {
-
-					}
-				}
-			*/
 		} else {
 			// append data.acd to our zipfile
 			mutex.Lock()

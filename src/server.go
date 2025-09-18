@@ -32,11 +32,11 @@ func (status ServerStatus) updatePublicIp() {
 			case <-ticker.C:
 				res, err := http.Get("https://api.ipify.org")
 				if err != nil {
-					log.Print(err)
+					log.Print("Failed to query IP: ", err)
 				}
 				ip, err := io.ReadAll(res.Body)
 				if err != nil {
-					log.Print(err)
+					log.Print("Can not read response body: ", err)
 				}
 				publicIp = string(ip)
 			case <-quit:
@@ -67,7 +67,11 @@ func (status ServerStatus) serverChangeTrack() {
 }
 
 func (status ServerStatus) serverApplyTrack() bool {
-	nextevents := Dba.selectServerEvents(true)
+	nextevents, err := Dba.selectServerEvents(true)
+
+	if err != nil {
+		log.Print("Database error: ", err)
+	}
 
 	if len(nextevents) == 0 {
 		log.Print("No events in queue")

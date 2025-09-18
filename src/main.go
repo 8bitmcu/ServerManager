@@ -32,7 +32,11 @@ var debug bool = false
 
 func ConfigCompletedMiddlware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		configfilled := Dba.selectConfigFilled()
+		configfilled, err := Dba.selectConfigFilled()
+		if err != nil {
+			log.Print("Database error: ", err)
+			configfilled = false
+		}
 		if !configfilled && c.Request.URL.Path != "/config" && c.Request.URL.Path != "/content" {
 			c.Redirect(http.StatusFound, "/config")
 			return
@@ -71,6 +75,8 @@ func AuthenticateMiddleware(c *gin.Context) {
 }
 
 func main() {
+	// Enables logging the filename
+	log.SetFlags(log.Lshortfile)
 
 	flag.StringVar(&ConfigFolder, "p", "", "Configuration path")
 	flag.Parse()
@@ -86,7 +92,7 @@ func main() {
 	if _, err := os.Stat(ConfigFolder); os.IsNotExist(err) {
 		err := os.Mkdir(ConfigFolder, os.ModePerm)
 		if err != nil {
-			log.Print(err)
+			log.Print("Cannot create config folder: ", err)
 		}
 	}
 
@@ -98,7 +104,7 @@ func main() {
 	if _, err := os.Stat(TempFolder); os.IsNotExist(err) {
 		err := os.Mkdir(TempFolder, os.ModePerm)
 		if err != nil {
-			log.Print(err)
+			log.Print("Cannot create temp folder: ", err)
 		}
 	}
 
@@ -106,7 +112,13 @@ func main() {
 	log.Print("Opening database file located at: " + dbpath)
 	Dba = open(dbpath)
 	Dba.applySchema(FindFile("/schema.sql"))
-	SecretKey = []byte(*Dba.selectConfig().SecretKey)
+
+	cfg, err := Dba.selectConfig()
+	if err != nil {
+		log.Fatal("Database error: ", err)
+	}
+
+	SecretKey = []byte(*cfg.SecretKey)
 
 	gin.SetMode(gin.ReleaseMode)
 
@@ -175,9 +187,9 @@ func main() {
 
 	t := template.New("")
 	t.Funcs(funcMap)
-	err := LoadTemplate(t, ".htm")
+	err = LoadTemplate(t, ".htm")
 	if err != nil {
-		log.Print(err)
+		log.Print("Failed to load static template", err)
 	}
 	router.SetHTMLTemplate(t)
 
@@ -293,9 +305,10 @@ func main() {
 	}
 
 	go func() {
-		log.Print("Server up and running on http://localhost:3030")
 		if err := main.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Print(err)
+			log.Print("WebUI could not start up on port 3030: ", err)
+		} else {
+			log.Print("WebUI up and running on http://localhost:3030")
 		}
 	}()
 
@@ -303,14 +316,14 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Print("Shutting down server...")
+	log.Print("Shutting down WebUI...")
 
 	Dba.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err := main.Shutdown(ctx); err != nil {
-		log.Print(err)
+		log.Print("Shutdown error: ", err)
 	}
 	select {
 	case <-ctx.Done():

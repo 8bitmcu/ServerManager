@@ -32,7 +32,7 @@ type ConfigRenderer struct {
 func (cr *ConfigRenderer) timeToSunAngle(timeStr *string) int {
 	time, err := time.Parse("15:04", *timeStr)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not parse time: ", *timeStr, err)
 	}
 
 	angle := -80 + (16 * (time.Hour() - 8))
@@ -45,31 +45,70 @@ func (cr *ConfigRenderer) writeIni() {
 	cfgfolder := filepath.Join(TempFolder, "cfg")
 	err := os.MkdirAll(cfgfolder, os.ModePerm)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not create temp folder: ", cfgfolder, err)
 	}
 
 	err = os.WriteFile(filepath.Join(cfgfolder, "server_cfg.ini"), []byte(cr.serverCfgResult), 0644)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not write server_cfg.ini: ", err)
 	}
 
 	err = os.WriteFile(filepath.Join(cfgfolder, "entry_list.ini"), []byte(cr.entryListResult), 0644)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not write entry_list.ini: ", err)
 	}
 }
 
 func (cr *ConfigRenderer) renderIni(eventId int) {
-	r := regexp.MustCompile("\\d{1,3}")
+	r := regexp.MustCompile(`\d{1,3}`)
 
-	event := Dba.selectEvent(eventId)
-	eventcat := Dba.selectEventCategory(*event.EventCategoryId)
-	tm := Dba.selectTimeWeather(*event.TimeId)
-	diff := Dba.selectDifficulty(*event.DifficultyId)
-	cfg := Dba.selectConfig()
-	session := Dba.selectSession(*event.SessionId)
-	class := Dba.selectClassEntries(*event.ClassId)
-	track := Dba.selectCacheTrack(*event.CacheTrackKey, *event.CacheTrackConfig)
+	event, err := Dba.selectEvent(eventId)
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
+
+	eventcat, err := Dba.selectEventCategory(*event.EventCategoryId)
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
+
+	tm, err := Dba.selectTimeWeather(*event.TimeId)
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
+
+	diff, err := Dba.selectDifficulty(*event.DifficultyId)
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
+
+	cfg, err := Dba.selectConfig()
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
+
+	session, err := Dba.selectSession(*event.SessionId)
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
+
+	class, err := Dba.selectClassEntries(*event.ClassId)
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
+
+	track, err := Dba.selectCacheTrack(*event.CacheTrackKey, *event.CacheTrackConfig)
+	if err != nil {
+		log.Print("Database error: ", err)
+		return
+	}
 
 	if session.QualifyMaxWaitPerc == nil {
 		var val = 120
@@ -110,7 +149,7 @@ func (cr *ConfigRenderer) renderIni(eventId int) {
 		for _, wt := range tm.Weathers {
 			cspTime, err := time.Parse("15:04", *wt.CspTime)
 			if err != nil {
-				log.Print(err)
+				log.Print("Could not parse csp time:", *wt.CspTime, err)
 			}
 			cspTimeInt := (cspTime.Hour() * 3600) + (cspTime.Minute() * 60) + cspTime.Second()
 			seconds := strconv.Itoa(cspTimeInt)
@@ -120,7 +159,7 @@ func (cr *ConfigRenderer) renderIni(eventId int) {
 			if wt.CspDate != nil && *wt.CspDate != "" {
 				cspDate, err := time.Parse("2006-01-02", *wt.CspDate)
 				if err != nil {
-					log.Print(err)
+					log.Print("Could not parse csp date:", *wt.CspDate, err)
 				}
 
 				dateStr = "_start=" + strconv.FormatInt(cspDate.Unix(), 10)
@@ -167,11 +206,11 @@ func (cr *ConfigRenderer) renderIni(eventId int) {
 		file := FindFile("/ini/server_cfg.ini")
 		tmplStr, err := io.ReadAll(file)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not read template file server_cfg.ini: ", err)
 		}
 		Cr.serverCfgIni, err = template.New("server_cfg.ini").Funcs(funcMap).Parse(string(tmplStr))
 		if err != nil {
-			log.Print(err)
+			log.Print("Error parsing server_cfg.ini template: ", err)
 		}
 	}
 
@@ -190,27 +229,27 @@ func (cr *ConfigRenderer) renderIni(eventId int) {
 	}
 
 	var b bytes.Buffer
-	err := Cr.serverCfgIni.Execute(&b, data)
+	err = Cr.serverCfgIni.Execute(&b, data)
 	if err != nil {
-		log.Print(err)
+		log.Print("Error executing server_cfg.ini template: ", err)
 	}
 
 	if Cr.entryListIni == nil {
 		file := FindFile("/ini/entry_list.ini")
 		tmplStr, err := io.ReadAll(file)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not read template file entry_list.ini: ", err)
 		}
 		Cr.entryListIni, err = template.New("entry_list.ini").Funcs(funcMap).Parse(string(tmplStr))
 		if err != nil {
-			log.Print(err)
+			log.Print("Error parsing entry_list.ini template: ", err)
 		}
 	}
 
 	var b2 bytes.Buffer
 	err = Cr.entryListIni.Execute(&b2, class)
 	if err != nil {
-		log.Print(err)
+		log.Print("Error executing entry_list.ini template: ", err)
 	}
 
 	cr.serverCfgResult = b.String()

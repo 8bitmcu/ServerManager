@@ -27,14 +27,14 @@ func (zf *ZipFile) Open() {
 	zf.zipFile = zr
 
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not open smcontent.zip", err)
 	}
 }
 
 func (zf *ZipFile) Close() {
 	err := zf.zipFile.Close()
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not close smcontent.zip", err)
 	}
 }
 
@@ -71,30 +71,30 @@ func (zf *ZipFile) ExtractFile(f *zip.File, filePath string) {
 	}
 	if f.FileInfo().IsDir() {
 		if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
-			log.Print(err)
+			log.Print("Error creating directory: ", err)
 		}
 		return
 	}
 
 	mkdir := filepath.Join(filePath, filepath.Dir(f.Name))
 	if err := os.MkdirAll(mkdir, os.ModePerm); err != nil {
-		log.Print(err)
+		log.Print("Error creating directory: ", err)
 	}
 
 	destinationFile, err := os.OpenFile(filepath.Join(filePath, f.Name), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 	if err != nil {
-		log.Print(err)
+		log.Print("Error creating file: ", err)
 	}
 	defer destinationFile.Close()
 
 	zippedFile, err := f.Open()
 	if err != nil {
-		log.Print(err)
+		log.Print("Error opening file: ", err)
 	}
 	defer zippedFile.Close()
 
 	if _, err := io.Copy(destinationFile, zippedFile); err != nil {
-		log.Print(err)
+		log.Print("Error extracting file: ", err)
 	}
 }
 
@@ -104,29 +104,29 @@ func (zf *ZipFile) ExtractFileToSubfolder(f *zip.File, filePath string) {
 	}
 	if f.FileInfo().IsDir() {
 		if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
-			log.Print(err)
+			log.Print("Error creating directory: ", err)
 		}
 		return
 	}
 
 	if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
-		log.Print(err)
+		log.Print("Error creating directory: ", err)
 	}
 
 	destinationFile, err := os.OpenFile(filepath.Join(filePath, filepath.Base(f.Name)), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 	if err != nil {
-		log.Print(err)
+		log.Print("Error creating file: ", err)
 	}
 	defer destinationFile.Close()
 
 	zippedFile, err := f.Open()
 	if err != nil {
-		log.Print(err)
+		log.Print("Error opening file: ", err)
 	}
 	defer zippedFile.Close()
 
 	if _, err := io.Copy(destinationFile, zippedFile); err != nil {
-		log.Print(err)
+		log.Print("Error extracting file: ", err)
 	}
 }
 
@@ -142,7 +142,7 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 	if _, err := os.Stat(zipfilename); errors.Is(err, os.ErrNotExist) {
 		newfile, err := os.Create(zipfilename)
 		if err != nil {
-			log.Print(err)
+			log.Print("Could not create smcontent.zip", err)
 		}
 		defer newfile.Close()
 
@@ -150,27 +150,27 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 
 		f, err := w.Create("readme.txt")
 		if err != nil {
-			log.Print(err)
+			log.Print("(warning) Failed to create readme.txt", err)
 		}
 		_, err = f.Write([]byte("This archive is maintained by servermanager."))
 		if err != nil {
-			log.Print(err)
+			log.Print("(warning) Failed to write readme.txt", err)
 		}
 
 		err = w.Close()
 		if err != nil {
-			log.Print(err)
+			log.Print("Failed to close readme.txt", err)
 		}
 	}
 
 	zr, err := zip.OpenReader(zipfilename)
 	if err != nil {
-		log.Print(err)
+		log.Print("Failed to open zip file", err)
 	}
 	defer zr.Close()
 	zwf, err := os.Create(zipfilename + "_")
 	if err != nil {
-		log.Print(err)
+		log.Print("Failed to create backup zip file", err)
 	}
 	defer zwf.Close()
 	zw := zip.NewWriter(zwf)
@@ -200,12 +200,12 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 
 			src, err := os.Open(filepath)
 			if err != nil {
-				log.Print(err)
+				log.Print("Could not open file for reading: ", err)
 			}
 
 			fi, err := src.Stat()
 			if err != nil {
-				log.Print(err)
+				log.Print("Could not stat file: ", err)
 			}
 
 			// Skip file if it already exists and has the same timestamp
@@ -220,13 +220,10 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 				Method:   zip.Deflate,
 				Modified: fi.ModTime(),
 			}
-			if err != nil {
-				log.Print(err)
-			}
 
 			dest, err := zw.CreateHeader(fih)
 			if err != nil {
-				log.Print(err)
+				log.Print("Failed to create file header", err)
 			}
 
 			defer src.Close()
@@ -235,7 +232,7 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 
 				if err != nil {
 					if _, err := io.Copy(dest, src); err != nil {
-						log.Print(err)
+						log.Print("Failed to copy jpg: ", err)
 					}
 					return
 				}
@@ -258,7 +255,7 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 
 				if err != nil {
 					if _, err := io.Copy(dest, src); err != nil {
-						log.Print(err)
+						log.Print("Failed to copy png: ", err)
 					}
 					return
 				}
@@ -276,7 +273,7 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 				png.Encode(dest, dst)
 			} else {
 				if _, err := io.Copy(dest, src); err != nil {
-					log.Print(err)
+					log.Print("Failed to copy file: ", err)
 				}
 			}
 
@@ -303,17 +300,17 @@ func (zf *ZipFile) UpdateZipfile(filesToZip map[string]string) {
 
 		zipItemReader, err := zipItem.OpenRaw()
 		if err != nil {
-			log.Print(err)
+			log.Print("Failed to open zipitem: ", err)
 		}
 
 		header := zipItem.FileHeader
 		targetItem, err := zw.CreateRaw(&header)
 		if err != nil {
-			log.Print(err)
+			log.Print("Failed to create header for zipitem: ", err)
 		}
 		_, err = io.Copy(targetItem, zipItemReader)
 		if err != nil {
-			log.Print(err)
+			log.Print("Failed to copy zipitem: ", err)
 		}
 	}
 

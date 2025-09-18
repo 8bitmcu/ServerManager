@@ -148,7 +148,7 @@ func (r *UdpReader) ReadUTF32String() string {
 	val, err := utf32.UTF32(utf32.LittleEndian, utf32.IgnoreBOM).NewDecoder().Bytes(bytes)
 
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not convert to UTF32: ", err)
 	}
 
 	return string(val)
@@ -193,7 +193,7 @@ func (w *UdpWriter) WriteUTF32String(str string) {
 	w.WriteByte(byte(len(str)))
 
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not convert to UTF32: ", err)
 	}
 	w.data = append(w.data, val[:]...)
 }
@@ -228,17 +228,17 @@ func udpListen() UdpPlugin {
 	var udp UdpPlugin
 	udpClient, err := net.ResolveUDPAddr("udp", ":5001")
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not resolve UPD on 5001: ", err)
 	}
 
 	udpServer, err := net.ResolveUDPAddr("udp", ":5000")
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not resolve UPD on 5000: ", err)
 	}
 
 	udp.conn, err = net.DialUDP("udp", udpClient, udpServer)
 	if err != nil {
-		log.Print(err)
+		log.Print("Could not establish udp connection: ", err)
 	}
 
 	return udp
