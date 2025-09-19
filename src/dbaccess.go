@@ -9,6 +9,7 @@ import (
 
 	"github.com/jessevdk/go-assets"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/ztrue/tracerr"
 )
 
 type Dbaccess struct {
@@ -46,13 +47,13 @@ func (dba Dbaccess) applySchema(f *assets.File) {
 func (dba Dbaccess) tableExists(tablename string) (int, error) {
 	stmt, err := dba.db.Prepare("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	defer stmt.Close()
 	var count int
 	err = stmt.QueryRow(tablename).Scan(&count)
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return count, nil
@@ -65,14 +66,14 @@ func (dba Dbaccess) selectDropDownList(filled bool, tableName string) ([]DropDow
 	}
 	rows, err := dba.db.Query("SELECT id, name from " + tableName + where + " ORDER BY id")
 	if err != nil {
-		return nil, err
+		return nil, tracerr.Wrap(err)
 	}
 
 	defer rows.Close()
 
 	err = rows.Err()
 	if err != nil {
-		return nil, err
+		return nil, tracerr.Wrap(err)
 	}
 
 	ddl := make([]DropDownList, 0)
@@ -80,7 +81,7 @@ func (dba Dbaccess) selectDropDownList(filled bool, tableName string) ([]DropDow
 		item := DropDownList{}
 		err = rows.Scan(&item.Id, &item.Name)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 
 		ddl = append(ddl, item)
@@ -88,7 +89,7 @@ func (dba Dbaccess) selectDropDownList(filled bool, tableName string) ([]DropDow
 
 	err = rows.Err()
 	if err != nil {
-		return nil, err
+		return nil, tracerr.Wrap(err)
 	}
 
 	return ddl, nil
@@ -97,18 +98,18 @@ func (dba Dbaccess) selectDropDownList(filled bool, tableName string) ([]DropDow
 func (dba Dbaccess) deleteFrom(id int, tableName string) (int64, error) {
 	stmt, err := dba.db.Prepare("DELETE FROM " + tableName + " WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -117,18 +118,18 @@ func (dba Dbaccess) deleteFrom(id int, tableName string) (int64, error) {
 func (dba Dbaccess) insertNameInto(name string, tableName string) (int64, error) {
 	stmt, err := dba.db.Prepare("INSERT INTO " + tableName + " (name) VALUES (?)")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(name)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return id, nil
@@ -153,18 +154,18 @@ func (dba Dbaccess) updateUser(usr Users) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE users SET password = ?, measurement_unit = ?, temp_unit = ? WHERE name = ?")
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	res, err := stmt.Exec(&usr.Password, &usr.MeasurementUnit, &usr.TempUnit, &usr.Name)
 	defer stmt.Close()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -209,18 +210,18 @@ func (dba Dbaccess) updateConfig(cfg UserConfig) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_config SET name = ?, append_eventname = ?, password = ?, admin_password = ?, register_to_lobby = ?, locked_entry_list = ?, result_screen_time = ?, udp_port = ?, tcp_port = ?, http_port = ?, client_send_interval = ?, num_threads = ?, max_clients = ?, welcome_message = ?, append_modlinks = ?, cfg_filled = 1")
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	res, err := stmt.Exec(&cfg.Name, &cfg.AppendEventname, &cfg.Password, &cfg.AdminPassword, &cfg.RegisterToLobby, &cfg.LockedEntryList, &cfg.ResultScreenTime, &cfg.UdpPort, &cfg.TcpPort, &cfg.HttpPort, &cfg.ClientSendInterval, &cfg.NumThreads, &cfg.MaxClients, &cfg.WelcomeMessage, &cfg.AppendModlinks)
 	defer stmt.Close()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -230,18 +231,18 @@ func (dba Dbaccess) updateContent(cfg UserConfig) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_config SET csp_required = ?, csp_phycars = ?, csp_phytracks = ?, csp_hidepit = ?, csp_version = ?, install_path = ?, mod_filled = 1")
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	defer stmt.Close()
 
 	res, err := stmt.Exec(&cfg.CspRequired, &cfg.CspPhycars, &cfg.CspPhytracks, &cfg.CspHidepit, &cfg.CspVersion, &cfg.InstallPath)
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -286,13 +287,13 @@ JOIN user_time tw
 	on u.time_id = tw.id` + where + orderby)
 
 	if err != nil {
-		return nil, err
+		return nil, tracerr.Wrap(err)
 	}
 	defer rows.Close()
 
 	err = rows.Err()
 	if err != nil {
-		return nil, err
+		return nil, tracerr.Wrap(err)
 	}
 
 	list := make([]ServerEvent, 0)
@@ -300,7 +301,7 @@ JOIN user_time tw
 		se := ServerEvent{}
 		err = rows.Scan(&se.Id, &se.UserEvent.Id, &se.UserEvent.TrackName, &se.UserEvent.DifficultyName, &se.UserEvent.SessionName, &se.UserEvent.ClassName, &se.UserEvent.TimeName, &se.UserEvent.CategoryName, &se.StartedAt, &se.Finished)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 
 		list = append(list, se)
@@ -314,18 +315,18 @@ func (dba Dbaccess) insertServerEvent(event int) (int64, error) {
 
 	stmt, err := dba.db.Prepare(sql)
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(event)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -334,12 +335,12 @@ func (dba Dbaccess) insertServerEvent(event int) (int64, error) {
 func (dba Dbaccess) insertServerEventCategory(category int) (int64, error) {
 	stmt, err := dba.db.Prepare("SELECT id FROM user_event WHERE event_category_id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	defer stmt.Close()
 	rows, err := stmt.Query(category)
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	var ids []int
@@ -347,7 +348,7 @@ func (dba Dbaccess) insertServerEventCategory(category int) (int64, error) {
 		var id int
 		err = rows.Scan(&id)
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		ids = append(ids, id)
 	}
@@ -355,23 +356,23 @@ func (dba Dbaccess) insertServerEventCategory(category int) (int64, error) {
 	for _, id := range ids {
 		stmt, err := dba.db.Prepare("INSERT INTO server_event (user_event_id, orderby) VALUES (?, (SELECT ifnull(MAX(orderby)+1, 1) FROM server_event))")
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		res, err := stmt.Exec(id)
 		defer stmt.Close()
 
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 
 		_, err = res.RowsAffected()
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 	}
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return 0, nil
@@ -380,18 +381,18 @@ func (dba Dbaccess) insertServerEventCategory(category int) (int64, error) {
 func (dba Dbaccess) updateServerEvent(se ServerEvent) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE server_event SET started_at = ?, servercfg = ?, entrylist = ?, finished = ? WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(se.StartedAt, se.ServerCfg, se.EntryList, se.Finished, se.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -484,13 +485,13 @@ func (dba Dbaccess) updateServerEventMoveDown(id int) error {
 func (dba Dbaccess) deleteServerEventsCompleted() (int64, error) {
 	stmt, err := dba.db.Prepare("DELETE FROM server_event WHERE finished = 1")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec()
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return 0, nil
@@ -499,13 +500,13 @@ func (dba Dbaccess) deleteServerEventsCompleted() (int64, error) {
 func (dba Dbaccess) deleteServerEvent(id int) (int64, error) {
 	stmt, err := dba.db.Prepare("DELETE FROM server_event WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec(id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return 0, nil
@@ -561,18 +562,18 @@ func (dba Dbaccess) selectEventList() ([]UserEventList, error) {
 func (dba Dbaccess) insertEvent(evt UserEvent) (int64, error) {
 	stmt, err := dba.db.Prepare("INSERT INTO user_event (event_category_id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(&evt.EventCategoryId, &evt.CacheTrackKey, &evt.CacheTrackConfig, &evt.DifficultyId, &evt.SessionId, &evt.ClassId, &evt.TimeId, &evt.RaceLaps, &evt.Strategy)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -581,18 +582,18 @@ func (dba Dbaccess) insertEvent(evt UserEvent) (int64, error) {
 func (dba Dbaccess) updateEvent(evt UserEvent) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_event SET cache_track_key = ?, cache_track_config = ?, difficulty_id = ?, session_id = ?, class_id = ?, time_id = ?, race_laps = ?, strategy = ? WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(evt.CacheTrackKey, evt.CacheTrackConfig, evt.DifficultyId, evt.SessionId, evt.ClassId, evt.TimeId, evt.RaceLaps, evt.Strategy, evt.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -725,29 +726,29 @@ func (dba Dbaccess) insertEventCategory(categoryname string) (int64, error) {
 func (dba Dbaccess) updateEventCategory(cat UserEventCategory) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_event_category SET name = ?, filled = 1 WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(&cat.Name, &cat.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	stmt, err = dba.db.Prepare("DELETE FROM user_event WHERE event_category_id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec(cat.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	for _, evt := range cat.Events {
@@ -756,14 +757,14 @@ func (dba Dbaccess) updateEventCategory(cat UserEventCategory) (int64, error) {
 
 		stmt, err = dba.db.Prepare("INSERT INTO user_event (event_category_id, cache_track_key, cache_track_config, difficulty_id, session_id, class_id, time_id, race_laps, strategy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 
 		_, err := stmt.Exec(&cat.Id, track[0], track[1], &evt.DifficultyId, &evt.SessionId, &evt.ClassId, &evt.TimeId, &evt.RaceLaps, &evt.Strategy)
 		defer stmt.Close()
 
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 	}
 
@@ -805,18 +806,18 @@ func (dba Dbaccess) deleteDifficulty(id int) (int64, error) {
 func (dba Dbaccess) updateDifficulty(dif UserDifficulty) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_difficulty SET name = ?, abs_allowed = ?, tc_allowed = ?, stability_allowed = ?, autoclutch_allowed = ?, tyre_blankets_allowed = ?, force_virtual_mirror = ?, fuel_rate = ?, damage_multiplier = ?, tyre_wear_rate = ?, allowed_tyres_out = ?, max_ballast_kg = ?, start_rule = ?, race_gas_penality_disabled = ?, dynamic_track = ?, dynamic_track_preset = ?, session_start = ?, randomness = ?, session_transfer = ?, lap_gain = ?, kick_quorum = ?, voting_quorum = ?, vote_duration = ?, blacklist_mode = ?, max_contacts_per_km = ?, filled = 1 WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(&dif.Name, &dif.AbsAllowed, &dif.TcAllowed, &dif.StabilityAllowed, &dif.AutoclutchAllowed, &dif.TyreBlanketsAllowed, &dif.ForceVirtualMirror, &dif.FuelRate, &dif.DamageMultiplier, &dif.TyreWearRate, &dif.AllowedTyresOut, &dif.MaxBallastKg, &dif.StartRule, &dif.RaceGasPenalityDisabled, &dif.DynamicTrack, &dif.DynamicTrackPreset, &dif.SessionStart, &dif.Randomness, &dif.SessionTransfer, &dif.LapGain, &dif.KickQuorum, &dif.VoteDuration, &dif.VoteDuration, &dif.BlacklistMode, &dif.MaxContactsPerKm, &dif.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -852,18 +853,18 @@ func (dba Dbaccess) deleteSession(id int) (int64, error) {
 func (dba Dbaccess) updateSession(ses UserSession) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_session SET name = ?, booking_enabled = ?, booking_time = ?, practice_enabled = ?, practice_time = ?, practice_is_open = ?, qualify_enabled = ?, qualify_time = ?, qualify_is_open = ?, qualify_max_wait_perc = ?, race_enabled = ?, race_time = ?, race_extra_lap = ?, race_over_time = ?, race_wait_time = ?, race_is_open = ?, reversed_grid_positions = ?, race_pit_window_start = ?, race_pit_window_end = ?, filled = 1 WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	res, err := stmt.Exec(&ses.Name, &ses.BookingEnabled, &ses.BookingTime, &ses.PracticeEnabled, &ses.PracticeTime, &ses.PracticeIsOpen, &ses.QualifyEnabled, &ses.QualifyTime, &ses.QualifyIsOpen, &ses.QualifyMaxWaitPerc, &ses.RaceEnabled, &ses.RaceTime, &ses.RaceExtraLap, &ses.RaceOverTime, &ses.RaceWaitTime, &ses.RaceIsOpen, &ses.ReversedGridPositions, &ses.RacePitWindowStart, &ses.RacePitWindowEnd, &ses.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	affected, err := res.RowsAffected()
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return affected, nil
@@ -915,18 +916,18 @@ func (dba Dbaccess) deleteTime(id int) (int64, error) {
 	rows, err := dba.deleteFrom(id, "user_time")
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	stmt, err := dba.db.Prepare("DELETE FROM user_time_weather WHERE user_time_id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec(id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return rows, err
@@ -935,36 +936,36 @@ func (dba Dbaccess) deleteTime(id int) (int64, error) {
 func (dba Dbaccess) updateTime(time UserTime) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_time SET name = ?, time = ?, time_of_day_multi = ?, csp_enabled = ?, filled = 1 WHERE id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec(&time.Name, &time.Time, &time.TimeOfDayMulti, &time.CspEnabled, &time.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	stmt, err = dba.db.Prepare("DELETE FROM user_time_weather WHERE user_time_id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec(time.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	for _, w := range time.Weathers {
 		stmt, err = dba.db.Prepare("INSERT INTO user_time_weather (user_time_id, graphics, base_temperature_ambient, base_temperature_road, variation_ambient, variation_road, wind_base_speed_min, wind_base_speed_max, wind_base_direction, wind_variation_direction, csp_time, csp_time_of_day_multi, csp_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		_, err = stmt.Exec(&time.Id, &w.Graphics, &w.BaseTemperatureAmbient, &w.BaseTemperatureRoad, &w.VariationAmbient, &w.VariationRoad, &w.WindBaseSpeedMin, &w.WindBaseSpeedMax, &w.WindBaseDirection, &w.WindVariationDirection, &w.CspTime, &w.CspTimeOfDayMulti, &w.CspDate)
 		defer stmt.Close()
 
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 	}
 
@@ -1019,18 +1020,18 @@ func (dba Dbaccess) deleteClass(id int) (int64, error) {
 	_, err := dba.deleteFrom(id, "user_class")
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	stmt, err := dba.db.Prepare("DELETE FROM user_class_entry WHERE user_class_id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec(id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	return 1, nil
@@ -1040,36 +1041,36 @@ func (dba Dbaccess) updateClass(cls UserClass) (int64, error) {
 	stmt, err := dba.db.Prepare("UPDATE user_class SET name = ?, filled = 1 WHERE id = ?")
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(cls.Name, cls.Id)
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	stmt, err = dba.db.Prepare("DELETE FROM user_class_entry WHERE user_class_id = ?")
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 	_, err = stmt.Exec(cls.Id)
 	defer stmt.Close()
 
 	if err != nil {
-		return -1, err
+		return -1, tracerr.Wrap(err)
 	}
 
 	for _, ent := range cls.Entries {
 		stmt, err = dba.db.Prepare("INSERT INTO user_class_entry (user_class_id, cache_car_key, skin_key) VALUES (?, ?, ?)")
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		_, err = stmt.Exec(cls.Id, ent.CacheCarKey, ent.SkinKey)
 		defer stmt.Close()
 
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 	}
 
@@ -1080,36 +1081,36 @@ func (dba Dbaccess) updateCacheCars(cars []CacheCar) (int64, error) {
 	for _, car := range cars {
 		stmt, err := dba.db.Prepare("INSERT INTO cache_car (key, name, brand, desc, tags, class, specs, torque, power, skins) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 
 		tagsRes, err := json.Marshal(&car.Tags)
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		tags := string(tagsRes)
 
 		specsRes, err := json.Marshal(&car.Specs)
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		specs := string(specsRes)
 
 		powerRes, err := json.Marshal(&car.Power)
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		power := string(powerRes)
 
 		torqueRes, err := json.Marshal(&car.Torque)
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		torque := string(torqueRes)
 
 		skinsRes, err := json.Marshal(&car.Skins)
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		skins := string(skinsRes)
 		_, err = stmt.Exec(&car.Key, &car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins)
@@ -1119,12 +1120,12 @@ func (dba Dbaccess) updateCacheCars(cars []CacheCar) (int64, error) {
 		if err != nil {
 			stmt, err = dba.db.Prepare("UPDATE cache_car SET name = ?, brand = ?, desc = ?, tags = ?, class = ?, specs = ?, torque = ?, power = ?, skins = ? WHERE key = ?")
 			if err != nil {
-				return -1, err
+				return -1, tracerr.Wrap(err)
 			}
 			_, err = stmt.Exec(&car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins, &car.Key)
 			defer stmt.Close()
 			if err != nil {
-				return -1, err
+				return -1, tracerr.Wrap(err)
 			}
 		}
 	}
@@ -1135,7 +1136,7 @@ func (dba Dbaccess) updateCacheCars(cars []CacheCar) (int64, error) {
 func (dba Dbaccess) selectCacheCars() ([]CacheCar, error) {
 	rows, err := dba.db.Query("SELECT key, name, brand, desc, tags, class, specs, torque, power, skins FROM cache_car ORDER BY name")
 	if err != nil {
-		return nil, err
+		return nil, tracerr.Wrap(err)
 	}
 
 	var tags string
@@ -1149,27 +1150,27 @@ func (dba Dbaccess) selectCacheCars() ([]CacheCar, error) {
 		car := CacheCar{}
 		err = rows.Scan(&car.Key, &car.Name, &car.Brand, &car.Desc, &tags, &car.Class, &specs, &torque, &power, &skins)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 		err = json.Unmarshal([]byte(tags), &car.Tags)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 		err = json.Unmarshal([]byte(specs), &car.Specs)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 		err = json.Unmarshal([]byte(power), &car.Power)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 		err = json.Unmarshal([]byte(torque), &car.Torque)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 		err = json.Unmarshal([]byte(skins), &car.Skins)
 		if err != nil {
-			return nil, err
+			return nil, tracerr.Wrap(err)
 		}
 		cars = append(cars, car)
 	}
@@ -1223,13 +1224,13 @@ func (dba Dbaccess) updateCacheTracks(tracks []CacheTrack) (int64, error) {
 
 		tagsRes, err := json.Marshal(&track.Tags)
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		tags := string(tagsRes)
 
 		stmt, err := dba.db.Prepare("INSERT INTO cache_track (key, config, name, desc, tags, country, city, length, width, pitboxes, run) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		_, err = stmt.Exec(&track.Key, &track.Config, &track.Name, &track.Desc, tags, &track.Country, &track.City, &track.Length, &track.Width, &track.Pitboxes, &track.Run)
 		defer stmt.Close()
@@ -1238,13 +1239,13 @@ func (dba Dbaccess) updateCacheTracks(tracks []CacheTrack) (int64, error) {
 		if err != nil {
 			stmt, err := dba.db.Prepare("UPDATE cache_track SET name = ?, desc = ?, tags = ?, country = ?, city = ?, length = ?, width = ?, pitboxes = ?, run = ? WHERE key = ? AND config = ?")
 			if err != nil {
-				return -1, err
+				return -1, tracerr.Wrap(err)
 			}
 			_, err = stmt.Exec(&track.Name, &track.Desc, tags, &track.Country, &track.City, &track.Length, &track.Width, &track.Pitboxes, &track.Run, &track.Key, &track.Config)
 			defer stmt.Close()
 
 			if err != nil {
-				return -1, err
+				return -1, tracerr.Wrap(err)
 			}
 		}
 	}
@@ -1319,7 +1320,7 @@ func (dba Dbaccess) updateCacheWeathers(weathers []CacheWeather) (int64, error) 
 	for _, w := range weathers {
 		stmt, err := dba.db.Prepare("INSERT INTO cache_weather (key, name) VALUES (?, ?)")
 		if err != nil {
-			return -1, err
+			return -1, tracerr.Wrap(err)
 		}
 		_, err = stmt.Exec(&w.Key, &w.Name)
 		defer stmt.Close()
@@ -1328,13 +1329,13 @@ func (dba Dbaccess) updateCacheWeathers(weathers []CacheWeather) (int64, error) 
 		if err != nil {
 			stmt, err := dba.db.Prepare("UPDATE cache_weather set name = ? WHERE key = ?")
 			if err != nil {
-				return -1, err
+				return -1, tracerr.Wrap(err)
 			}
 			_, err = stmt.Exec(&w.Key, &w.Name)
 			defer stmt.Close()
 
 			if err != nil {
-				return -1, err
+				return -1, tracerr.Wrap(err)
 			}
 		}
 	}
@@ -1359,7 +1360,7 @@ func (dba Dbaccess) selectCacheWeathers() ([]CacheWeather, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, tracerr.Wrap(err)
 	}
 
 	return weathers, nil

@@ -13,19 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-
-func routeDbError(c *gin.Context, err error) {
-	c.HTML(http.StatusOK, "/htm/dberror.htm", gin.H{
-		"error": err.Error(),
-	})
-}
-
-func routeFkError(c *gin.Context, err error) {
-	c.HTML(http.StatusOK, "/htm/fkerror.htm", gin.H{
-		"error": err.Error(),
-	})
-}
-
 func routeConfig(c *gin.Context) {
 	var form UserConfig
 	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
@@ -212,7 +199,7 @@ func routeDifficulty(c *gin.Context) {
 		}
 
 		if form.Id == nil {
-			noRoute(c)
+			route404(c)
 			return
 		}
 	}
@@ -278,7 +265,7 @@ func routeClass(c *gin.Context) {
 		}
 
 		if form.Id == nil {
-			noRoute(c)
+			route404(c)
 			return
 		}
 	}
@@ -352,7 +339,7 @@ func routeSession(c *gin.Context) {
 		}
 
 		if form.Id == nil {
-			noRoute(c)
+			route404(c)
 			return
 		}
 	}
@@ -418,7 +405,7 @@ func routeTime(c *gin.Context) {
 		}
 
 		if form.Id == nil {
-			noRoute(c)
+			route404(c)
 			return
 		}
 	}
@@ -499,7 +486,7 @@ func routeEventCategory(c *gin.Context) {
 		}
 
 		if form.Id == nil {
-			noRoute(c)
+			route404(c)
 			return
 		}
 	}
@@ -692,7 +679,7 @@ func routeAdmin(c *gin.Context) {
 	}
 
 	if user != "admin" {
-		noRoute(c)
+		route403(c)
 		return
 	}
 
@@ -709,16 +696,41 @@ func routeAdmin(c *gin.Context) {
 
 }
 
-func noRoute(c *gin.Context) {
-	Status.refresh()
+// Error routing
 
-	cfgFilled, err := Dba.selectConfigFilled()
-	if err != nil {
-		routeDbError(c, err)
-		return
-	}
-	c.HTML(http.StatusNotFound, "/htm/404.htm", gin.H{
-		"config_filled": cfgFilled,
-		"status":        Status,
+func routeDbError(c *gin.Context, err error) {
+	git := "Hello! I've encountered the following error:\n\n```\n" + FormatError(err) + "\n```\n\nHere are the steps I was taking while this happened:\n(PLEASE FILL IN)"
+	c.HTML(http.StatusInternalServerError, "/htm/error.htm", gin.H{
+		"error":      "Application Error: " + err.Error(),
+		"details":    FormatErrorHTML(err),
+		"detailsGit": git,
+		"title":      "500",
 	})
 }
+
+func routeFkError(c *gin.Context, err error) {
+	git := "Hello! I've encountered the following error:\n\n```\n" + FormatError(err) + "\n```\n\nHere are the steps I was taking while this happened:\n(PLEASE FILL IN)"
+	c.HTML(http.StatusInternalServerError, "/htm/error.htm", gin.H{
+		"error":      "Application Error: " + err.Error(),
+		"details":    FormatErrorHTML(err),
+		"detailsGit": git,
+		"title":      "500",
+	})
+}
+
+func route404(c *gin.Context) {
+	c.HTML(http.StatusNotFound, "/htm/error.htm", gin.H{
+		"error":   "Oops! Page not found",
+		"details": "The page you are looking for might have been removed or is temporarily unavailable.",
+		"title":   "404",
+	})
+}
+
+func route403(c *gin.Context) {
+	c.HTML(http.StatusForbidden, "/htm/error.htm", gin.H{
+		"error":   "Forbidden",
+		"details": "The server understood the request, but is refusing to authorize it.",
+		"title":   "403",
+	})
+}
+

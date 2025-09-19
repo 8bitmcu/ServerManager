@@ -13,6 +13,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func noRoute(c *gin.Context) {
+	c.JSON(http.StatusNotFound, gin.H{
+		"code": "PAGE_NOT_FOUND", 
+		"message": "Page not found",
+	})
+}
+
 func apiCarImage(c *gin.Context) {
 	car := c.Param("car")
 	skin := c.Param("skin")

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"io"
 	"os/signal"
 	"path/filepath"
 	"runtime"
@@ -76,7 +77,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 
 func main() {
 	// Enables logging the filename
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	flag.StringVar(&ConfigFolder, "p", "", "Configuration path")
 	flag.Parse()
@@ -92,9 +93,20 @@ func main() {
 	if _, err := os.Stat(ConfigFolder); os.IsNotExist(err) {
 		err := os.Mkdir(ConfigFolder, os.ModePerm)
 		if err != nil {
-			log.Print("Cannot create config folder: ", err)
+			log.Fatal("Cannot create config folder: ", err)
 		}
 	}
+
+	logpath := filepath.Join(ConfigFolder, "logfile.log")
+	log.Print("Opening log file located at: ", logpath)
+	logfile, err := os.OpenFile(logpath, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("error opening file: ", err)
+	}
+	defer logfile.Close()
+
+	mw := io.MultiWriter(os.Stdout, logfile)
+	log.SetOutput(mw)
 
 	TempFolder = "/tmp"
 	if runtime.GOOS == "windows" {
@@ -104,7 +116,7 @@ func main() {
 	if _, err := os.Stat(TempFolder); os.IsNotExist(err) {
 		err := os.Mkdir(TempFolder, os.ModePerm)
 		if err != nil {
-			log.Print("Cannot create temp folder: ", err)
+			log.Fatal("Cannot create temp folder: ", err)
 		}
 	}
 
@@ -112,6 +124,9 @@ func main() {
 	log.Print("Opening database file located at: " + dbpath)
 	Dba = open(dbpath)
 	Dba.applySchema(FindFile("/schema.sql"))
+
+
+
 
 	cfg, err := Dba.selectConfig()
 	if err != nil {
@@ -291,7 +306,7 @@ func main() {
 		api.GET("/queue/clearcompleted", apiQueueClearCompleted)
 	}
 
-	router.NoRoute(noRoute)
+	router.NoRoute(route404)
 
 	if !debug {
 		OpenURL("http://localhost:3030")
@@ -316,7 +331,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Print("Shutting down WebUI...")
+	log.Print("Shutting down WebUI...\n\n")
 
 	Dba.db.Close()
 

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ServerManager Error</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <meta name="author" content="8bitmcu" />
+  <meta name="description" content="" />
+
+  <!-- Tailwindcss -->
+  <link href="/static/css/main.css" rel="stylesheet" />
+
+  <!-- extra css -->
+  <link href="/static/css/extra.css" rel="stylesheet" />
+
+  <!-- AlpineJS -->
+  <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+
+  <!-- Font Awesome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"
+    crossorigin="anonymous"></script>
+
+</head>
+
+<body class="bg-gray-100 flex justify-center items-center align-middle h-screen">
+  <form id="frmGithub" method="GET" action="https://github.com/8bitmcu/ServerManager/issues/new">
+    <input type="hidden" name="title" value="Help! I encountered an error!" />
+    <input type="hidden" name="body" value="{{ .detailsGit }}" />
+  </form>
+  <div class="leading-loose bg-white rounded shadow-xl md:py-12 md:px-24 sm:py-4 sm:px-6 w-1/2">
+    <div class="text-center mt-6">
+      <h1 class="text-9xl font-bold text-gray-800">{{ .title }}</h1>
+      <p class="text-2xl font-light text-gray-600 mt-4 pb-24">{{ .error }}</p>
+      <p class="text-gray-500 mt-4 mb-8 text-left leading-[1.3] font-mono">
+        {{ .details }}
+      </p>
+      <a href="#" onclick="history.back()" class="px-4 py-2 bg-red-500 text-white rounded mr-4">
+        Go back
+      </a>
+      {{ if .detailsGit }}
+      <a href="#" onclick="document.getElementById('frmGithub').submit()" class="px-4 py-2 bg-red-500 text-white rounded">
+        Report error
+      </a>
+      {{ end }}
+    </div>
+  </div>
+</body>
+
+</html>
