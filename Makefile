@@ -1,5 +1,6 @@
 build:
-	npx tailwindcss -i ./css/input.css -o ./css/main.css --minify
+	#npx tailwindcss -i ./css/input.css -o ./css/main.css --minify
+	npx @tailwindcss/cli -i ./css/input.css -o ./css/main.css --minify
 	go-assets-builder schema.sql favicon.ico ini htm img css -o src/assets.go
 	cd src; CGO_ENABLED=1 go build -o ../bin/sm -ldflags="-w -s" .
 

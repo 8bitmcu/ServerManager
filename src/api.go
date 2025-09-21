@@ -15,7 +15,7 @@ import (
 
 func noRoute(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{
-		"code": "PAGE_NOT_FOUND", 
+		"code":    "PAGE_NOT_FOUND",
 		"message": "Page not found",
 	})
 }
@@ -234,7 +234,7 @@ func apiRecacheContent(c *gin.Context) {
 		return
 	}
 
-	cars, err := Dba.selectCacheCars() 
+	cars, err := Dba.selectCacheCars()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]any{
 			"success": false,
@@ -243,7 +243,7 @@ func apiRecacheContent(c *gin.Context) {
 		return
 	}
 
-	weathers, err := Dba.selectCacheWeathers() 
+	weathers, err := Dba.selectCacheWeathers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]any{
 			"success": false,
@@ -308,6 +308,21 @@ func apiServerStatus(c *gin.Context) {
 		"is_running": isRunning(),
 		"text":       getContent(),
 	})
+}
+
+func apiServerLogfile(c *gin.Context) {
+	logpath := filepath.Join(ConfigFolder, "logfile.log")
+	c.FileAttachment(logpath, "logfile.log")
+}
+
+func apiServerSmdata(c *gin.Context) {
+	smdata := filepath.Join(ConfigFolder, "smdata.db")
+	c.FileAttachment(smdata, "smdata.db")
+}
+
+func apiServerSmcontent(c *gin.Context) {
+	smcontent := filepath.Join(ConfigFolder, "smcontent.zip")
+	c.FileAttachment(smcontent, "smcontent.zip")
 }
 
 // Warning: non determistic as some of the items can be randomized/shuffled.

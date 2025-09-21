@@ -96,7 +96,7 @@
         <label class="block text-sm text-gray-600 group relative" for="install_path">
           Installation Path
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+            <div class="bg-corsa text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Root folder of your Assetto Corsa installation path
             </div>
           </div>
@@ -105,7 +105,7 @@
           <input class="w-full px-5 py-1 text-gray-700 bg-gray-200 rounded-l" id="install_path" name="install_path"
             type="text" required="" placeholder="Installation Path" aria-label="Installation Path"
             x-model="install_path" value="" />
-          <button class="px-4 py-1 text-white font-light tracking-wider bg-red-500 rounded-r flex flex-row align-center"
+          <button class="px-4 py-1 text-white font-light tracking-wider bg-corsa rounded-r flex flex-row align-center"
             style="align-items: center" type="button" @click="validate_path()">
             <span class="pr-2">Test</span>
             <div class="w-6 h-6 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
@@ -157,7 +157,7 @@
       <div class="w-full flex flex-row px-2 py-3">
         <div>
           {{ if (eq (derefInt .form.ModFilled) "1") }}
-          <button class="bg-red-500 text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
+          <button class="bg-corsa text-white rounded py-1 px-2 text-sm flex flex-row" style="align-items: center"
             type="button" @click="load_content()" :disabled="loading">
             <span class="pr-2">Reload Content</span>
             <div class="w-5 h-5 border-2 border-white-600 rounded-full loader" x-show="loading == true"></div>
@@ -186,7 +186,7 @@
         <label class="block text-sm text-gray-600 group relative" for="csp_required">
           Required to join
           <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-            <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+            <div class="bg-corsa text-white text-sm rounded py-1 px-4 right-0 bottom-full">
               Enable CSP on this server. Note: CSP <b>must</b> be installed in
               your assetto corsa folder
             </div>
@@ -207,7 +207,7 @@
           <label class="block text-sm text-gray-600 group relative" for="csp_version">
             Minimum version
             <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              <div class="bg-corsa text-white text-sm rounded py-1 px-4 right-0 bottom-full">
                 Minimum version of CSP required to join the game
               </div>
             </div>
@@ -220,7 +220,7 @@
           <label class="block text-sm text-gray-600 group relative" for="csp_phycars">
             Use extended physics for cars
             <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              <div class="bg-corsa text-white text-sm rounded py-1 px-4 right-0 bottom-full">
                 # TODO: tootip
               </div>
             </div>
@@ -237,7 +237,7 @@
           <label class="block text-sm text-gray-600 group relative" for="csp_phytracks">
             Use extended physics for tracks
             <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              <div class="bg-corsa text-white text-sm rounded py-1 px-4 right-0 bottom-full">
                 # TODO: tootip
               </div>
             </div>
@@ -254,7 +254,7 @@
           <label class="block text-sm text-gray-600 group relative" for="csp_hidepit">
             Hide pit crew
             <div class="absolute mx-2 invisible group-hover:visible" style="top: -2rem; left: -1rem">
-              <div class="bg-red-500 text-white text-sm rounded py-1 px-4 right-0 bottom-full">
+              <div class="bg-corsa text-white text-sm rounded py-1 px-4 right-0 bottom-full">
                 Results in faster load times
               </div>
             </div>

@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
-	"os"
 	"errors"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"

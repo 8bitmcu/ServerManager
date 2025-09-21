@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"io"
 	"os/signal"
 	"path/filepath"
 	"runtime"
@@ -27,6 +28,7 @@ var ConfigFolder string
 var TempFolder string
 var SecretKey []byte
 var Zf ZipFile
+var LogBuffer bytes.Buffer
 
 // TODO: checksuming is failing when CSP is enabled
 var debug bool = false
@@ -99,13 +101,13 @@ func main() {
 
 	logpath := filepath.Join(ConfigFolder, "logfile.log")
 	log.Print("Opening log file located at: ", logpath)
-	logfile, err := os.OpenFile(logpath, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	logfile, err := os.OpenFile(logpath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatal("error opening file: ", err)
 	}
 	defer logfile.Close()
 
-	mw := io.MultiWriter(os.Stdout, logfile)
+	mw := io.MultiWriter(os.Stdout, logfile, &LogBuffer)
 	log.SetOutput(mw)
 
 	TempFolder = "/tmp"
@@ -124,9 +126,6 @@ func main() {
 	log.Print("Opening database file located at: " + dbpath)
 	Dba = open(dbpath)
 	Dba.applySchema(FindFile("/schema.sql"))
-
-
-
 
 	cfg, err := Dba.selectConfig()
 	if err != nil {
@@ -204,7 +203,7 @@ func main() {
 	t.Funcs(funcMap)
 	err = LoadTemplate(t, ".htm")
 	if err != nil {
-		log.Print("Failed to load static template", err)
+		log.Fatal("Failed to load static template", err)
 	}
 	router.SetHTMLTemplate(t)
 
@@ -221,6 +220,9 @@ func main() {
 
 		app.GET("/config", routeConfig)
 		app.POST("/config", routeConfig)
+
+		app.GET("/about", routeAbout)
+		app.POST("/about", routeAbout)
 
 		app.GET("/content", routeContent)
 		app.POST("/content", routeContent)
@@ -296,6 +298,9 @@ func main() {
 		api.GET("/server/start", apiServerStart)
 		api.GET("/server/stop", apiServerStop)
 		api.GET("/server/status", apiServerStatus)
+		api.GET("/server/logfile", apiServerLogfile)
+		api.GET("/server/smdata", apiServerSmdata)
+		api.GET("/server/smcontent", apiServerSmcontent)
 
 		api.GET("/server/entry_list.ini", apiEntryList)
 		api.GET("/server/server_cfg.ini", apiServerCfg)
@@ -321,7 +326,7 @@ func main() {
 
 	go func() {
 		if err := main.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Print("WebUI could not start up on port 3030: ", err)
+			log.Fatal("WebUI could not start up on port 3030: ", err)
 		} else {
 			log.Print("WebUI up and running on http://localhost:3030")
 		}

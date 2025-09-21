@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os/exec"
-	"runtime"
-	"regexp"
 	"html/template"
+	"os/exec"
+	"regexp"
+	"runtime"
 
 	"github.com/ztrue/tracerr"
 )
@@ -54,4 +54,3 @@ func FormatError(err error) string {
 
 	return newErr
 }
-

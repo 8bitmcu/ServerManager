@@ -1,14 +1,18 @@
+:root {
+  --assetto-red: #ef4444;
+}
+
 .nav-item:hover {
   background: #621b18;
 }
 
 .toggle-checkbox:checked {
   right: 0;
-  border-color: #e3342f;
+  border-color: var(--assetto-red);
 }
 
 .toggle-checkbox:checked+.toggle-label {
-  background-color: #e3342f;
+  background-color: var(--assetto-red);
 }
 
 @keyframes loader-rotate {
@@ -41,4 +45,16 @@ select {
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 18px;
+}
+
+* {
+  border-color: var(--color-gray-300);
+}
+
+button {
+  cursor: pointer;
+}
+
+.bg-corsa {
+  background-color: var(--assetto-red);
 }

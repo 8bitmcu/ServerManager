@@ -13,6 +13,24 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func routeAbout(c *gin.Context) {
+	cfgFilled, err := Dba.selectConfigFilled()
+	if err != nil {
+		routeDbError(c, err)
+		return
+	}
+
+	Status.refresh()
+
+	c.HTML(http.StatusOK, "/htm/about.htm", gin.H{
+		"page":          "about",
+		"config_filled": cfgFilled,
+		"cfgLoc":        ConfigFolder,
+		"tmpLoc":        TempFolder,
+		"status":        Status,
+	})
+}
+
 func routeConfig(c *gin.Context) {
 	var form UserConfig
 	if c.Request.Method == "POST" && c.ShouldBind(&form) == nil {
@@ -91,7 +109,7 @@ func routeContent(c *gin.Context) {
 		"form":          form,
 		"track_data":    trackData,
 		"car_data":      carData,
-		"weather_data":  weatherData, 
+		"weather_data":  weatherData,
 		"config_filled": cfgFilled,
 		"status":        Status,
 	})
@@ -163,7 +181,6 @@ func routeQueue(c *gin.Context) {
 		routeDbError(c, err)
 		return
 	}
-
 
 	Status.refresh()
 	c.HTML(http.StatusOK, "/htm/queue.htm", gin.H{
@@ -432,7 +449,6 @@ func routeTime(c *gin.Context) {
 		form.Weathers = append(form.Weathers, UserTimeWeather{})
 	}
 
-
 	list, err := Dba.selectTimeList(false)
 	if err != nil {
 		routeDbError(c, err)
@@ -543,7 +559,7 @@ func routeEventCategory(c *gin.Context) {
 		return
 	}
 
-  cfg, err := Dba.selectConfig()
+	cfg, err := Dba.selectConfig()
 	if err != nil {
 		routeDbError(c, err)
 		return
@@ -733,4 +749,3 @@ func route403(c *gin.Context) {
 		"title":   "403",
 	})
 }
-

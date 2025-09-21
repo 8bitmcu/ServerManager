@@ -16,7 +16,7 @@
   <link href="/static/css/extra.css" rel="stylesheet" />
 
   <!-- AlpineJS -->
-  <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <!-- Font Awesome -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"
@@ -28,7 +28,7 @@
 </head>
 
 <body class="bg-gray-100 flex">
-  <aside class="relative bg-red-500 h-screen w-70 hidden sm:block shadow-xl">
+  <aside class="relative bg-corsa h-screen w-70 hidden sm:block shadow-xl">
     <div class="p-6">
       <div class="text-white text-3xl font-semibold text-center">ServerManager</div>
       <div
@@ -36,7 +36,7 @@
         <div>
           <span>Server status: &nbsp;</span>
           <div
-              class="center relative inline-block select-none whitespace-nowrap rounded-lg {{ if .status.Status }}bg-green-500{{ else }}bg-red-500{{ end }} py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
+              class="center relative inline-block select-none whitespace-nowrap rounded-lg {{ if .status.Status }}bg-green-500{{ else }}bg-corsa{{ end }} py-1 px-2 align-baseline font-sans text-xs font-bold uppercase leading-none text-white">
             {{ if .status.Status }}<div class="mt-px">online</div>{{ end }}
             {{ if not .status.Status }}<div class="mt-px">offline</div>{{ end}}
           </div>
@@ -126,7 +126,7 @@
     </header>
 
     <!-- Mobile Header & Nav -->
-    <header x-data="{ isOpen: false }" class="w-full bg-sidebar py-5 px-6 sm:hidden bg-red-500">
+    <header x-data="{ isOpen: false }" class="w-full bg-sidebar py-5 px-6 sm:hidden bg-corsa">
       <div class="flex items-center justify-between">
         <button @click="isOpen = !isOpen" class="text-white text-3xl focus:outline-none">
           <i x-show="!isOpen" class="fas fa-bars"></i>
