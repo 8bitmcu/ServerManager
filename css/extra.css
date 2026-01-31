@@ -1,5 +1,5 @@
 :root {
-  --assetto-red: #ef4444;
+  --assetto-red: #e20613;
 }
 
 .nav-item:hover {
@@ -57,4 +57,8 @@ button {
 
 .bg-corsa {
   background-color: var(--assetto-red);
+}
+
+aside {
+  background: linear-gradient(45deg,rgb(107,0,62) 0%,rgb(254,45,45) 50%,rgb(249,47,47) 100%)
 }

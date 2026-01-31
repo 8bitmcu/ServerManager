@@ -10,6 +10,7 @@ require (
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/kaptinlin/jsonrepair v0.1.0
 	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/ztrue/tracerr v0.4.0
 	golang.org/x/crypto v0.29.0
 	golang.org/x/image v0.22.0
 	golang.org/x/text v0.20.0
@@ -60,7 +61,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
-	github.com/ztrue/tracerr v0.4.0 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/net v0.31.0 // indirect

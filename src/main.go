@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,6 +30,7 @@ var TempFolder string
 var SecretKey []byte
 var Zf ZipFile
 var LogBuffer bytes.Buffer
+var Version = "development"
 
 // TODO: checksuming is failing when CSP is enabled
 var debug bool = false
@@ -81,8 +83,14 @@ func main() {
 	// Enables logging the filename
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	showVersion := flag.Bool("v", false, "display version information")
 	flag.StringVar(&ConfigFolder, "p", "", "Configuration path")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("SM version: %s\n", Version)
+		os.Exit(0)
+	}
 
 	if ConfigFolder == "" {
 		ConfigFolder = os.Getenv("XDG_CONFIG_HOME")

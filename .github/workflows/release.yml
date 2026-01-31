@@ -1,0 +1,69 @@
+name: Build and Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'package.json'
+          cache: 'npm'
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++-mingw-w64-x86-64 zip
+          make deps
+
+      - name: Run Package Command
+        run: make package VERSION=${{ github.ref_name }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sm-build
+          path: |
+            bin/sm_linux
+            bin/sm_win.exe
+
+      - name: Create Gitea Release
+        if: "!contains(github.server_url, 'github.com')"
+        uses: https://gitea.com/actions/release-action@main
+        with:
+          files: |
+            bin/sm_linux
+            bin/sm_win.exe
+          name: "Release ${{ github.ref_name }}"
+          tag: ${{ github.ref_name }}
+          base_url: ${{ github.server_url }}
+          draft: false
+          prerelease: false
+          overwrite: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: "contains(github.server_url, 'github.com')"
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bin/sm_linux
+            bin/sm_win.exe
+          name: "Release ${{ github.ref_name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
