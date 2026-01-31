@@ -32,7 +32,7 @@ deps:
 package: clean buildwin build
 
 clean:
-	rm -r bin/
+	rm -rf bin/
 	rm -f css/main.css
 	rm -f src/assets.go
 	rm -f *.syso
