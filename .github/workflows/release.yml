@@ -35,9 +35,9 @@ jobs:
         run: make package VERSION=${{ github.ref_name }}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: sm-build
+          name: sm-build-${{ github.ref_name }}
           path: |
             bin/sm_linux
             bin/sm_win.exe
